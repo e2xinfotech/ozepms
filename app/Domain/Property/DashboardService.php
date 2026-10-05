@@ -21,13 +21,29 @@ class DashboardService
 
     private const LIST_LIMIT = 5;
 
-    public function build(Property $property): array
+    public const MAX_RANGE_DAYS = 62;
+
+    /**
+     * @param  CarbonImmutable|null  $from  first day of the chart / revenue range (default: 6 days before today)
+     * @param  CarbonImmutable|null  $to  last day of the range (default: 7 days after today)
+     */
+    public function build(Property $property, ?CarbonImmutable $from = null, ?CarbonImmutable $to = null): array
     {
         $today = $this->today($property);
+        $from ??= $today->subDays(self::CHART_DAYS_BEFORE);
+        $to ??= $today->addDays(self::CHART_DAYS_AFTER);
+        if ($to->lt($from) || $from->diffInDays($to) > self::MAX_RANGE_DAYS) {
+            $from = $today->subDays(self::CHART_DAYS_BEFORE);
+            $to = $today->addDays(self::CHART_DAYS_AFTER);
+        }
         $totalRooms = $this->units($property)->count();
         $occupied = $this->table('reservation_rooms', $property)->where('status', 'checked_in')->count();
-        $blocked = $this->table('unit_blocks', $property)->whereNull('released_at')
-            ->where('start_date', '<=', $today->toDateString())->where('end_date', '>', $today->toDateString())->count();
+        $blocks = $this->table('unit_blocks', $property)->whereNull('released_at')
+            ->where('start_date', '<=', $today->toDateString())->where('end_date', '>', $today->toDateString())
+            ->select('block_type', DB::raw('count(distinct unit_id) as total'))->groupBy('block_type')->pluck('total', 'block_type');
+        $outOfService = (int) ($blocks['out_of_order'] ?? 0) + (int) ($blocks['maintenance'] ?? 0);
+        $ownerHold = (int) ($blocks['owner_hold'] ?? 0);
+        $blocked = $outOfService + $ownerHold;
 
         $arrivals = $this->table('reservations', $property)->where('check_in', $today->toDateString())
             ->whereIn('status', ['pending', 'confirmed', 'checked_in']);
@@ -38,6 +54,8 @@ class DashboardService
 
         return [
             'today' => $today->toDateString(),
+            'from' => $from->toDateString(),
+            'to' => $to->toDateString(),
             'currency' => $property->currency_code,
             'kpis' => [
                 'total_rooms' => $totalRooms,
@@ -45,13 +63,14 @@ class DashboardService
                 'occupancy' => $totalRooms > 0 ? round($occupied * 100 / $totalRooms, 1) : 0,
                 'arrivals' => (clone $arrivals)->count(),
                 'departures' => (clone $departures)->count(),
-                'revenue' => $this->revenue($property, $today->startOfMonth(), $today->endOfMonth()),
+                'revenue' => $this->revenue($property, $from, $to),
             ],
-            'chart' => $this->chart($property, $today, $totalRooms),
+            'chart' => $this->chart($property, $from, $to, $totalRooms),
             'room_status' => [
                 'occupied' => $occupied,
                 'vacant' => max(0, $totalRooms - $occupied - $blocked),
-                'blocked' => $blocked,
+                'out_of_service' => $outOfService,
+                'blocked' => $ownerHold,
                 'total' => $totalRooms,
             ],
             'summary' => [
@@ -90,10 +109,8 @@ class DashboardService
         ];
     }
 
-    private function chart(Property $property, CarbonImmutable $today, int $totalRooms): array
+    private function chart(Property $property, CarbonImmutable $from, CarbonImmutable $to, int $totalRooms): array
     {
-        $from = $today->subDays(self::CHART_DAYS_BEFORE);
-        $to = $today->addDays(self::CHART_DAYS_AFTER);
 
         $nights = $this->table('reservation_room_nights', $property)
             ->where('is_active', true)
