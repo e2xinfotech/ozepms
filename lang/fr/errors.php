@@ -1,0 +1,23 @@
+<?php
+
+return [
+    'validation' => 'Veuillez vérifier les champs signalés.',
+    'reference' => 'Référence',
+    'back_home' => 'Retour à OzePMS',
+    'title_401' => 'Veuillez vous connecter',
+    'title_403' => 'Accès refusé',
+    'title_404' => 'Page introuvable',
+    'title_419' => 'Session expirée',
+    'title_429' => 'Trop de requêtes',
+    'title_500' => 'Une erreur s\'est produite',
+    'title_503' => 'Maintenance en cours',
+    '401' => 'Votre session a pris fin. Veuillez vous reconnecter.',
+    '403' => 'Vous n\'avez pas l\'autorisation d\'effectuer cette action.',
+    '404' => 'La page demandée n\'existe pas ou vous n\'y avez pas accès.',
+    '419' => 'La page est restée ouverte trop longtemps. Actualisez-la et réessayez.',
+    '429' => 'Veuillez patienter un instant avant de réessayer.',
+    '500' => 'Une erreur inattendue s\'est produite. Notre équipe a été prévenue.',
+    '503' => 'OzePMS est en cours de mise à jour. Réessayez dans quelques minutes.',
+    'not_available' => 'La chambre sélectionnée n\'est plus disponible pour ces dates.',
+    '402' => 'L\'abonnement de cet établissement n\'est pas actif.',
+];
