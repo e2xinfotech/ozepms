@@ -52,7 +52,7 @@ CREATE TABLE offers (
   UNIQUE KEY uq_offers_promo (property_id, promo_code),
   KEY ix_offers_active (property_id, is_active, stay_from, stay_to),
   CONSTRAINT fk_offer_property FOREIGN KEY (property_id) REFERENCES properties (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -66,7 +66,7 @@ CREATE TABLE offer_scopes (
   CONSTRAINT fk_os_offer FOREIGN KEY (offer_id) REFERENCES offers (id) ON DELETE CASCADE,
   CONSTRAINT fk_os_rt FOREIGN KEY (room_type_id) REFERENCES room_types (id),
   CONSTRAINT fk_os_rp FOREIGN KEY (rate_plan_id) REFERENCES rate_plans (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -79,7 +79,7 @@ CREATE TABLE offer_conditions (
   PRIMARY KEY (id),
   KEY ix_oc_offer (offer_id),
   CONSTRAINT fk_oc_offer FOREIGN KEY (offer_id) REFERENCES offers (id) ON DELETE CASCADE
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -98,7 +98,7 @@ CREATE TABLE offer_applications (
   CONSTRAINT fk_oa_offer FOREIGN KEY (offer_id) REFERENCES offers (id),
   CONSTRAINT fk_oa_res FOREIGN KEY (property_id, reservation_id) REFERENCES reservations (property_id, id),
   CONSTRAINT fk_oa_rr FOREIGN KEY (reservation_room_id) REFERENCES reservation_rooms (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         Schema::enableForeignKeyConstraints();

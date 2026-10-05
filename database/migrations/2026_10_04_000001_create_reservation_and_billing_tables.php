@@ -26,7 +26,7 @@ CREATE TABLE booking_sources (
   PRIMARY KEY (id),
   UNIQUE KEY uq_booking_sources (property_id, code),
   CONSTRAINT fk_bs_property FOREIGN KEY (property_id) REFERENCES properties (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -72,7 +72,7 @@ CREATE TABLE guests (
   KEY ix_guests_idhash (property_id, id_number_hash),
   FULLTEXT KEY ft_guests_name (first_name, last_name, email) WITH PARSER ngram,
   CONSTRAINT fk_guest_property FOREIGN KEY (property_id) REFERENCES properties (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -131,7 +131,7 @@ CREATE TABLE reservations (
   CONSTRAINT fk_res_source FOREIGN KEY (source_id) REFERENCES booking_sources (id),
   CONSTRAINT fk_res_guest FOREIGN KEY (property_id, primary_guest_id) REFERENCES guests (property_id, id),
   CONSTRAINT ck_res_dates CHECK (check_out > check_in)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -171,7 +171,7 @@ CREATE TABLE reservation_rooms (
   CONSTRAINT fk_rr_rp FOREIGN KEY (property_id, rate_plan_id) REFERENCES rate_plans (property_id, id),
   CONSTRAINT fk_rr_product FOREIGN KEY (property_id, product_id) REFERENCES room_type_rate_plans (property_id, id),
   CONSTRAINT ck_rr_dates CHECK (check_out > check_in)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -190,7 +190,7 @@ CREATE TABLE reservation_room_nights (
   PRIMARY KEY (reservation_room_id, stay_date),
   KEY ix_rrn_inventory (property_id, room_type_id, stay_date, is_active),  -- reconciliation + reports
   CONSTRAINT fk_rrn_rr FOREIGN KEY (reservation_room_id) REFERENCES reservation_rooms (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -213,7 +213,7 @@ CREATE TABLE unit_nights (
     (kind = 'reservation' AND reservation_room_id IS NOT NULL AND unit_block_id IS NULL) OR
     (kind = 'block' AND unit_block_id IS NOT NULL AND reservation_room_id IS NULL)
   )
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -227,7 +227,7 @@ CREATE TABLE reservation_guests (
   CONSTRAINT fk_rg_res FOREIGN KEY (reservation_id) REFERENCES reservations (id),
   CONSTRAINT fk_rg_guest FOREIGN KEY (guest_id) REFERENCES guests (id),
   CONSTRAINT fk_rg_rr FOREIGN KEY (reservation_room_id) REFERENCES reservation_rooms (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -243,7 +243,7 @@ CREATE TABLE reservation_status_history (
   PRIMARY KEY (id),
   KEY ix_rsh_res (reservation_id, created_at),
   CONSTRAINT fk_rsh_res FOREIGN KEY (reservation_id) REFERENCES reservations (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -263,7 +263,7 @@ CREATE TABLE services (
   UNIQUE KEY uq_services_code (property_id, code),
   CONSTRAINT fk_svc_property FOREIGN KEY (property_id) REFERENCES properties (id),
   CONSTRAINT fk_svc_taxcat FOREIGN KEY (tax_category_id) REFERENCES tax_categories (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -287,7 +287,7 @@ CREATE TABLE folios (
   UNIQUE KEY uq_folio_tenant (property_id, id),
   KEY ix_folio_res (reservation_id),
   CONSTRAINT fk_folio_res FOREIGN KEY (property_id, reservation_id) REFERENCES reservations (property_id, id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -317,7 +317,7 @@ CREATE TABLE folio_lines (
   CONSTRAINT fk_fl_rr FOREIGN KEY (reservation_room_id) REFERENCES reservation_rooms (id),
   CONSTRAINT fk_fl_service FOREIGN KEY (service_id) REFERENCES services (id),
   CONSTRAINT fk_fl_void FOREIGN KEY (void_of_line_id) REFERENCES folio_lines (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -334,7 +334,7 @@ CREATE TABLE folio_line_taxes (
   KEY ix_flt_line (folio_line_id),
   CONSTRAINT fk_flt_line FOREIGN KEY (folio_line_id) REFERENCES folio_lines (id),
   CONSTRAINT fk_flt_rule FOREIGN KEY (tax_rule_id) REFERENCES tax_rules (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -367,7 +367,7 @@ CREATE TABLE payments (
   CONSTRAINT fk_pay_res FOREIGN KEY (property_id, reservation_id) REFERENCES reservations (property_id, id),
   CONSTRAINT fk_pay_folio FOREIGN KEY (folio_id) REFERENCES folios (id),
   CONSTRAINT fk_pay_parent FOREIGN KEY (parent_payment_id) REFERENCES payments (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -385,7 +385,7 @@ CREATE TABLE payment_gateway_events (
   PRIMARY KEY (id),
   UNIQUE KEY uq_pge_event (gateway, event_id),
   KEY ix_pge_pending (processed_at, created_at)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -425,7 +425,7 @@ CREATE TABLE invoices (
   KEY ix_inv_folio (folio_id),
   CONSTRAINT fk_inv_folio FOREIGN KEY (property_id, folio_id) REFERENCES folios (property_id, id),
   CONSTRAINT fk_inv_original FOREIGN KEY (original_invoice_id) REFERENCES invoices (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         Schema::enableForeignKeyConstraints();

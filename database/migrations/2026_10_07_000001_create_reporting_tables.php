@@ -31,7 +31,7 @@ CREATE TABLE stats_daily (
   no_shows        SMALLINT UNSIGNED NOT NULL,
   refreshed_at    DATETIME          NOT NULL,
   PRIMARY KEY (property_id, stay_date, room_type_id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         Schema::enableForeignKeyConstraints();

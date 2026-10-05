@@ -24,7 +24,7 @@ CREATE TABLE bed_types (
   sleeps      TINYINT UNSIGNED  NOT NULL DEFAULT 2,
   PRIMARY KEY (id),
   UNIQUE KEY uq_bed_types_code (code)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -40,7 +40,7 @@ CREATE TABLE content_translations (
   UNIQUE KEY uq_translation (entity_type, entity_id, locale, field),
   KEY ix_translation_property (property_id, locale),
   CONSTRAINT fk_ct_property FOREIGN KEY (property_id) REFERENCES properties (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -72,7 +72,7 @@ CREATE TABLE room_types (
   KEY ix_room_types_list (property_id, is_active, sort_order),
   CONSTRAINT fk_rt_property FOREIGN KEY (property_id) REFERENCES properties (id),
   CONSTRAINT ck_rt_occupancy CHECK (max_occupancy >= 1 AND base_adults <= max_adults)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -83,7 +83,7 @@ CREATE TABLE room_type_beds (
   PRIMARY KEY (room_type_id, bed_type_id),
   CONSTRAINT fk_rtb_rt FOREIGN KEY (room_type_id) REFERENCES room_types (id) ON DELETE CASCADE,
   CONSTRAINT fk_rtb_bed FOREIGN KEY (bed_type_id) REFERENCES bed_types (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -98,7 +98,7 @@ CREATE TABLE room_type_images (
   PRIMARY KEY (id),
   KEY ix_rti_room_type (room_type_id, sort_order),
   CONSTRAINT fk_rti_rt FOREIGN KEY (property_id, room_type_id) REFERENCES room_types (property_id, id) ON DELETE CASCADE
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -123,7 +123,7 @@ CREATE TABLE physical_units (
   UNIQUE KEY uq_units_tenant (property_id, id),
   KEY ix_units_room_type (property_id, room_type_id, is_active, sort_order),
   CONSTRAINT fk_unit_rt FOREIGN KEY (property_id, room_type_id) REFERENCES room_types (property_id, id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -145,7 +145,7 @@ CREATE TABLE unit_blocks (
   KEY ix_blocks_property_dates (property_id, start_date, end_date),
   CONSTRAINT fk_ub_unit FOREIGN KEY (property_id, unit_id) REFERENCES physical_units (property_id, id),
   CONSTRAINT ck_ub_dates CHECK (end_date > start_date)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -166,7 +166,7 @@ CREATE TABLE amenities (
   UNIQUE KEY uq_amenities_code (property_id, code),
   KEY ix_amenities_category (category),
   CONSTRAINT fk_am_property FOREIGN KEY (property_id) REFERENCES properties (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -176,7 +176,7 @@ CREATE TABLE property_amenities (
   PRIMARY KEY (property_id, amenity_id),
   CONSTRAINT fk_pa_property FOREIGN KEY (property_id) REFERENCES properties (id),
   CONSTRAINT fk_pa_amenity FOREIGN KEY (amenity_id) REFERENCES amenities (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -187,7 +187,7 @@ CREATE TABLE room_type_amenities (
   KEY ix_rta_amenity (amenity_id),
   CONSTRAINT fk_rta_rt FOREIGN KEY (room_type_id) REFERENCES room_types (id) ON DELETE CASCADE,
   CONSTRAINT fk_rta_amenity FOREIGN KEY (amenity_id) REFERENCES amenities (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -198,7 +198,7 @@ CREATE TABLE physical_unit_amenities (
   PRIMARY KEY (unit_id, amenity_id),
   CONSTRAINT fk_pua_unit FOREIGN KEY (unit_id) REFERENCES physical_units (id) ON DELETE CASCADE,
   CONSTRAINT fk_pua_amenity FOREIGN KEY (amenity_id) REFERENCES amenities (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -216,7 +216,7 @@ CREATE TABLE meal_plans (
   PRIMARY KEY (id),
   UNIQUE KEY uq_meal_plans_code (property_id, code),
   CONSTRAINT fk_mp_property FOREIGN KEY (property_id) REFERENCES properties (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -234,7 +234,7 @@ CREATE TABLE cancellation_policies (
   UNIQUE KEY uq_cp_code (property_id, code),
   UNIQUE KEY uq_cp_tenant (property_id, id),
   CONSTRAINT fk_cp_property FOREIGN KEY (property_id) REFERENCES properties (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -248,7 +248,7 @@ CREATE TABLE cancellation_policy_rules (
   PRIMARY KEY (id),
   KEY ix_cpr_policy (policy_id, applies_to, hours_before_arrival),
   CONSTRAINT fk_cpr_policy FOREIGN KEY (policy_id) REFERENCES cancellation_policies (id) ON DELETE CASCADE
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -283,7 +283,7 @@ CREATE TABLE rate_plans (
   CONSTRAINT fk_rp_property FOREIGN KEY (property_id) REFERENCES properties (id),
   CONSTRAINT fk_rp_meal FOREIGN KEY (meal_plan_id) REFERENCES meal_plans (id),
   CONSTRAINT fk_rp_cancel FOREIGN KEY (property_id, cancellation_policy_id) REFERENCES cancellation_policies (property_id, id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -318,7 +318,7 @@ CREATE TABLE room_type_rate_plans (
     (pricing_mode = 'manual'  AND parent_product_id IS NULL) OR
     (pricing_mode = 'derived' AND parent_product_id IS NOT NULL AND adjust_type IS NOT NULL AND adjust_value IS NOT NULL)
   )
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -334,7 +334,7 @@ CREATE TABLE product_occupancy_rules (
   UNIQUE KEY uq_occ_rule (product_id, guest_type, guest_count, age_band_id),
   CONSTRAINT fk_occ_product FOREIGN KEY (product_id) REFERENCES room_type_rate_plans (id) ON DELETE CASCADE,
   CONSTRAINT fk_occ_band FOREIGN KEY (age_band_id) REFERENCES property_age_bands (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -345,7 +345,7 @@ CREATE TABLE tax_categories (
   default_sac_hsn VARCHAR(10)     NULL,                -- 9963 for accommodation (India)
   PRIMARY KEY (id),
   UNIQUE KEY uq_tax_categories (code)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -377,7 +377,7 @@ CREATE TABLE tax_rules (
   CONSTRAINT fk_tax_country FOREIGN KEY (country_iso2) REFERENCES countries (iso2),
   CONSTRAINT fk_tax_property FOREIGN KEY (property_id) REFERENCES properties (id),
   CONSTRAINT fk_tax_category FOREIGN KEY (tax_category_id) REFERENCES tax_categories (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -391,7 +391,7 @@ CREATE TABLE tax_rule_scopes (
   CONSTRAINT fk_trs_rule FOREIGN KEY (tax_rule_id) REFERENCES tax_rules (id) ON DELETE CASCADE,
   CONSTRAINT fk_trs_rt FOREIGN KEY (room_type_id) REFERENCES room_types (id),
   CONSTRAINT fk_trs_rp FOREIGN KEY (rate_plan_id) REFERENCES rate_plans (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         Schema::enableForeignKeyConstraints();

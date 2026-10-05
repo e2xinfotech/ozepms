@@ -31,7 +31,7 @@ CREATE TABLE channel_connections (
   PRIMARY KEY (id),
   UNIQUE KEY uq_cc (property_id, provider),
   CONSTRAINT fk_cc_property FOREIGN KEY (property_id) REFERENCES properties (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -45,7 +45,7 @@ CREATE TABLE channel_room_mappings (
   UNIQUE KEY uq_crm_rt (connection_id, room_type_id),
   CONSTRAINT fk_crm_conn FOREIGN KEY (connection_id) REFERENCES channel_connections (id),
   CONSTRAINT fk_crm_rt FOREIGN KEY (room_type_id) REFERENCES room_types (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -61,7 +61,7 @@ CREATE TABLE channel_rate_plan_mappings (
   UNIQUE KEY uq_crpm_prod (connection_id, product_id),
   CONSTRAINT fk_crpm_conn FOREIGN KEY (connection_id) REFERENCES channel_connections (id),
   CONSTRAINT fk_crpm_prod FOREIGN KEY (product_id) REFERENCES room_type_rate_plans (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -81,7 +81,7 @@ CREATE TABLE channel_sync_logs (
   KEY ix_csl_conn (connection_id, created_at),
   KEY ix_csl_retry (status, updated_at),
   CONSTRAINT fk_csl_conn FOREIGN KEY (connection_id) REFERENCES channel_connections (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         DB::statement(<<<'SQL'
@@ -100,7 +100,7 @@ CREATE TABLE channel_reservations (
   KEY ix_cr_res (reservation_id),
   CONSTRAINT fk_cr_conn FOREIGN KEY (connection_id) REFERENCES channel_connections (id),
   CONSTRAINT fk_cr_res FOREIGN KEY (reservation_id) REFERENCES reservations (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
         Schema::enableForeignKeyConstraints();
