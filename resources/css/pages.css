@@ -48,3 +48,4 @@
 .with-panel .kpi { padding: 14px 16px; gap: 12px; }
 .with-panel .kpi .kpi-icon { width: 44px; height: 44px; }
 .with-panel .kpi .kpi-value { font-size: 22px; }
+.media-cell > div { min-width: 150px; }
