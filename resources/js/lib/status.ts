@@ -20,6 +20,8 @@ const tones: Record<string, Tone> = {
     paid: 'green', partial: 'amber', unpaid: 'red', refunded: 'slate',
     // policies
     refundable: 'green', non_refundable: 'orange', flexible: 'green',
+    // taxes & fees, room blocks
+    tax: 'red', service_charge: 'green', fee: 'blue', maintenance: 'orange', owner_hold: 'violet',
     // errors
     warning: 'amber', error: 'red', critical: 'red', resolved: 'green', enabled: 'green',
 };
