@@ -10,3 +10,33 @@
 .perm-group { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 12px 14px; }
 .perm-group h4 { font-size: var(--text-md); margin-bottom: 8px; text-transform: capitalize; }
 .perm-group .check { font-size: var(--text-sm); padding: 3px 0; }
+
+/* Dashboards */
+.dash-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); gap: 20px; align-items: start; }
+.dash-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.dash-col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.summary-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.summary-tile { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 12px 10px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.summary-tile .st-value { display: flex; align-items: center; gap: 8px; font-size: 22px; font-weight: var(--weight-bold); }
+.summary-tile .st-label { color: var(--ink-2); font-size: var(--text-sm); }
+.summary-tile.alert-tile { background: var(--red-bg); border-color: #f6c3c0; color: var(--red-fg); }
+.summary-tile.alert-tile .st-label { color: var(--red-fg); }
+.bar-list { display: flex; flex-direction: column; gap: 16px; }
+.bar-list-row { display: grid; grid-template-columns: minmax(110px, 1fr) 48px minmax(80px, 1.4fr) 56px; align-items: center; gap: 12px; }
+.mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.mini-stat { display: flex; gap: 12px; align-items: flex-start; }
+.mini-stat b { display: block; font-size: 20px; }
+@media (max-width: 1280px) {
+    .dash-grid, .dash-grid-3 { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Two-step verification setup */
+.qr-box { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+.qr-box canvas { border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
+
+/* Role editor */
+.role-list { display: flex; flex-direction: column; gap: 8px; }
+.role-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); cursor: pointer; text-align: left; width: 100%; font: inherit; }
+.role-item:hover { background: var(--hover); }
+.role-item.active { border-color: var(--brand-600); background: var(--brand-50); }
+.perm-tags { display: flex; flex-wrap: wrap; gap: 6px; }

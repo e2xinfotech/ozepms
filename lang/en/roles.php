@@ -33,4 +33,9 @@ return [
         'guest_relations' => 'Guest profiles and reservation details.',
         'sales_marketing' => 'Offers, rate plans and reports.',
     ],
+    'full_access' => 'This role has every permission.',
+    'colors' => [
+        'blue' => 'Blue', 'sky' => 'Sky', 'teal' => 'Teal', 'green' => 'Green', 'amber' => 'Amber', 'orange' => 'Orange',
+        'red' => 'Red', 'rose' => 'Rose', 'pink' => 'Pink', 'purple' => 'Purple', 'violet' => 'Violet', 'slate' => 'Grey',
+    ],
 ];

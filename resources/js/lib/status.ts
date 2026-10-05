@@ -21,7 +21,7 @@ const tones: Record<string, Tone> = {
     // policies
     refundable: 'green', non_refundable: 'orange', flexible: 'green',
     // errors
-    warning: 'amber', error: 'red', critical: 'red', resolved: 'green',
+    warning: 'amber', error: 'red', critical: 'red', resolved: 'green', enabled: 'green',
 };
 
 export function toneOf(status: string | null | undefined): Tone {

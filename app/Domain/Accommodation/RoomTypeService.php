@@ -4,6 +4,7 @@ namespace App\Domain\Accommodation;
 
 use App\Domain\Accommodation\Events\RoomTypeUnitsChanged;
 use App\Domain\Audit\AuditLogger;
+use App\Domain\Rates\ProductService;
 use App\Infrastructure\Database\Tx;
 use App\Models\Amenity;
 use App\Models\BedType;
@@ -32,6 +33,7 @@ class RoomTypeService
         private readonly AuditLogger $audit,
         private readonly PlanLimits $limits,
         private readonly PhysicalUnitService $units,
+        private readonly ProductService $products,
     ) {}
 
     /**
@@ -56,11 +58,18 @@ class RoomTypeService
 
             $this->audit->log('room_type.created', $roomType, ['after' => $roomType->only(self::FIELDS)]);
 
+            // Inventory = PMS rooms: either named rows or a quantity named by the unit-name rules.
             $newUnits = array_values(array_filter($data['units'] ?? [], fn ($u) => empty($u['id'])));
             if ($newUnits !== []) {
                 $this->units->addUnits($roomType, $newUnits);
+            } elseif ((int) ($data['quantity'] ?? 0) > 0) {
+                $this->units->bulkCreate($roomType, ['mode' => 'quantity', 'quantity' => (int) $data['quantity'], 'floor' => $data['floor'] ?? null]);
             } else {
                 RoomTypeUnitsChanged::dispatch($property->id, $roomType->id);
+            }
+
+            if (array_key_exists('products', $data)) {
+                $this->products->syncForRoomType($roomType, $data['products']);
             }
 
             return $roomType;
@@ -92,9 +101,31 @@ class RoomTypeService
             if (array_key_exists('units', $data)) {
                 $this->syncUnits($roomType, $data['units'] ?? []);
             }
+            if (array_key_exists('quantity', $data) && $data['quantity'] !== null) {
+                $this->growTo($roomType, (int) $data['quantity']);
+            }
+            if (array_key_exists('products', $data)) {
+                $this->products->syncForRoomType($roomType, $data['products']);
+            }
 
             return $roomType;
         });
+    }
+
+    /**
+     * "Number of rooms" on the room type form: missing rooms are created with generated names.
+     * Lowering the number is refused; rooms are deactivated one by one on the Rooms page, where
+     * guests assigned to them are checked.
+     */
+    private function growTo(RoomType $roomType, int $target): void
+    {
+        $active = PhysicalUnit::query()->where('room_type_id', $roomType->id)->where('is_active', true)->count();
+        if ($target < $active) {
+            throw ValidationException::withMessages(['quantity' => __('rooms.errors.quantity_below_active', ['count' => $active])]);
+        }
+        if ($target > $active) {
+            $this->units->bulkCreate($roomType, ['mode' => 'quantity', 'quantity' => $target - $active]);
+        }
     }
 
     public function setActive(RoomType $roomType, bool $active): RoomType

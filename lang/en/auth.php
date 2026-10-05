@@ -69,6 +69,13 @@ return [
     'password_changed' => 'Password last changed',
     'signin_ok' => 'Signed in',
     'signin_failed' => 'Failed attempt',
+    'codes_saved' => 'I have saved these codes',
+    'device' => 'Device',
+    'email_change_hint' => 'Contact your administrator to change your sign-in e-mail.',
+    'profile_details' => 'Personal Details',
+    'two_factor_disable_confirm' => 'Turning off two-step verification makes your account less secure. Enter your password to continue.',
+    'two_factor_qr' => 'QR code for your authenticator app',
+    'two_factor_why' => 'Add a second step to sign-in with an authenticator app on your phone.',
 
     'hero' => [
         'title_1' => 'Simplify Operations.',

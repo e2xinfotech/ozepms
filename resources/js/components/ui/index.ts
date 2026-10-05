@@ -5,3 +5,4 @@ export * from './Display';
 export * from './Tabs';
 export * from './Table';
 export * from './Overlay';
+export * from './DateRange';

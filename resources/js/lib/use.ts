@@ -48,3 +48,18 @@ export function useDebounced<T>(value: T, ms = 250): T {
     }, [value, ms]);
     return v;
 }
+
+/**
+ * A query-string value kept in sync with the URL without reloading the page
+ * (e.g. ?selected=<id> for the open side panel), so Back/Refresh/bookmarks work.
+ */
+export function useQueryState(name: string, initial = ''): [string, (value: string | null) => void] {
+    const [value, setValue] = useState(initial);
+    const update = useCallback((next: string | null) => {
+        const url = new URL(window.location.href);
+        if (next) url.searchParams.set(name, next); else url.searchParams.delete(name);
+        window.history.replaceState(null, '', url.toString());
+        setValue(next ?? '');
+    }, [name]);
+    return [value, update];
+}

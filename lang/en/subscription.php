@@ -37,4 +37,10 @@ return [
     'assigned' => 'Subscription updated.',
     'agreed_price' => 'Agreed price',
     'notes' => 'Notes',
+    'code_hint' => 'Lower-case letters, numbers and _ only. Cannot be changed later.',
+    'days_left_label' => 'Days left',
+    'plans_lc' => 'plans',
+    'section_plan' => 'Plan',
+    'section_pricing' => 'Pricing & Trial',
+    'section_limits' => 'Limits',
 ];

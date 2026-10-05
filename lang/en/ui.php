@@ -58,6 +58,8 @@ return [
     'created_on' => 'Created On',
     'updated_on' => 'Last Updated',
     'never' => 'Never',
+    'range_too_long' => 'Choose a range of :n days or less.',
+    'unsaved_changes' => 'You have unsaved changes.',
     'status' => [
         'active' => 'Active', 'inactive' => 'Inactive', 'disabled' => 'Disabled', 'invited' => 'Invited', 'locked' => 'Locked',
         'onboarding' => 'Setup', 'suspended' => 'Suspended', 'setup' => 'Setup',

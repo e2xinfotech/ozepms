@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Admin;
 
+use App\Domain\Access\PermissionCatalogue;
 use App\Domain\Users\Queries\PlatformUserQuery;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
@@ -35,6 +36,8 @@ class UsersController extends Controller
                     ->get(['code', 'name'])->map(fn (Property $p) => ['value' => $p->code, 'label' => $p->name.' ('.$p->code.')'])->all(),
                 'statuses' => PlatformUserQuery::STATUSES,
             ],
+            'catalogue' => PermissionCatalogue::grouped('platform'),
+            'open_new' => $request->boolean('new'),
             'locales' => config('ozepms.locales.available'),
             'me' => $request->user()->public_id,
         ], __('users.title'));
