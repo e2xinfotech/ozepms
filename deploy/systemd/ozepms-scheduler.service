@@ -1,0 +1,10 @@
+# OzePMS scheduler run — triggered every minute by ozepms-scheduler.timer
+[Unit]
+Description=OzePMS scheduled tasks
+
+[Service]
+Type=oneshot
+User=ozepms
+Group=www-data
+WorkingDirectory=/var/www/ozepms/current
+ExecStart=/usr/bin/php artisan schedule:run --no-interaction

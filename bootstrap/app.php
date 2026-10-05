@@ -4,6 +4,7 @@ use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\EnsureSubscriptionActive;
 use App\Http\Middleware\EnsureTwoFactorEnrolled;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\PreventRequestForgery;
 use App\Http\Middleware\RequirePermission;
 use App\Http\Middleware\ResolveProperty;
 use App\Http\Middleware\SecurityHeaders;
@@ -32,7 +33,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(AssignRequestId::class);
         $middleware->append(SecurityHeaders::class);
-        $middleware->web(append: [SetLocale::class, EnsureUserIsActive::class]);
+        $middleware->web(
+            append: [SetLocale::class, EnsureUserIsActive::class],
+            replace: [\Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class => PreventRequestForgery::class],
+        );
 
         $middleware->alias([
             'property' => ResolveProperty::class,

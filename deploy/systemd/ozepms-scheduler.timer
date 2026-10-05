@@ -1,0 +1,11 @@
+# Enable: sudo systemctl daemon-reload && sudo systemctl enable --now ozepms-scheduler.timer
+[Unit]
+Description=Run the OzePMS scheduler every minute
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+AccuracySec=1s
+Persistent=true
+
+[Install]
+WantedBy=timers.target
