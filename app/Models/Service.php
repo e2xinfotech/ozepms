@@ -1,0 +1,27 @@
+<?php
+
+namespace App\Models;
+
+use App\Models\Concerns\BelongsToProperty;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * Table: services. Owned by Phase 4 (see docs/04-development-guide.md).
+ * Relationships and behaviour are added by the owning module.
+ */
+class Service extends Model
+{
+    use BelongsToProperty;
+
+    protected $table = 'services';
+
+    protected $guarded = ['id'];
+
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:2',
+            'is_active' => 'boolean',
+        ];
+    }
+}

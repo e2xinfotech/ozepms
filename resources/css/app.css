@@ -1,0 +1,19 @@
+/*
+ * OzePMS stylesheet entry.
+ * Change colours, fonts, sizes and spacing in tokens.css only.
+ * Components never use raw colour values.
+ */
+@import '@fontsource-variable/inter';
+@import 'flag-icons/css/flag-icons.min.css';
+@import './tokens.css';
+@import './base.css';
+@import './layout.css';
+@import './components/buttons.css';
+@import './components/forms.css';
+@import './components/cards.css';
+@import './components/tables.css';
+@import './components/badges.css';
+@import './components/tabs.css';
+@import './components/overlays.css';
+@import './components/misc.css';
+@import './pages.css';

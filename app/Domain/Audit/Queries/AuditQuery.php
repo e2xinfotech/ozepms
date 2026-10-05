@@ -1,0 +1,91 @@
+<?php
+
+namespace App\Domain\Audit\Queries;
+
+use App\Models\AuditLog;
+use App\Support\Listing;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Audit trail search for the platform Audit Log screen and per-user activity tabs.
+ */
+class AuditQuery
+{
+    /** @return array{rows: array, meta: array} */
+    public function list(Request $request): array
+    {
+        $filters = Listing::filters($request, ['action', 'user', 'property', 'from', 'to']);
+
+        $query = AuditLog::query()
+            ->with(['user:id,public_id,name,email', 'property:id,code,name'])
+            ->when($filters['action'] !== '', fn (Builder $q) => $q->where('action', 'like', '%'.$filters['action'].'%'))
+            ->when($filters['user'] !== '', fn (Builder $q) => $q->whereIn('user_id', DB::table('users')
+                ->where('email', 'like', '%'.$filters['user'].'%')->orWhere('name', 'like', '%'.$filters['user'].'%')->select('id')))
+            ->when($filters['property'] !== '', fn (Builder $q) => $q->whereIn('property_id', DB::table('properties')
+                ->where('code', $filters['property'])->select('id')))
+            ->when($this->date($filters['from']), fn (Builder $q, CarbonImmutable $d) => $q->where('created_at', '>=', $d->startOfDay()))
+            ->when($this->date($filters['to']), fn (Builder $q, CarbonImmutable $d) => $q->where('created_at', '<=', $d->endOfDay()))
+            ->orderByDesc('id');
+
+        return Listing::paginate($query, $request, fn (AuditLog $log) => $this->row($log));
+    }
+
+    /**
+     * Latest entries written by one user, optionally limited to one property.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function forUser(int $userId, ?int $propertyId = null, int $limit = 20): array
+    {
+        return AuditLog::query()
+            ->with(['property:id,code,name'])
+            ->where('user_id', $userId)
+            ->when($propertyId, fn (Builder $q) => $q->where('property_id', $propertyId))
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get()
+            ->map(fn (AuditLog $log) => $this->row($log))
+            ->all();
+    }
+
+    private function row(AuditLog $log): array
+    {
+        return [
+            'id' => substr(sha1($log->id.'|'.$log->request_id), 0, 16),
+            'action' => $log->action,
+            'action_label' => self::actionLabel($log->action),
+            'user' => $log->user?->name,
+            'user_email' => $log->user?->email,
+            'property' => $log->property?->name,
+            'property_code' => $log->property?->code,
+            'entity' => $log->entity_type,
+            'ip' => $log->ip,
+            'ref' => $log->request_id ? substr($log->request_id, -8) : null,
+            'changes' => $log->changes,
+            'at' => $log->created_at?->toIso8601String(),
+        ];
+    }
+
+    /** Action keys contain dots, so they are looked up in the translated array directly. */
+    public static function actionLabel(string $action): string
+    {
+        $labels = trans('admin.actions');
+
+        return is_array($labels) && isset($labels[$action]) ? (string) $labels[$action] : $action;
+    }
+
+    private function date(string $value): ?CarbonImmutable
+    {
+        if ($value === '' || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            return null;
+        }
+        try {
+            return CarbonImmutable::createFromFormat('Y-m-d', $value);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+}

@@ -1,0 +1,26 @@
+/* Status tabs with counts (pills) */
+.pill-tabs { display: flex; flex-wrap: wrap; gap: 10px; }
+.pill-tab { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: var(--radius-pill); border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); font-weight: var(--weight-medium); cursor: pointer; }
+.pill-tab:hover { background: var(--hover); }
+.pill-tab.active { background: var(--brand-100); border-color: transparent; color: var(--brand-700); }
+.pill-tab.active .count-pill { background: #fff; color: var(--brand-700); }
+
+/* Underline tabs (detail panels, pages) */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tab { height: 44px; padding: 0 14px; border: 0; background: none; color: var(--ink-2); font-weight: var(--weight-medium); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.tab:hover { color: var(--ink); }
+.tab.active { color: var(--brand-600); border-bottom-color: var(--brand-600); font-weight: var(--weight-semibold); }
+
+/* Segmented (boxed) tabs, e.g. chart metric switcher */
+.seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+.seg button { height: 38px; padding: 0 16px; border: 0; background: none; font-weight: var(--weight-medium); cursor: pointer; color: var(--ink); border-left: 1px solid var(--line-strong); }
+.seg button:first-child { border-left: 0; }
+.seg button.active { background: var(--brand-600); color: #fff; }
+
+/* Stepper */
+.stepper { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px 24px; }
+.step { display: flex; align-items: center; gap: 10px; color: var(--muted); font-weight: var(--weight-medium); white-space: nowrap; }
+.step .step-no { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--slate-bg); color: var(--ink-2); font-weight: var(--weight-semibold); }
+.step.active { color: var(--brand-600); }
+.step.active .step-no, .step.done .step-no { background: var(--brand-600); color: #fff; }
+.step-line { flex: 1; height: 2px; background: var(--line); min-width: 24px; }

@@ -1,0 +1,12 @@
+/* Page-specific styles that are not reusable components. Keep this file small. */
+.properties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.property-card { display: flex; flex-direction: column; gap: 12px; padding: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); color: var(--ink); transition: border-color .12s, box-shadow .12s; }
+.property-card:hover { border-color: var(--brand-600); box-shadow: var(--shadow); color: var(--ink); }
+.checklist { display: flex; flex-direction: column; gap: 10px; }
+.checklist-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-md); }
+.checklist-item .ci-no { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--slate-bg); font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+.checklist-item.done .ci-no { background: var(--green-solid); color: #fff; }
+.perm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+.perm-group { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 12px 14px; }
+.perm-group h4 { font-size: var(--text-md); margin-bottom: 8px; text-transform: capitalize; }
+.perm-group .check { font-size: var(--text-sm); padding: 3px 0; }
