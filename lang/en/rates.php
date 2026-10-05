@@ -69,6 +69,8 @@ return [
         'manual' => 'Manual prices', 'derived' => 'Derived from another rate plan',
         'manual_hint' => 'Enter a price per night for each room type.',
         'derived_hint' => 'Prices follow the parent rate plan of the same room type, e.g. −10 %.',
+        'derive_all' => 'Derive all linked room types from',
+        'apply_all' => 'Apply to All',
     ],
     'adjust_types' => ['percent' => 'Percent (%)', 'fixed' => 'Fixed amount', 'fixed_per_person' => 'Fixed per person'],
     'occupancy_types' => ['fixed' => 'Amount', 'percent' => '%'],
@@ -95,7 +97,17 @@ return [
         'no_show_text' => 'No-show: :charge',
     ],
 
-    'nights' => '{1} :count night|[2,*] :count nights',
+    'one_night' => '1 night',
+    'n_nights' => ':count nights',
+    'nights_suffix' => 'nights',
+    'current_price' => 'Current price: :price',
+    'daily_rates_hint' => 'Daily prices and restrictions are set on the Calendar.',
+    'no_room_types' => 'No room types yet. Create a room type first.',
+    'occupancy' => [
+        'adult' => 'Adults', 'child' => 'Child', 'infant' => 'Infant', 'guest' => 'Guest type', 'count' => 'Guest number',
+        'count_hint' => 'Adults: total adults in the room (1 = single occupancy). Children: the n-th child.',
+        'age_band' => 'Age band', 'add' => 'Add Rule', 'none' => 'No occupancy rules: the price is the same for any number of guests.',
+    ],
     'days_range' => ':from – :to days',
     'any' => 'Any',
 

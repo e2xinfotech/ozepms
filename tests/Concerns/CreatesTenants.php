@@ -22,13 +22,14 @@ trait CreatesTenants
 {
     protected function makeUser(array $attributes = []): User
     {
+        // Reloaded so every column is present, as it is for users loaded during a real request.
         return User::query()->create(array_merge([
             'name' => 'Test User '.Str::random(4),
             'email' => Str::lower(Str::random(10)).'@example.test',
             'password' => 'Secret-Pass-123',
             'status' => 'active',
             'locale' => 'en',
-        ], $attributes));
+        ], $attributes))->refresh();
     }
 
     protected function makePlatformAdmin(array $attributes = []): User

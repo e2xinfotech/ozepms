@@ -111,6 +111,8 @@ return [
     'room' => 'Room',
     'room_singular' => 'room',
     'room_plural' => 'rooms',
+    'no_rooms' => 'No PMS rooms yet',
+    'no_rooms_hint' => 'Add rooms here or set a number of rooms on a room type.',
     'search_rooms' => 'Search room number or name…',
     'room_status' => 'Status',
     'tabs' => [

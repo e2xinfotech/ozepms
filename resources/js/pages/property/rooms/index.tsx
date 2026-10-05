@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Badge, Button, DataTable, Dropdown, EmptyState, Icon, Input, PageHeader, Pagination, PillTabs, RowMenu, Select, type Column, type Option, type PageMeta } from '@/components/ui';
+import { Badge, Button, DataTable, EmptyState, Icon, Input, PageHeader, Pagination, PillTabs, RowMenu, Select, type Column, type Option, type PageMeta } from '@/components/ui';
 import { createPage } from '@/lib/boot';
 import { downloadCsv } from '@/lib/csv';
-import { navigateWithQuery } from '@/lib/http';
+import { http, navigateWithQuery, type ApiError } from '@/lib/http';
+import { propertyApiUrl } from '@/lib/page';
+import { toast } from '@/components/ui';
 import { t } from '@/lib/i18n';
 import { useQueryState } from '@/lib/use';
 import { AddRoomsModal, BlockRoomModal, EditRoomModal } from './_components/RoomDialogs';
@@ -31,6 +33,15 @@ function RoomsPage({ list, filters, options, can }: Props) {
     const tab = filters.tab || 'all';
 
     const refreshRow = (r: RoomDetail) => setRows((list) => list.map((x) => (x.id === r.id ? { ...x, status: r.status, housekeeping_status: r.housekeeping_status, is_active: r.is_active } : x)));
+    const openEdit = async (id: string, block = false) => {
+        setSelected(id);
+        try {
+            const res = await http.get<{ room: RoomDetail }>(propertyApiUrl(`/rooms/${id}`));
+            if (block) setBlocking(res.room); else setEditing(res.room);
+        } catch (e) {
+            toast.error((e as ApiError).message, (e as ApiError).ref);
+        }
+    };
     const reloadWith = (id?: string) => navigateWithQuery({ selected: id ?? selected }, false);
 
     const exportCsv = () => downloadCsv('rooms.csv',
@@ -55,10 +66,10 @@ function RoomsPage({ list, filters, options, can }: Props) {
         {
             key: 'actions', header: t('rooms.columns.actions'), className: 'col-actions', render: (r) => (
                 <span className="row" style={{ justifyContent: 'flex-end' }} onClick={(e) => e.stopPropagation()}>
-                    {can.update && <Button size="sm" variant="outline" icon="pencil" onClick={() => { setSelected(r.id); setEditing({ ...(r as RoomDetail), notes: null }); }}>{t('ui.edit')}</Button>}
+                    {can.update && <Button size="sm" variant="outline" icon="pencil" onClick={() => openEdit(r.id)}>{t('ui.edit')}</Button>}
                     <RowMenu items={[
                         { label: t('ui.view'), icon: 'eye', onClick: () => setSelected(r.id) },
-                        ...(can.update ? [{ label: t('rooms.mark_out_of_service'), icon: 'ban', danger: true, onClick: () => setBlocking(r as RoomDetail) }] : []),
+                        ...(can.update ? [{ label: t('rooms.mark_out_of_service'), icon: 'ban', danger: true, onClick: () => openEdit(r.id, true) }] : []),
                     ]} />
                 </span>
             ),
@@ -103,7 +114,6 @@ function RoomsPage({ list, filters, options, can }: Props) {
             {editing && <EditRoomModal room={editing} roomTypes={roomTypes} onClose={() => setEditing(null)} onSaved={() => reloadWith(editing.id)} />}
             {blocking && <BlockRoomModal room={blocking} blockTypes={options.block_types} today={list.today}
                 onClose={() => setBlocking(null)} onSaved={() => { setBlocking(null); setVersion((v) => v + 1); reloadWith(blocking.id); }} />}
-            {!can.create && !can.update && <Dropdown trigger={() => null} items={[]} />}
         </div>
     );
 }
