@@ -62,7 +62,7 @@ function RoomTypeForm({ room_type: rt, options }: Props) {
         return {
             rate_plan_id: p.value, enabled: existing?.is_active ?? false, pricing_mode: existing?.pricing_mode ?? 'manual',
             default_price: existing?.default_price ?? '', parent_rate_plan_id: existing?.parent_rate_plan ?? '',
-            adjust_type: existing?.adjust_type ?? 'percent', adjust_value: existing?.adjust_value ?? '-10',
+            adjust_type: existing?.adjust_type ?? 'percent', adjust_value: existing?.adjust_value ? String(Number(existing.adjust_value)) : '-10',
             is_default: existing?.is_default ?? false, occupancy_rules: existing?.occupancy_rules ?? [], open: false,
         };
     }));

@@ -48,7 +48,7 @@ function RoomTypesPage({ list, filters, options, can }: Props) {
 
     const columns: Column<Row>[] = [
         {
-            key: 'name', header: t('rooms.columns.room_type'), sortable: true, render: (r) => (
+            key: 'name', header: t('rooms.columns.room_type'), sortable: true, className: 'rt-name-cell', render: (r) => (
                 <div className="media-cell">
                     {r.image ? <img className="rt-thumb" src={r.image} alt="" /> : <span className="rt-thumb"><Icon name="bed-double" size={22} /></span>}
                     <div>

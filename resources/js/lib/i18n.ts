@@ -17,7 +17,8 @@ export function t(key: string, replace: Record<string, string | number> = {}): s
         }
     }
     let text = typeof node === 'string' ? node : key;
-    for (const [name, value] of Object.entries(replace)) {
+    // Longest names first, so ":to" does not replace the start of ":total".
+    for (const [name, value] of Object.entries(replace).sort((a, b) => b[0].length - a[0].length)) {
         text = text.replaceAll(`:${name}`, String(value));
     }
     return text;

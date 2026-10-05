@@ -110,7 +110,7 @@ export function OccupancyEditor({ rules, onChange, ageBands, errorPrefix, error 
 /** Image carousel used in detail panels. */
 export function Carousel({ images, alt }: { images: { id: number; url: string; alt?: string | null }[]; alt: string }) {
     const [i, setI] = useState(0);
-    if (images.length === 0) return <div className="carousel" title={alt}><Icon name="image" size={32} /></div>;
+    if (images.length === 0) return <div className="carousel empty" title={alt}><Icon name="image" size={32} /></div>;
     const current = images[Math.min(i, images.length - 1)];
     return (
         <div className="carousel">

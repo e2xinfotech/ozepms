@@ -46,3 +46,6 @@
 .calc-result tr:last-child td { border-bottom: 0; font-weight: var(--weight-bold); }
 .radio-cell input { width: 18px; height: 18px; accent-color: var(--brand-600); cursor: pointer; }
 .upload-tile .spin { animation: spin .8s linear infinite; }
+.rt-name-cell { min-width: 320px; }
+.rt-name-cell .cell-main { white-space: nowrap; }
+.carousel.empty { aspect-ratio: 16 / 6; }
