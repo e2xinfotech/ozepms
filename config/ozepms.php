@@ -64,6 +64,8 @@ return [
         ],
         'password_confirm_seconds' => 900,
         'hsts_max_age' => 31536000,
+        // Name of the "keep me signed in" cookie.
+        'remember_cookie' => env('OZ_REMEMBER_COOKIE', 'oz_rm'),
     ],
 
     'sso' => [

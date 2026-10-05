@@ -278,7 +278,7 @@ Test with <https://securityheaders.com> and <https://www.ssllabs.com/ssltest/> (
   `client` (browser errors) and `performance` (slow queries above `OZ_SLOW_QUERY_MS`) files.
   Grouped errors are visible to E2X staff at **Super Admin → System Health**.
 * Nginx: `/var/log/nginx/ozepms.*.log`; PHP-FPM: `/var/log/php/ozepms-fpm.log`. Rotate with logrotate (default Ubuntu setup covers Nginx).
-* Health check URL for uptime monitoring: `https://ozepms.e2xinfotech.in/up` (returns 200 when the application boots).
+* Health check URL for uptime monitoring: `https://ozepms.e2xinfotech.in/up` (returns `{"status":"ok"}` with HTTP 200 when the application and database answer).
 * Database backups, nightly, kept 14 days (add to root's crontab):
 
 ```bash

@@ -10,6 +10,7 @@ use App\Models\MealPlan;
 use App\Models\Product;
 use App\Models\RatePlan;
 use App\Models\RoomType;
+use App\Support\Money;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -219,7 +220,8 @@ class RatePlanService
         $type = $data['payment_type'] ?? 'pay_at_property';
         if (in_array($type, ['deposit_percent', 'deposit_nights'], true)) {
             $value = $data['deposit_value'] ?? null;
-            if ($value === null || $value === '' || (float) $value <= 0 || ($type === 'deposit_percent' && (float) $value > 100)) {
+            $value = is_float($value) ? (string) $value : $value;
+            if (! Money::isDecimal($value) || ! Money::isPositive((string) $value) || ($type === 'deposit_percent' && Money::compare((string) $value, '100') > 0)) {
                 $errors['deposit_value'] = __('rates.errors.deposit_value');
             }
         }

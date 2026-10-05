@@ -3,10 +3,12 @@
 namespace App\Providers;
 
 use App\Domain\Access\AccessService;
+use App\Infrastructure\Auth\SessionGuard;
 use App\Models\User;
 use App\Support\PropertyContext;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -55,6 +57,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->configureRateLimiting();
+        $this->configureSessionGuard();
 
         $threshold = (int) config('ozepms.logging.slow_query_ms');
         DB::listen(function (QueryExecuted $query) use ($threshold) {
@@ -65,6 +68,29 @@ class AppServiceProvider extends ServiceProvider
                     'connection' => $query->connectionName,
                 ]);
             }
+        });
+    }
+
+    /** Same as the stock session guard, with a neutral "keep me signed in" cookie name. */
+    private function configureSessionGuard(): void
+    {
+        Auth::extend('oz-session', function ($app, string $name, array $config) {
+            $guard = new SessionGuard(
+                $name,
+                Auth::createUserProvider($config['provider'] ?? null),
+                $app['session.store'],
+                rehashOnLogin: $app['config']->get('hashing.rehash_on_login', true),
+                timeboxDuration: $app['config']->get('auth.timebox_duration', 200000),
+                hashKey: $app['config']->get('app.key'),
+            );
+            $guard->setCookieJar($app['cookie']);
+            $guard->setDispatcher($app['events']);
+            $guard->setRequest($app->refresh('request', $guard, 'setRequest'));
+            if (isset($config['remember'])) {
+                $guard->setRememberDuration($config['remember']);
+            }
+
+            return $guard;
         });
     }
 

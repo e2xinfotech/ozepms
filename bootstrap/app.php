@@ -17,16 +17,23 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
-        health: '/up',
         then: function () {
+            // Uptime check without session or framework branding: 200 when the app and database answer.
+            Route::get('/up', function () {
+                \Illuminate\Support\Facades\DB::select('select 1');
+
+                return response()->json(['status' => 'ok']);
+            })->name('health');
             Route::middleware('web')->prefix('web-api')->name('webapi.')->group(base_path('routes/web-api.php'));
         },
     )
@@ -74,10 +81,15 @@ return Application::configure(basePath: dirname(__DIR__))
                 $e instanceof AuthenticationException => [401, 'UNAUTHENTICATED', __('errors.401'), null],
                 $e instanceof AuthorizationException => [403, 'FORBIDDEN', __('errors.403'), null],
                 $e instanceof TokenMismatchException => [419, 'SESSION_EXPIRED', __('errors.419'), null],
+                $e instanceof HttpExceptionInterface && $e->getStatusCode() === 419 => [419, 'SESSION_EXPIRED', __('errors.419'), null],
+                // Only messages the application passed to abort() are shown; framework messages
+                // (unknown route, missing record, wrong method) would reveal internal names.
                 $e instanceof HttpExceptionInterface => [
                     $e->getStatusCode(),
                     'HTTP_'.$e->getStatusCode(),
-                    $e->getStatusCode() < 500 && $e->getMessage() !== '' ? $e->getMessage() : __('errors.'.$e->getStatusCode()),
+                    $e->getStatusCode() < 500 && $e::class === HttpException::class && $e->getPrevious() === null && $e->getMessage() !== ''
+                        ? $e->getMessage()
+                        : (Lang::has('errors.'.$e->getStatusCode()) ? __('errors.'.$e->getStatusCode()) : __('errors.400')),
                     null,
                 ],
                 default => [500, 'SERVER_ERROR', __('errors.500'), null],

@@ -5,6 +5,7 @@ namespace App\Domain\Rates;
 use App\Domain\Audit\AuditLogger;
 use App\Infrastructure\Database\Tx;
 use App\Models\CancellationPolicy;
+use App\Support\Money;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -66,10 +67,11 @@ class CancellationPolicyService
         foreach ($rules as $i => $rule) {
             $type = $rule['charge_type'];
             $value = $rule['charge_value'] ?? null;
-            if (in_array($type, ['nights', 'percent', 'fixed'], true) && ($value === null || $value === '' || (float) $value <= 0)) {
+            $value = is_float($value) ? (string) $value : $value;
+            if (in_array($type, ['nights', 'percent', 'fixed'], true) && (! Money::isDecimal($value) || ! Money::isPositive((string) $value))) {
                 throw ValidationException::withMessages(["rules.$i.charge_value" => __('rates.errors.rule_value_required')]);
             }
-            if ($type === 'percent' && (float) $value > 100) {
+            if ($type === 'percent' && Money::compare((string) $value, '100') > 0) {
                 throw ValidationException::withMessages(["rules.$i.charge_value" => __('rates.errors.rule_percent_max')]);
             }
         }

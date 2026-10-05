@@ -11,6 +11,7 @@ return [
     'title_429' => 'Zu viele Anfragen',
     'title_500' => 'Etwas ist schiefgelaufen',
     'title_503' => 'Wartungsarbeiten',
+    '400' => 'Die Anfrage konnte nicht verarbeitet werden.',
     '401' => 'Ihre Sitzung ist beendet. Bitte melden Sie sich erneut an.',
     '403' => 'Sie haben keine Berechtigung für diese Aktion.',
     '404' => 'Die gesuchte Seite existiert nicht oder Sie haben keinen Zugriff darauf.',

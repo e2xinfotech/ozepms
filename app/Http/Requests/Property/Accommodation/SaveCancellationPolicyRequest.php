@@ -26,7 +26,7 @@ class SaveCancellationPolicyRequest extends FormRequest
             'rules.*.applies_to' => ['required', Rule::in(['cancellation', 'no_show'])],
             'rules.*.hours_before_arrival' => ['required', 'integer', 'min:0', 'max:8760'],
             'rules.*.charge_type' => ['required', Rule::in(CancellationPolicyRule::CHARGE_TYPES)],
-            'rules.*.charge_value' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
+            'rules.*.charge_value' => ['nullable', 'decimal:0,4', 'min:0', 'max:99999999'],
         ];
     }
 }
