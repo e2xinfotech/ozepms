@@ -169,9 +169,9 @@ function SecurityPage(p: Props) {
                         <tbody>
                             {p.recent_logins.map((l, i) => (
                                 <tr key={i}>
-                                    <td className="num">{dateTime(l.at)}</td>
+                                    <td className="nowrap">{dateTime(l.at)}</td>
                                     <td><Badge size="sm" tone={l.ok ? 'green' : 'red'}>{l.ok ? t('auth.signin_ok') : t('auth.signin_failed')}</Badge></td>
-                                    <td className="num">{l.ip ?? '—'}</td>
+                                    <td>{l.ip ?? '—'}</td>
                                     <td title={l.agent ?? ''}>{browserOf(l.agent)}</td>
                                 </tr>
                             ))}

@@ -112,6 +112,7 @@ function DashboardPage({ dashboard: d, max_range_days }: { dashboard: Dashboard;
                         barLabel={metricLabel[metric]}
                         barFormat={metric === 'occupancy' ? (v) => percent(v) : (v) => number(v)}
                         line={metric === 'occupancy' ? series[lineMetric] : undefined}
+                        lineMax={Math.max(100, ...series[lineMetric])}
                         lineLabel={metric === 'occupancy' ? metricLabel[lineMetric] : undefined}
                         lineFormat={(v) => number(v)} />
                     {d.kpis.total_rooms === 0 && <p className="muted text-sm" style={{ textAlign: 'center' }}>{t('property.dashboard.no_data')}</p>}

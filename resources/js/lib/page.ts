@@ -18,7 +18,7 @@ export interface SubscriptionState {
 }
 
 export interface ShellData {
-    brand: { name: string; tagline: string; company: string; support_email: string };
+    brand: { name: string; tagline: string; company: string; support_email: string; auth_image?: string | null };
     locales: Record<string, string>;
     sso: { google: boolean; microsoft: boolean };
     menu?: MenuItem[];

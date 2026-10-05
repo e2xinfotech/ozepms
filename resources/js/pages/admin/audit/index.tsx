@@ -18,12 +18,12 @@ function AuditPage({ rows, meta, filters, actions }: Props) {
     const active = Object.values(filters).some((v) => v !== '');
 
     const columns: Column<Entry>[] = [
-        { key: 'at', header: t('admin.audit_cols.time'), render: (e) => <span className="num nowrap">{dateTime(e.at)}</span> },
+        { key: 'at', header: t('admin.audit_cols.time'), render: (e) => <span className="nowrap">{dateTime(e.at)}</span> },
         { key: 'user', header: t('admin.audit_cols.user'), render: (e) => e.user ? <div><div className="cell-main">{e.user}</div><div className="cell-sub">{e.user_email}</div></div> : <span className="muted">{t('admin.system_actor')}</span> },
         { key: 'property', header: t('admin.audit_cols.property'), render: (e) => e.property ? <div><div>{e.property}</div><div className="cell-sub">{e.property_code}</div></div> : '—' },
         { key: 'action', header: t('admin.audit_cols.action'), render: (e) => <span className="strong">{e.action_label}</span> },
         { key: 'entity', header: t('admin.audit_cols.entity'), render: (e) => e.entity ?? '—' },
-        { key: 'ip', header: t('admin.audit_cols.ip'), render: (e) => <span className="num">{e.ip ?? '—'}</span> },
+        { key: 'ip', header: t('admin.audit_cols.ip'), render: (e) => e.ip ?? '—' },
         { key: 'details', header: '', className: 'col-actions', render: (e) => <Button size="sm" variant="ghost" icon="eye" aria-label={t('ui.details')} title={t('ui.details')} onClick={(ev) => { ev.stopPropagation(); setOpen(e); }} /> },
     ];
 

@@ -40,3 +40,11 @@
 .role-item:hover { background: var(--hover); }
 .role-item.active { border-color: var(--brand-600); background: var(--brand-50); }
 .perm-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.dash-grid-2 { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); gap: 20px; align-items: stretch; }
+@media (max-width: 1500px) { .dash-grid-2 { grid-template-columns: minmax(0, 1fr); } }
+
+/* KPI tiles next to a detail panel have less room */
+.with-panel .kpi-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.with-panel .kpi { padding: 14px 16px; gap: 12px; }
+.with-panel .kpi .kpi-icon { width: 44px; height: 44px; }
+.with-panel .kpi .kpi-value { font-size: 22px; }

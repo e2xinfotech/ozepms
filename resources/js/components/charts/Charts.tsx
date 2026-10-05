@@ -15,8 +15,9 @@ export function BarLineChart({ labels, bars, line, barLabel, lineLabel, barMax, 
     const step = iw / Math.max(1, labels.length);
     const bw = Math.min(42, step * 0.62);
     const ticks = [0, 0.2, 0.4, 0.6, 0.8, 1];
-    const fb = barFormat ?? ((v: number) => number(v));
-    const fl = lineFormat ?? ((v: number) => number(v));
+    // Small scales (e.g. no data yet) need a decimal so the ticks do not read "0, 0, 1, 1".
+    const fb = barFormat ?? ((v: number) => number(v, bMax < 5 ? 1 : 0));
+    const fl = lineFormat ?? ((v: number) => number(v, lMax < 5 ? 1 : 0));
     const pts = (line ?? []).map((v, i) => [padL + step * i + step / 2, padT + ih - (v / lMax) * ih] as const);
 
     return (

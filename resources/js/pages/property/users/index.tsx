@@ -44,11 +44,11 @@ function UsersPage(props: Props) {
     };
 
     const columns: Column<UserRow>[] = [
-        { key: 'name', header: t('users.user'), sortable: true, render: (r) => <UserCell name={r.name} title={r.job_title} /> },
+        { key: 'name', header: t('users.user'), sortable: true, width: 220, render: (r) => <UserCell name={r.name} title={r.job_title} /> },
         { key: 'email', header: t('users.email_short'), sortable: true, render: (r) => r.email },
         { key: 'role', header: t('users.role'), sortable: true, render: (r) => <span className="row" style={{ gap: 6 }}><RoleBadge name={r.role_name} color={r.role_color} />{r.is_owner && <Icon name="star" size={14} />}</span> },
         { key: 'status', header: t('users.status'), sortable: true, render: (r) => <Badge status={r.invited && r.status === 'active' ? 'invited' : r.status} /> },
-        { key: 'last_login', header: t('users.last_login'), sortable: true, render: (r) => <span className="num">{r.last_login_at ? dateTime(r.last_login_at) : t('ui.never')}</span> },
+        { key: 'last_login', header: t('users.last_login'), sortable: true, render: (r) => <span className="nowrap">{r.last_login_at ? dateTime(r.last_login_at) : t('ui.never')}</span> },
         {
             key: 'actions', header: t('ui.actions'), className: 'col-actions', render: (r) => (
                 <RowMenu items={[

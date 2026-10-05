@@ -21,7 +21,9 @@ class SecurityHeaders
         $response->headers->remove('X-Powered-By');
 
         $nonce = Vite::cspNonce();
-        $devServer = app()->isLocal() ? ' http://localhost:5173 ws://localhost:5173 http://[::1]:5173 ws://[::1]:5173' : '';
+        // The Vite dev server is allowed only while it runs (public/hot exists). Browsers reject
+        // IPv6 literals in CSP source lists, so localhost is used for both address families.
+        $devServer = app()->isLocal() && Vite::isRunningHot() ? ' http://localhost:5173 ws://localhost:5173' : '';
 
         $csp = implode('; ', [
             "default-src 'self'",

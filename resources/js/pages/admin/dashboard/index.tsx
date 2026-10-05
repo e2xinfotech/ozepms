@@ -45,12 +45,14 @@ function AdminDashboardPage(p: Props) {
 
             <div className="dash-grid">
                 <div className="dash-col">
-                    <div className="dash-grid" style={{ gridTemplateColumns: 'minmax(0, 1.6fr) minmax(0, 1fr)' }}>
+                    <div className="dash-grid-2">
                         <Card title={t('admin.booking_performance')} actions={
-                            <Select size="sm" aria-label={t('ui.date_range')} value={String(p.days)} options={p.periods.map((d) => ({ value: String(d), label: t('admin.last_days', { n: d }) }))}
-                                onChange={(e) => navigateWithQuery({ days: e.target.value })} />
+                            <div style={{ width: 150, flex: 'none' }}>
+                                <Select size="sm" aria-label={t('ui.date_range')} value={String(p.days)} options={p.periods.map((d) => ({ value: String(d), label: t('admin.last_days', { n: d }) }))}
+                                    onChange={(e) => navigateWithQuery({ days: e.target.value })} />
+                            </div>
                         }>
-                            <BarLineChart labels={p.bookings.map((b) => date(b.date).replace(/\s\d{4}$/, ''))} bars={p.bookings.map((b) => b.bookings)} barLabel={t('admin.bookings')} />
+                            <BarLineChart labels={p.bookings.map((b) => date(b.date).replace(/\s\d{4}$/, ''))} bars={p.bookings.map((b) => b.bookings)} barMax={Math.max(5, ...p.bookings.map((b) => b.bookings))} barLabel={t('admin.bookings')} />
                             {s.bookings_month === 0 && <p className="muted text-sm" style={{ textAlign: 'center' }}>{t('admin.no_bookings_yet')}</p>}
                         </Card>
                         <Card title={t('admin.property_distribution')}>

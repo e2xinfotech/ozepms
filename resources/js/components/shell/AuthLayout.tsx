@@ -15,7 +15,7 @@ export function AuthLayout({ shell, children }: { shell: ShellData; children: Re
     const current = document.documentElement.lang.slice(0, 2);
     return (
         <div className="auth">
-            <section className="auth-hero" style={{ ['--auth-image' as string]: 'url(/images/auth-hero.jpg)' }}>
+            <section className="auth-hero" style={shell.brand.auth_image ? { ['--auth-image' as string]: `url(${shell.brand.auth_image})` } : undefined}>
                 <div>
                     <Logo />
                     <h2>{t('auth.hero.title_1')}<br />{t('auth.hero.title_2')}</h2>
