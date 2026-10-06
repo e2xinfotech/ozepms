@@ -53,3 +53,4 @@ a.link { color: var(--brand-600); font-weight: var(--weight-semibold); }
 .pay-compact th:first-child, .pay-compact td:first-child { padding-left: 0; }
 .pay-compact th:last-child, .pay-compact td:last-child { padding-right: 0; }
 .pay-compact .cell-clip { display: inline-block; max-width: 70px; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
+.cell-sub.block { display: block; color: var(--muted); font-size: var(--text-xs); margin-top: 2px; }

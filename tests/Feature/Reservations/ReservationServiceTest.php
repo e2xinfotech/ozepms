@@ -214,6 +214,7 @@ class ReservationServiceTest extends ReservationTestCase
         }
         $this->service()->noShow($today, $this->owner);
         $this->assertSame('no_show', $today->fresh()->status);
+        $this->assertSame('4200.00', (string) $today->fresh()->cancellation_fee, 'no-show costs the first night incl. 5 % GST');
         $this->assertSame([0, 0], $this->sold($this->deluxe, 0, 2));
         $this->assertInventoryConsistent();
     }

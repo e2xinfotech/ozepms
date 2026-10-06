@@ -40,7 +40,7 @@ class InvoiceServiceTest extends BillingTestCase
         $this->assertSame('9963', $snap['lines'][0]['sac']);
         $this->assertSame('John Smith', $snap['parties']['bill_to']['name']);
         $this->assertSame('Rupees Eight Thousand Four Hundred Only', $snap['amount_in_words']);
-        $this->assertSame([['component' => 'CGST', 'name' => 'CGST', 'rate' => '2.50', 'taxable' => '8000.00', 'amount' => '200.00'], ['component' => 'SGST', 'name' => 'SGST', 'rate' => '2.50', 'taxable' => '8000.00', 'amount' => '200.00']], $snap['tax_summary']);
+        $this->assertSame([['component' => 'CGST', 'name' => 'CGST', 'rate' => '2.50', 'fixed' => false, 'taxable' => '8000.00', 'amount' => '200.00'], ['component' => 'SGST', 'name' => 'SGST', 'rate' => '2.50', 'fixed' => false, 'taxable' => '8000.00', 'amount' => '200.00']], $snap['tax_summary']);
         $this->assertSame(2, FolioLine::acrossProperties()->where('invoice_id', $inv->id)->count());
 
         // Nothing left → no second invoice; new charge → next number.

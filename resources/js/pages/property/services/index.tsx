@@ -14,7 +14,7 @@ interface Row {
 interface Props {
     list: { rows: Row[]; meta: PageMeta; counts: { all: number; active: number; inactive: number } };
     filters: { q?: string; status?: string; posting_rule?: string; selected?: string };
-    options: { tax_categories: { value: string; label: string; sac: string | null }[]; posting_rules: string[] };
+    options: { tax_categories: { value: string; label: string; sac: string | null }[]; posting_rules: string[]; show_sac?: boolean };
 }
 
 const currency = () => payload().shell.property?.currency ?? '';
@@ -42,7 +42,7 @@ function ServicesPage({ list, filters, options }: Props) {
         { key: 'code', header: t('billing.services.columns.code'), sortable: true, render: (r) => r.code },
         { key: 'price', header: t('billing.services.columns.price'), sortable: true, align: 'right', render: (r) => money(r.price, currency()) },
         { key: 'rule', header: t('billing.services.columns.posting_rule'), render: (r) => t(`billing.posting_rules.${r.posting_rule}`) },
-        { key: 'tax', header: t('billing.services.columns.tax_category'), className: 'hide-with-panel', render: (r) => <>{categoryLabel(r.tax_category)}{r.sac_hsn_code && <span className="cell-sub">SAC/HSN {r.sac_hsn_code}</span>}</> },
+        { key: 'tax', header: t('billing.services.columns.tax_category'), className: 'hide-with-panel', render: (r) => <>{categoryLabel(r.tax_category)}{options.show_sac && r.sac_hsn_code && <span className="cell-sub block">SAC/HSN {r.sac_hsn_code}</span>}</> },
         { key: 'used', header: t('billing.services.columns.used'), align: 'right', className: 'hide-with-panel', render: (r) => r.times_posted },
         { key: 'status', header: t('billing.services.columns.status'), render: (r) => <span onClick={(e) => e.stopPropagation()}><Toggle checked={r.is_active} onChange={(v) => toggle(r, v)} label={t(`ui.status.${r.is_active ? 'active' : 'inactive'}`)} /></span> },
         { key: 'actions', header: t('ui.actions'), className: 'col-actions', render: (r) => <RowMenu items={[{ label: t('ui.edit'), icon: 'pencil', onClick: () => setSelected(r.id) }]} /> },
@@ -131,8 +131,8 @@ function ServicePanel({ id, options, onClose, onSaved }: { id: string; options: 
                         error={err('posting_rule')} hint={t('billing.services.posting_hint')} />
                     <Select fieldClass="span-6" label={t('billing.services.fields.tax_category')} required value={svc.tax_category ?? ''} options={options.tax_categories}
                         onChange={(e) => set('tax_category', e.target.value)} error={err('tax_category')} />
-                    <Input fieldClass="span-6" label={t('billing.services.fields.sac')} optional maxLength={10} value={svc.sac_hsn_code ?? ''} placeholder={sacHint ?? ''}
-                        onChange={(e) => set('sac_hsn_code', e.target.value)} error={err('sac_hsn_code')} />
+                    {options.show_sac && <Input fieldClass="span-6" label={t('billing.services.fields.sac')} optional maxLength={10} value={svc.sac_hsn_code ?? ''} placeholder={sacHint ?? ''}
+                        onChange={(e) => set('sac_hsn_code', e.target.value)} error={err('sac_hsn_code')} />}
                     <Textarea fieldClass="span-12" label={t('billing.services.fields.description')} optional rows={2} maxLength={255} value={svc.description ?? ''} onChange={(e) => set('description', e.target.value)} />
                     <Input fieldClass="span-6" type="number" min={0} max={9999} label={t('billing.services.fields.sort_order')} value={svc.sort_order} onChange={(e) => set('sort_order', Number(e.target.value))} />
                     <div className="field span-6">

@@ -28,7 +28,7 @@ class BillingNightAudit extends Command
             }
             $results = [(string) $property->code => $audits->run($property, null, (bool) $this->option('force'))];
         } else {
-            $results = $audits->runDue();
+            $results = $audits->runDue((bool) $this->option('force'));
         }
 
         $failed = false;

@@ -36,11 +36,11 @@ class NightAuditService
      *
      * @return array<string, list<array<string, mixed>>> results per property code
      */
-    public function runDue(): array
+    public function runDue(bool $force = false): array
     {
         $out = [];
-        Property::query()->where('status', 'active')->orderBy('id')->each(function (Property $property) use (&$out) {
-            $results = $this->run($property);
+        Property::query()->where('status', 'active')->orderBy('id')->each(function (Property $property) use (&$out, $force) {
+            $results = $this->run($property, null, $force);
             if ($results !== []) {
                 $out[(string) $property->code] = $results;
             }

@@ -37,10 +37,13 @@ class CancellationFee
     {
         $rules = collect($room->rate_snapshot['cancellation']['rules'] ?? [])
             ->filter(fn ($r) => ($r['applies_to'] ?? 'cancellation') === $kind);
-        if ($kind === 'no_show' && $rules->isEmpty()) {
-            // No explicit no-show rule: a no-show costs what a cancellation at arrival time would.
-            $rules = collect($room->rate_snapshot['cancellation']['rules'] ?? [])->filter(fn ($r) => ($r['applies_to'] ?? 'cancellation') === 'cancellation');
-            $hoursLeft = 0.0;
+        if ($kind === 'no_show') {
+            // A no-show is past the arrival time: every window has started (also a 0-hour no-show
+            // rule). No explicit no-show rule: it costs what a cancellation at arrival time would.
+            if ($rules->isEmpty()) {
+                $rules = collect($room->rate_snapshot['cancellation']['rules'] ?? [])->filter(fn ($r) => ($r['applies_to'] ?? 'cancellation') === 'cancellation');
+            }
+            $hoursLeft = -1.0;
         } else {
             $tz = $property->timezone ?: config('app.timezone');
             $arrival = CarbonImmutable::parse($room->check_in->toDateString().' '.($property->check_in_time ?? '14:00:00'), $tz);
