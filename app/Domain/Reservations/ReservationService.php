@@ -105,7 +105,7 @@ class ReservationService
                 throw ValidationException::withMessages(["rooms.$i.check_in" => __('reservations.errors.past_arrival')]);
             }
         }
-        $this->assertSellable($property, $rooms, array_keys(array_filter($rooms, fn ($r) => $r['check_in']->greaterThanOrEqualTo($today))));
+        $this->assertSellable($property, $rooms, array_keys(array_filter($rooms, fn ($r) => $r['check_in']->greaterThanOrEqualTo($today))), (string) ($data['channel'] ?? 'pms'));
         $context = $allowPast ? null : $this->offerContext($property, $data, null);
         $offers = null;
         $priced = $this->pricer->price($property, $rooms, $context, $offers);
@@ -134,6 +134,8 @@ class ReservationService
                 $reservation->created_by = $by?->id;
                 $reservation->updated_by = $by?->id;
                 $reservation->confirmed_at = $status === 'confirmed' ? now() : null;
+                // Online bookings waiting for payment hold the rooms only for a while (booking:expire-holds).
+                $reservation->hold_expires_at = ! empty($data['hold_minutes']) && $status === 'pending' ? now()->addMinutes((int) $data['hold_minutes']) : null;
                 $reservation->arrival_time = $property->check_in_time;
                 $reservation->departure_time = $property->check_out_time;
                 $this->fillDetails($reservation, $data);
@@ -420,6 +422,7 @@ class ReservationService
             ReservationRoom::query()->where('reservation_id', $reservation->id)->whereIn('status', ['hold', 'pending'])->update(['status' => 'confirmed', 'updated_at' => now()]);
             $reservation->status = 'confirmed';
             $reservation->confirmed_at = now();
+            $reservation->hold_expires_at = null;
             $reservation->updated_by = $by?->id;
             $reservation->save();
             $this->history($reservation, $from, 'confirmed', $by, null);
@@ -870,13 +873,13 @@ class ReservationService
      *
      * @param  list<int|string>  $keys  rooms to check
      */
-    private function assertSellable(Property $property, array $rooms, array $keys): void
+    private function assertSellable(Property $property, array $rooms, array $keys, string $channel = 'pms'): void
     {
         $searches = [];
         foreach ($keys as $key) {
             $r = $rooms[$key];
             $sig = implode('|', [$r['check_in']->toDateString(), $r['check_out']->toDateString(), $r['adults'], $r['children'], $r['infants']]);
-            $searches[$sig] ??= $this->availability->search($property, $r['check_in'], $r['check_out'], $r['adults'], $r['children'], $r['infants'], 'pms', $r['child_ages']);
+            $searches[$sig] ??= $this->availability->search($property, $r['check_in'], $r['check_out'], $r['adults'], $r['children'], $r['infants'], $channel, $r['child_ages']);
             $found = null;
             foreach ($searches[$sig]->roomTypes as $rt) {
                 foreach ($rt['products'] as $p) {

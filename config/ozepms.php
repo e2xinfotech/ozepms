@@ -115,6 +115,21 @@ return [
         'archive_batch' => 5000,
     ],
 
+    // Public booking engine (Phase 6): /book/{property slug}.
+    'booking_engine' => [
+        // Minutes a booking waiting for online payment holds its rooms.
+        'hold_minutes' => (int) env('OZ_BE_HOLD_MINUTES', 15),
+        // Search results are cached per property, ARI version, offers and query.
+        'cache_seconds' => (int) env('OZ_BE_CACHE_SECONDS', 300),
+        // Furthest arrival date and longest stay a guest can search.
+        'max_days_ahead' => 500,
+        'max_nights' => 30,
+        'max_rooms' => 5,
+        // Requests per minute and IP.
+        'search_per_minute' => 30,
+        'book_per_minute' => 6,
+    ],
+
     'billing' => [
         // Folio numbers: prefix + per-property sequence (F-000123).
         'folio_prefix' => 'F-',
