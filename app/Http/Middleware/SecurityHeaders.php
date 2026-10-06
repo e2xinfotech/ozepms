@@ -22,14 +22,20 @@ class SecurityHeaders
 
         $nonce = Vite::cspNonce();
         $devServer = app()->isLocal() && Vite::isRunningHot() ? $this->devServerSources() : '';
+        // Razorpay Checkout (script + payment window) only when online payments are configured.
+        $gateway = config('ozepms.billing.razorpay.key_id') && config('ozepms.billing.razorpay.key_secret');
+        $rzpScript = $gateway ? ' https://checkout.razorpay.com' : '';
+        $rzpFrame = $gateway ? "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com" : "frame-src 'self'";
+        $rzpConnect = $gateway ? ' https://api.razorpay.com https://lumberjack.razorpay.com' : '';
 
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'nonce-{$nonce}'".$devServer,
+            "script-src 'self' 'nonce-{$nonce}'".$rzpScript.$devServer,
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com".$devServer,
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: blob:",
-            "connect-src 'self'".$devServer,
+            "connect-src 'self'".$rzpConnect.$devServer,
+            $rzpFrame,
             "frame-ancestors 'none'",
             "form-action 'self'",
             "base-uri 'self'",

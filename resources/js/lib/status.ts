@@ -18,6 +18,9 @@ const tones: Record<string, Tone> = {
     available: 'green', occupied: 'red', out_of_service: 'orange', out_of_order: 'red', clean: 'green', dirty: 'amber', inspected: 'blue',
     // payments
     paid: 'green', partial: 'amber', unpaid: 'red', refunded: 'slate',
+    // billing (folio lines, payment rows, invoices)
+    captured: 'green', failed: 'red', partially_refunded: 'amber', void: 'slate', reversal: 'slate', posted: 'blue',
+    open: 'blue', closed: 'slate', tax_invoice: 'blue', credit_note: 'violet', deposit: 'sky', invoiced: 'teal',
     // policies
     refundable: 'green', non_refundable: 'orange', flexible: 'green',
     // taxes & fees, room blocks

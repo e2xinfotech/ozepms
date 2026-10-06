@@ -14,6 +14,7 @@ return [
     'guests' => 'Guests',
     'offers' => 'Offers & Promotions',
     'taxes' => 'Taxes & Fees',
+    'services' => 'Services & Extras',
     'reports' => 'Reports',
     'channels' => 'Channel Manager',
     'users_roles' => 'Users & Roles',

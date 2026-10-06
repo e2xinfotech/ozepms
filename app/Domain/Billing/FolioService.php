@@ -668,9 +668,15 @@ class FolioService
             ->where('live_key', 'like', $prefix.'%')->pluck('live_key')->flip()->map(fn () => true)->all();
     }
 
+    /**
+     * The line posted with an idempotency key, also when it was voided since (a retried or replayed
+     * request never posts the charge again). Room nights use live_key instead, so a night that
+     * left the stay and came back can be posted again.
+     */
     private function lineByKey(Folio $folio, string $key): ?FolioLine
     {
-        return FolioLine::query()->where('property_id', $folio->property_id)->where('live_key', $key)->first();
+        return FolioLine::query()->where('property_id', $folio->property_id)->where('folio_id', $folio->id)
+            ->where('posting_key', $key)->orderBy('id')->first();
     }
 
     private function propertyOf(Reservation|Folio $model): Property

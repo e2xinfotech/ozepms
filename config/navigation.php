@@ -20,6 +20,7 @@ return [
         ['key' => 'guests',      'label' => 'nav.guests',      'icon' => 'users',          'route' => 'property.guests', 'permission' => 'guests.view'],
         ['key' => 'offers',      'label' => 'nav.offers',      'icon' => 'badge-percent',  'route' => 'property.offers', 'permission' => 'offers.manage'],
         ['key' => 'taxes',       'label' => 'nav.taxes',       'icon' => 'receipt',        'route' => 'property.taxes', 'permission' => 'taxes.manage'],
+        ['key' => 'services',    'label' => 'nav.services',    'icon' => 'concierge-bell', 'route' => 'property.services', 'permission' => 'services.manage'],
         ['key' => 'reports',     'label' => 'nav.reports',     'icon' => 'chart-column',   'route' => 'property.reports', 'permission' => 'reports.view'],
         ['key' => 'channels',    'label' => 'nav.channels',    'icon' => 'network',        'route' => 'property.channels', 'permission' => 'channels.manage'],
         ['key' => 'users',       'label' => 'nav.users_roles', 'icon' => 'user-cog',       'route' => 'property.users', 'permission' => 'users.manage'],
