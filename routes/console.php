@@ -30,3 +30,11 @@ Schedule::command('inventory:archive')
     ->name('inventory:archive')
     ->withoutOverlapping()
     ->onOneServer();
+
+// Night audit (billing): every property's business day is closed after its own audit time
+// (property setting night_audit_time, default config('ozepms.billing.night_audit_time')) in its timezone.
+Schedule::command('billing:night-audit')
+    ->everyFifteenMinutes()
+    ->name('billing:night-audit')
+    ->withoutOverlapping(60)
+    ->onOneServer();

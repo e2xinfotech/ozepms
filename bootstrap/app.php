@@ -30,6 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             Route::middleware('web')->prefix('web-api')->name('webapi.')->group(base_path('routes/web-api.php'));
 
+            // Payment gateway callbacks: stateless (no session / CSRF), signature-checked by the handler.
+            Route::prefix('hooks')->name('hooks.')->group(base_path('routes/hooks.php'));
+
             // Uptime check for the load balancer / monitoring: plain JSON, no session, no framework page.
             Route::get('/up', function () {
                 try {
@@ -70,12 +73,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->dontReportDuplicates();
 
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*', 'web-api/*') || $request->expectsJson(),
+            fn (Request $request) => $request->is('api/*', 'web-api/*', 'hooks/*') || $request->expectsJson(),
         );
 
         // One JSON error format everywhere: { error: { code, message, fields?, ref } }
         $exceptions->render(function (Throwable $e, Request $request) {
-            if (! ($request->is('api/*', 'web-api/*') || $request->expectsJson())) {
+            if (! ($request->is('api/*', 'web-api/*', 'hooks/*') || $request->expectsJson())) {
                 return null;
             }
 
