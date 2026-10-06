@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToProperty;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Table: unit_nights. Owned by Phase 4 (see docs/04-development-guide.md).
@@ -29,5 +30,10 @@ class UnitNight extends Model
         return [
             'stay_date' => 'date',
         ];
+    }
+
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(PhysicalUnit::class, 'unit_id')->withTrashed();
     }
 }

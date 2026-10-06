@@ -3,11 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * Table: reservation_status_history. Owned by Phase 4 (see docs/04-development-guide.md).
- * Relationships and behaviour are added by the owning module.
- */
+/** Status changes of a reservation (or one of its rooms), newest first on the detail page. */
 class ReservationStatusHistory extends Model
 {
     protected $table = 'reservation_status_history';
@@ -15,4 +13,14 @@ class ReservationStatusHistory extends Model
     public const UPDATED_AT = null;
 
     protected $guarded = ['id'];
+
+    protected function casts(): array
+    {
+        return ['created_at' => 'datetime'];
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }
