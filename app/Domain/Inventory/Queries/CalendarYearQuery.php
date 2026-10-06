@@ -114,29 +114,39 @@ final class CalendarYearQuery
             }
         }
         $basePersons = $roomTypes->pluck('base_adults', 'id')->all();
-        $priceOf = function (object $p, int $i, int $depth = 0) use (&$priceOf, $byId, $price, $basePersons): ?string {
+
+        // Price per night of every needed product as one array (derived products from their parent's
+        // array; equal parent prices are computed once, weekly patterns repeat a lot).
+        $prices = [];
+        $memo = [];
+        $pricesOf = function (object $p, int $depth = 0) use (&$pricesOf, &$prices, &$memo, $byId, $price, $basePersons, $count): array {
+            if (isset($prices[$p->id])) {
+                return $prices[$p->id];
+            }
             if ($p->pricing_mode !== 'derived') {
-                return $price[$p->id][$i] ?? null;
+                return $prices[$p->id] = $price[$p->id] ?? [];
             }
             $parent = $byId[$p->parent_product_id] ?? null;
             if ($parent === null || $depth > 4) {
-                return null;
+                return $prices[$p->id] = [];
             }
-            $parentPrice = $priceOf($parent, $i, $depth + 1);
+            $persons = (int) ($basePersons[$p->room_type_id] ?? 1) ?: 1;
+            $out = [];
+            foreach ($pricesOf($parent, $depth + 1) as $i => $parentPrice) {
+                $key = $p->adjust_type.'|'.$p->adjust_value.'|'.$persons.'|'.$parentPrice;
+                $out[$i] = $memo[$key] ??= DerivedPrice::apply($parentPrice, (string) $p->adjust_type, (string) $p->adjust_value, $persons);
+            }
 
-            return $parentPrice === null ? null
-                : DerivedPrice::apply($parentPrice, (string) $p->adjust_type, (string) $p->adjust_value, (int) ($basePersons[$p->room_type_id] ?? 1) ?: 1);
+            return $prices[$p->id] = $out;
         };
 
-        // Closed (stop sell) that night; derived products that follow the parent's restrictions are
-        // closed with it, as on the month view.
-        $isClosed = function (object $p, int $i, int $depth = 0) use (&$isClosed, $byId, $closed): bool {
-            if (isset($closed[$p->id][$i])) {
-                return true;
-            }
+        // Nights a product is closed (stop sell); derived products that follow the parent's
+        // restrictions are closed with it, as on the month view.
+        $closedOf = function (object $p, int $depth = 0) use (&$closedOf, $byId, $closed): array {
+            $own = $closed[$p->id] ?? [];
             $parent = $p->pricing_mode === 'derived' && $p->inherit_restrictions ? ($byId[$p->parent_product_id] ?? null) : null;
 
-            return $parent !== null && $depth < 4 && $isClosed($parent, $i, $depth + 1);
+            return $parent !== null && $depth < 4 ? $own + $closedOf($parent, $depth + 1) : $own;
         };
 
         $months = [];
@@ -152,9 +162,10 @@ final class CalendarYearQuery
         $rows = [];
         foreach ($roomTypes as $rt) {
             $levels = '';
-            $prices = [];
+            $minPrices = [];
             $monthMin = array_fill(0, count($months), null);
-            $typeProducts = $shownByType->get($rt->id, collect());
+            // [price per night, closed nights] of each rate plan shown for this room type
+            $typeProducts = $shownByType->get($rt->id, collect())->map(fn ($p) => [$pricesOf($p), $closedOf($p)])->all();
             for ($i = 0; $i < $count; $i++) {
                 $inv = $inventory[$rt->id][$i] ?? null;
                 if ($inv === null || (int) $inv->total_units === 0) {
@@ -172,16 +183,13 @@ final class CalendarYearQuery
                 }
 
                 $min = null;
-                foreach ($typeProducts as $p) {
-                    if ($isClosed($p, $i)) {
-                        continue;
-                    }
-                    $value = $priceOf($p, $i);
+                foreach ($typeProducts as [$nightPrices, $closedNights]) {
+                    $value = isset($closedNights[$i]) ? null : ($nightPrices[$i] ?? null);
                     if ($value !== null && ($min === null || bccomp($value, $min, 2) < 0)) {
                         $min = $value;
                     }
                 }
-                $prices[] = $min === null ? null : self::short($min);
+                $minPrices[] = $min === null ? null : self::short($min);
                 $k = $monthOf[$i];
                 if ($min !== null && ($monthMin[$k] === null || bccomp($min, $monthMin[$k], 2) < 0)) {
                     $monthMin[$k] = $min;
@@ -194,7 +202,7 @@ final class CalendarYearQuery
                 'name' => $rt->name,
                 'is_active' => (bool) $rt->is_active,
                 'levels' => $levels,
-                'prices' => $prices,
+                'prices' => $minPrices,
                 'month_min' => array_map(fn ($v) => $v === null ? null : self::short($v), $monthMin),
             ];
         }

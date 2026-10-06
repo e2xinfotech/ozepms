@@ -215,7 +215,8 @@ systemctl status ozepms-queue ozepms-scheduler.timer
 * The queue worker sends e-mails (invitations, password links) and other background jobs. It restarts itself every
   hour (`--max-time`) and after each deploy (`queue:restart`).
 * The scheduler runs every minute and handles subscription status changes (active → grace → expired), log and
-  login-history clean-up and, from later phases, inventory horizon jobs.
+  login-history clean-up, the nightly inventory horizon (`inventory:horizon`, 00:30) and the monthly retention of old
+  daily inventory / rate rows (`inventory:archive`, 1st of the month 01:30; see `docs/02-database.md`).
 * Alternative without systemd timers: `* * * * * cd /var/www/ozepms/current && php artisan schedule:run >> /dev/null 2>&1`
   in the `ozepms` user's crontab.
 

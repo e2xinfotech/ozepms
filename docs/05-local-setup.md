@@ -129,7 +129,7 @@ Every page in `resources/js/pages/**` is its own entry point; `npm run build` mu
 
 ## 6. Background work
 
-The scheduler runs subscription status changes and log clean-up; the queue sends e-mails.
+The scheduler runs subscription status changes, log clean-up, the nightly inventory horizon (`inventory:horizon`) and the monthly retention of old daily rows (`inventory:archive`); the queue sends e-mails.
 
 ```bash
 php artisan schedule:work          # runs the scheduler every minute in the foreground

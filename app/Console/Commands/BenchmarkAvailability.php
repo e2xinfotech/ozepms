@@ -98,6 +98,21 @@ class BenchmarkAvailability extends Command
         }
         $rows[] = $this->stats('reserve() 3 nights (rolled back)', $times);
 
+        // Calendar reads: one month window and one year overview of a random property.
+        $calendar = app(\App\Domain\Inventory\Queries\CalendarQuery::class);
+        $year = app(\App\Domain\Inventory\Queries\CalendarYearQuery::class);
+        foreach (['calendar month (31 nights)' => 'month', 'calendar year overview' => 'year'] as $label => $kind) {
+            $times = [];
+            for ($i = 0; $i < min(100, $searches); $i++) {
+                $property = $properties[mt_rand(0, $properties->count() - 1)];
+                $from = $today->addMonths(mt_rand(0, 11))->startOfMonth();
+                $start = hrtime(true);
+                $kind === 'month' ? $calendar->window($property, $from, $from->daysInMonth) : $year->year($property, $from);
+                $times[] = (hrtime(true) - $start) / 1e6;
+            }
+            $rows[] = $this->stats($label, $times);
+        }
+
         $this->table(['Operation', 'Runs', 'Mean ms', 'p50 ms', 'p95 ms', 'p99 ms', 'Max ms'], $rows);
 
         return self::SUCCESS;

@@ -141,6 +141,32 @@ How the daily tables are maintained (code in `app/Domain/Inventory`):
   columns never underflow and the CHECK `ck_inv_no_overbook` never has to fire.
 * Calendar edits update only rows whose values really change (NULL-safe comparison), write one
   `ari_change_log` row per room type / product and scope, and increment `properties.ari_version` once.
+* Cutoff = `ari_daily.cutoff_days` (minimum days between booking and arrival), shown and edited on the calendar
+  as "Cutoff"; `max_advance_days` is the other end of the booking window. No further column was needed.
+* "Copy values" (calendar) reads the source nights of `ari_daily` / `ari_daily_occupancy` by primary key range and
+  writes the target nights through the same change sets as any calendar edit (`AriService::applyMany`: one
+  transaction, one `ari_version` step); nights with equal values are grouped into one range (with a weekday
+  filter when they form a weekly pattern), so a month copy is a handful of `UPDATE … WHERE product_id = ? AND
+  stay_date BETWEEN ? AND ?` statements per rate plan.
+* Year overview (`CalendarYearQuery`): three range reads for twelve months — `inventory_daily` and `ari_daily`
+  on `(property_id, stay_date)` plus the small room type / product tables — aggregated in PHP to one level
+  string and one lowest-price list per room type (the page never receives room type × rate plan × night cells).
+
+### Retention / archival (spec §17)
+
+`php artisan inventory:archive` (scheduled monthly, 1st at 01:30) deletes, per property and in batches of
+`ozepms.inventory.archive_batch` (5 000) rows on the `(property_id, stay_date)` indexes:
+
+| Table | Removed | Setting |
+|---|---|---|
+| `inventory_daily`, `ari_daily`, `ari_daily_occupancy` | nights before the property's today − retention | `ozepms.inventory.retention_days` (400, env `OZ_INVENTORY_RETENTION_DAYS`) |
+| `ari_change_log` | rows created before now − log retention | `ozepms.inventory.change_log_retention_days` (400, env `OZ_ARI_LOG_RETENTION_DAYS`) |
+
+Today and future nights are never touched (retention ≥ 1 day), and the cut-off never passes the first night of a
+reservation that is still open (hold, pending, confirmed, checked in). Nothing references these rows by key:
+reservations keep their nightly prices in `reservation_room_nights` and the rate snapshot, and reports use their
+own daily rollups, so removing old nights loses no booking or statistic. Options: `--property=P1001`, `--days=`,
+`--log-days=`, `--dry-run` (counts only). Keeping about 13 months lets "copy values" use the same period last year.
 
 ## Load test (Phase 3)
 
@@ -156,6 +182,18 @@ Container with 2 vCPUs, MySQL 8.0, PHP 8.3 CLI (no opcache), another workload ru
 | search, 7 nights | 41 ms | 67 ms | 72 ms |
 | search, 14 nights | 57 ms | 94 ms | 112 ms |
 | `InventoryService::reserve`, 3 nights | 4 ms | 7 ms | 10 ms |
+
+Re-run 06 Oct 2026 after the calendar completion (same data, 300 searches per stay length, 100 calendar reads):
+
+| Operation | p50 | p95 | p99 |
+|---|---|---|---|
+| search, 1 night | 20 ms | 30 ms | 34 ms |
+| search, 3 nights | 26 ms | 38 ms | 42 ms |
+| search, 7 nights | 42 ms | 67 ms | 77 ms |
+| search, 14 nights | 55 ms | 92 ms | 112 ms |
+| `InventoryService::reserve`, 3 nights | 3 ms | 7 ms | 14 ms |
+| calendar month window (10 room types × 4 rate plans × 31 nights) | 16 ms | 35 ms | 44 ms |
+| calendar year overview (10 room types × 4 rate plans × 365 nights) | 47 ms | 66 ms | 84 ms |
 
 A search runs 8 queries whatever the stay length: room types, products, occupancy rules, rate plans (small
 master tables), then the `inventory_daily`, `ari_daily` and `ari_daily_occupancy` ranges for the whole property
