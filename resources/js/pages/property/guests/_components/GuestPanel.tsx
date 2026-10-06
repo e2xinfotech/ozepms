@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Badge, Button, Dropdown, EmptyState, Flag, Icon, Input, KeyValue, LinkButton, Select, SidePanel, Tabs, Textarea, toast } from '@/components/ui';
-import { date, dateTime, money } from '@/lib/format';
+import { date, dateTime, money, number } from '@/lib/format';
 import { http, type ApiError } from '@/lib/http';
 import { t } from '@/lib/i18n';
 import { propertyApiUrl, propertyUrl } from '@/lib/page';
@@ -88,12 +88,12 @@ export function GuestPanel({ id, can, onClose, onEdit }: {
             </div>
             <div className="sp-section">
                 {tab === 'stays' && (g.stay_history.length === 0 ? <p className="muted">{t('guests.no_stays')}</p> : <>
-                    <table className="table compact">
-                        <thead><tr><th>{t('guests.columns.date')}</th><th>{t('guests.columns.room')}</th><th>{t('guests.columns.type')}</th><th className="num">{t('guests.columns.amount')}</th><th>{t('guests.columns.status')}</th></tr></thead>
+                    <table className="table compact tight">
+                        <thead><tr><th>{t('guests.columns.date')}</th><th>{t('guests.columns.room')}</th><th>{t('guests.columns.type')}</th><th className="num">{t('guests.columns.amount')}{g.stay_history[0]?.currency ? ` (${g.stay_history[0].currency})` : ''}</th><th>{t('guests.columns.status')}</th></tr></thead>
                         <tbody>{g.stay_history.map((s) => (
                             <tr key={s.id} className={can.reservations ? 'clickable' : undefined} onClick={can.reservations ? () => { window.location.href = propertyUrl(`/reservations/${s.id}`); } : undefined}>
-                                <td className="nowrap">{date(s.check_in)}</td><td>{s.unit ?? '—'}</td><td className="cell-clip" title={s.rate_plan ?? ''}>{s.rate_plan ?? s.room_type ?? '—'}</td>
-                                <td className="num">{money(s.total, s.currency)}</td><td><Badge size="sm" status={s.status}>{t(`reservations.status.${s.status}`)}</Badge></td>
+                                <td className="nowrap">{date(s.check_in)}</td><td>{s.unit ?? '—'}</td><td><span className="cell-clip" title={s.rate_plan ?? s.room_type ?? ''}>{s.rate_plan ?? s.room_type ?? '—'}</span></td>
+                                <td className="num">{s.currency === g.stay_history[0]?.currency ? number(Number(s.total), 2) : money(s.total, s.currency)}</td><td><Badge size="sm" status={s.status}>{t(`reservations.status.${s.status}`)}</Badge></td>
                             </tr>
                         ))}</tbody>
                     </table>

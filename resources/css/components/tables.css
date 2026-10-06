@@ -50,3 +50,9 @@ table.table { width: 100%; border-collapse: separate; border-spacing: 0; font-si
     .with-panel .table thead th, .with-panel .table tbody td { padding-left: 10px; padding-right: 10px; }
     .with-panel .table .hide-with-panel { display: none; }
 }
+
+/* Narrow side-panel / card tables: one line per row, smaller text, tight cell padding. */
+.table.tight thead th:not(.col-check):not(.col-actions), .table.tight td { white-space: nowrap; min-width: 0; padding-left: 5px; padding-right: 5px; font-size: var(--text-sm); }
+.table.tight th:first-child, .table.tight td:first-child { padding-left: 0; }
+.table.tight th:last-child, .table.tight td:last-child { padding-right: 0; }
+.table.tight .cell-clip { display: inline-block; max-width: 90px; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
