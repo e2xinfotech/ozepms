@@ -38,3 +38,9 @@ Schedule::command('billing:night-audit')
     ->name('billing:night-audit')
     ->withoutOverlapping(60)
     ->onOneServer();
+
+// Booking engine: online bookings whose payment did not arrive within the hold go back on sale.
+Schedule::command('booking:expire-holds')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->onOneServer();

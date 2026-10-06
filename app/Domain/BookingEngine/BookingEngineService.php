@@ -96,6 +96,7 @@ class BookingEngineService
             'stars' => $property->star_rating, 'currency' => $property->currency_code,
             'check_in_time' => substr((string) $property->check_in_time, 0, 5), 'check_out_time' => substr((string) $property->check_out_time, 0, 5),
             'today' => $this->today($property)->toDateString(),
+            'online_payments' => $this->razorpay->enabled(),
             'limits' => ['max_nights' => (int) config('ozepms.booking_engine.max_nights'), 'max_days_ahead' => (int) config('ozepms.booking_engine.max_days_ahead'), 'max_rooms' => (int) config('ozepms.booking_engine.max_rooms')],
         ] + $this->settings($property);
     }
@@ -182,16 +183,62 @@ class BookingEngineService
         });
     }
 
+    /** A pending online booking whose payment has arrived (checkout or webhook) is confirmed. */
+    public function confirmIfPaid(Reservation $reservation): Reservation
+    {
+        if ($reservation->status !== 'pending') {
+            return $reservation;
+        }
+        $paid = (string) DB::table('payments')->where('reservation_id', $reservation->id)->where('kind', 'payment')->where('status', 'captured')->sum('amount');
+        if (! Money::isPositive($paid ?: '0')) {
+            return $reservation;
+        }
+        $property = Property::query()->findOrFail($reservation->property_id);
+
+        return InProperty::run($property, fn () => $this->reservations->confirm($reservation, null))->fresh();
+    }
+
+    /**
+     * Pending booking-engine bookings past their hold: confirmed when the payment came in meanwhile
+     * (webhook), otherwise cancelled so the rooms go back on sale. Returns [confirmed, cancelled].
+     *
+     * @return array{0: int, 1: int}
+     */
+    public function expireHolds(): array
+    {
+        $confirmed = 0;
+        $cancelled = 0;
+        Reservation::acrossProperties()->where('status', 'pending')->whereNotNull('hold_expires_at')->where('hold_expires_at', '<', now())
+            ->orderBy('id')->limit(500)->get()
+            ->each(function (Reservation $r) use (&$confirmed, &$cancelled) {
+                $after = $this->confirmIfPaid($r);
+                if ($after->status === 'confirmed') {
+                    $confirmed++;
+
+                    return;
+                }
+                $property = Property::query()->findOrFail($r->property_id);
+                InProperty::run($property, fn () => $this->reservations->cancel($r->fresh(), __('booking.hold_expired'), null, true));
+                $cancelled++;
+            });
+
+        return [$confirmed, $cancelled];
+    }
+
     /** Amount the guest pays online now: full stay, a percentage, or the first nights. */
     public function amountDue(Reservation $reservation, RatePlan $plan): string
     {
-        $total = (string) $reservation->grand_total;
+        return $this->dueFor($plan, (string) $reservation->grand_total, (int) $reservation->nights);
+    }
+
+    public function dueFor(RatePlan $plan, string $total, int $nights): string
+    {
         $value = (string) ($plan->deposit_value ?? '0');
 
         return Money::round(match ($plan->payment_type) {
             'prepay_full' => $total,
             'deposit_percent' => Money::min($total, Money::percent($total, $value)),
-            'deposit_nights' => Money::min($total, Money::mul(Money::div($total, (string) max(1, (int) $reservation->nights)), (string) max(1, (int) $value))),
+            'deposit_nights' => Money::min($total, Money::mul(Money::div($total, (string) max(1, $nights)), (string) max(1, (int) $value))),
             default => '0',
         });
     }
@@ -262,6 +309,11 @@ class BookingEngineService
                     'product' => $product, 'check_in' => $in, 'check_out' => $out, 'adults' => $adults, 'children' => $children,
                     'infants' => $infants, 'child_ages' => $childAges, 'rate' => null,
                 ]], $context, $applied)[0];
+                // The crossed-out price must compare like with like: the total with taxes, without offers.
+                $before = Money::isPositive($priced['discount_total']) ? $this->pricer->price($property, [0 => [
+                    'product' => $product, 'check_in' => $in, 'check_out' => $out, 'adults' => $adults, 'children' => $children,
+                    'infants' => $infants, 'child_ages' => $childAges, 'rate' => null,
+                ]])[0]['grand_total'] : $priced['grand_total'];
                 if ($applied->promo !== null && ($promoState === null || $applied->promo['status'] === 'applied')) {
                     $promoState = $applied->promo;
                 }
@@ -273,8 +325,14 @@ class BookingEngineService
                     'policy' => $this->policyText($plan), 'payment_type' => $plan->payment_type,
                     'price_before' => $mul(Money::add($priced['room_total'], $priced['discount_total'])),
                     'room_total' => $mul($priced['room_total']), 'discount' => $mul($priced['discount_total']),
-                    'taxes' => $mul($priced['tax_total']), 'grand_total' => $mul($priced['grand_total']),
+                    'taxes' => $mul($priced['tax_total']), 'grand_total' => $mul($priced['grand_total']), 'grand_before' => $mul($before),
                     'per_night' => Money::round(Money::div($priced['room_total'], (string) max(1, $result->nights))),
+                    'pay_now' => $this->dueFor($plan, $mul($priced['grand_total']), $result->nights),
+                    'tax_lines' => array_values(array_map(fn ($t) => [
+                        'name' => $t['name'], 'amount' => $mul($t['amount']),
+                        'rate' => $t['calc_type'] === 'percent' ? rtrim(rtrim(Money::normalize((string) $t['rate']), '0'), '.') : null,
+                    ], array_filter($priced['tax_lines'], fn ($t) => Money::isPositive($t['amount'])))),
+                    'policy_lines' => $this->policyLines($plan, (string) $property->currency_code),
                     'offers' => array_values(array_map(fn ($o) => ['name' => $o['name'], 'promo_code' => $o['promo_code']], $applied->applied)),
                 ];
             }
@@ -317,5 +375,52 @@ class BookingEngineService
         $free = $policy->rules->where('applies_to', 'cancellation')->sortByDesc('hours_before_arrival')->first();
 
         return $free ? __('booking.policy.free_until', ['hours' => (int) $free->hours_before_arrival]) : __('booking.policy.free');
+    }
+
+    /**
+     * Every cancellation and no-show charge of the rate plan in plain words, shown before booking.
+     *
+     * @return list<string>
+     */
+    private function policyLines(RatePlan $plan, string $currency): array
+    {
+        $policy = $plan->cancellationPolicy;
+        if ($policy === null) {
+            return [];
+        }
+        $lines = [];
+        $cancel = $policy->rules->where('applies_to', 'cancellation')->sortByDesc('hours_before_arrival')->values();
+        if (! $policy->is_refundable) {
+            $lines[] = __('booking.policy.non_refundable_text');
+        } elseif ($cancel->isNotEmpty()) {
+            $lines[] = __('booking.policy.free_until', ['hours' => (int) $cancel[0]->hours_before_arrival]);
+        } else {
+            $lines[] = __('booking.policy.free');
+        }
+        foreach ($cancel as $rule) {
+            if ($rule->charge_type === 'none' || (! $policy->is_refundable && $rule->charge_type === 'full')) {
+                continue;
+            }
+            $lines[] = __('booking.policy.cancel_charge', ['hours' => (int) $rule->hours_before_arrival, 'charge' => $this->chargeText($rule, $currency)]);
+        }
+        foreach ($policy->rules->where('applies_to', 'no_show') as $rule) {
+            $lines[] = __('booking.policy.no_show', ['charge' => $this->chargeText($rule, $currency)]);
+        }
+
+        return $lines;
+    }
+
+    private function chargeText(object $rule, string $currency): string
+    {
+        $value = (string) ($rule->charge_value ?? '0');
+
+        return match ($rule->charge_type) {
+            'first_night' => __('booking.policy.charges.first_night'),
+            'nights' => __('booking.policy.charges.nights', ['count' => (int) $value]),
+            'percent' => __('booking.policy.charges.percent', ['value' => rtrim(rtrim(Money::normalize($value), '0'), '.')]),
+            'fixed' => __('booking.policy.charges.fixed', ['amount' => Money::display($value, $currency)]),
+            'full' => __('booking.policy.charges.full'),
+            default => __('booking.policy.charges.none'),
+        };
     }
 }

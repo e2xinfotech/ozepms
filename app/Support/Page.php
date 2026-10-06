@@ -26,7 +26,8 @@ final class Page
                 'layout' => $layout,
                 'props' => $props,
                 'shell' => $layout === 'app' ? app(ShellData::class)->build() : ShellData::guest(),
-                'i18n' => Translations::forClient(),
+                // The public booking engine gets only its own texts (no PMS wording on a public page).
+                'i18n' => Translations::forClient($layout === 'booking' ? ['booking', 'ui', 'errors'] : null),
                 'locale' => app()->getLocale(),
                 'flash' => array_filter([
                     'success' => session('success'),

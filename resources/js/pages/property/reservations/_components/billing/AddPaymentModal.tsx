@@ -2,27 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Button, Checkbox, Input, Modal, Select, Textarea, toast } from '@/components/ui';
 import { http, type ApiError } from '@/lib/http';
 import { t } from '@/lib/i18n';
+import { loadCheckoutScript, type RazorpayCheckout, type RazorpayCtor, type RazorpayResult } from '@/lib/razorpay';
 import type { BillingProps } from '../BillingSlot';
 import { billingApi, fmt, isPositive, loadOptions, newKey, submit, type BillingOptions, type Summary } from './shared';
 
-interface Checkout { key: string; order_id: string; amount: number; currency: string; name: string; description: string; prefill: Record<string, string>; notes: Record<string, string>; payment_id: string }
-interface RazorpayResult { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }
-type RazorpayCtor = new (o: Record<string, unknown>) => { open: () => void; on: (ev: string, cb: (r: { error?: { description?: string } }) => void) => void };
+type Checkout = RazorpayCheckout;
 
 const ONLINE = 'online';
-
-function loadCheckoutScript(): Promise<RazorpayCtor> {
-    const w = window as unknown as { Razorpay?: RazorpayCtor };
-    if (w.Razorpay) return Promise.resolve(w.Razorpay);
-    return new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = 'https://checkout.razorpay.com/v1/checkout.js';
-        s.async = true;
-        s.onload = () => (w.Razorpay ? resolve(w.Razorpay) : reject(new Error('checkout')));
-        s.onerror = () => reject(new Error('checkout'));
-        document.head.appendChild(s);
-    });
-}
 
 /** Records a payment at the desk (cash, card, UPI, bank transfer, other) or takes it online. */
 export default function AddPaymentModal({ reservation, open = true, onClose, onSaved, onChanged, amount }: BillingProps) {

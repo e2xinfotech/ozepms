@@ -33,3 +33,10 @@ export function tOr(key: string, fallback: string): string {
 export function locale(): string {
     return payload().locale || 'en';
 }
+
+/** Plural form: "one|many" texts pick the first part for a count of 1, the second otherwise. */
+export function tc(key: string, count: number, replace: Record<string, string | number> = {}): string {
+    const text = t(key, { count, ...replace });
+    const [one, many] = text.split('|');
+    return many === undefined ? one : count === 1 ? one : many;
+}

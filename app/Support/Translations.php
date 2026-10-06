@@ -13,16 +13,17 @@ final class Translations
     /** Server-only groups that the browser never needs. */
     private const SERVER_ONLY = ['validation', 'mail', 'passwords', 'pagination'];
 
-    public static function forClient(): array
+    /** @param  list<string>|null  $only  limit to these groups (public pages get only what they need) */
+    public static function forClient(?array $only = null): array
     {
         $locale = app()->getLocale();
-        $key = 'i18n:'.$locale.':'.self::version();
+        $key = 'i18n:'.$locale.':'.self::version().($only ? ':'.implode(',', $only) : '');
 
-        return Cache::rememberForever($key, function () {
+        return Cache::rememberForever($key, function () use ($only) {
             $out = [];
             foreach (glob(lang_path('en/*.php')) ?: [] as $file) {
                 $group = basename($file, '.php');
-                if (! in_array($group, self::SERVER_ONLY, true)) {
+                if (! in_array($group, self::SERVER_ONLY, true) && ($only === null || in_array($group, $only, true))) {
                     $out[$group] = trans($group);
                 }
             }

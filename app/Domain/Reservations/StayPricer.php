@@ -104,6 +104,9 @@ class StayPricer
             $result[$key]['nights'][$date]['tax_amount'] = $line['tax_total'];
             foreach ($line['components'] as $c) {
                 $result[$key]['components'][$c['component']] = Money::round(Money::add($result[$key]['components'][$c['component']] ?? '0', $c['amount']), $places);
+                // Named lines for guests (booking engine): "VAT 5 %", "Tourism Dirham Fee".
+                $result[$key]['tax_lines'][$c['component']] ??= ['name' => $c['name'], 'rate' => $c['rate'], 'calc_type' => $c['calc_type'], 'amount' => '0'];
+                $result[$key]['tax_lines'][$c['component']]['amount'] = Money::round(Money::add($result[$key]['tax_lines'][$c['component']]['amount'], $c['amount']), $places);
             }
         }
 
@@ -115,6 +118,7 @@ class StayPricer
             $result[$key]['tax_total'] = Money::round($tax, $places);
             $result[$key]['grand_total'] = Money::round(Money::add($net, $tax), $places);
             $result[$key]['components'] ??= [];
+            $result[$key]['tax_lines'] ??= [];
         }
 
         return $result;

@@ -30,6 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             Route::middleware('web')->prefix('web-api')->name('webapi.')->group(base_path('routes/web-api.php'));
 
+            // Public booking engine (no login): /book/{property code}.
+            Route::middleware('web')->prefix('book')->name('booking.')->where(['code' => '[A-Za-z0-9]{2,12}'])->group(base_path('routes/booking.php'));
+
             // Payment gateway callbacks: stateless (no session / CSRF), signature-checked by the handler.
             Route::prefix('hooks')->name('hooks.')->group(base_path('routes/hooks.php'));
 
@@ -73,12 +76,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->dontReportDuplicates();
 
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*', 'web-api/*', 'hooks/*') || $request->expectsJson(),
+            fn (Request $request) => $request->is('api/*', 'web-api/*', 'hooks/*', 'book/*/api/*') || $request->expectsJson(),
         );
 
         // One JSON error format everywhere: { error: { code, message, fields?, ref } }
         $exceptions->render(function (Throwable $e, Request $request) {
-            if (! ($request->is('api/*', 'web-api/*', 'hooks/*') || $request->expectsJson())) {
+            if (! ($request->is('api/*', 'web-api/*', 'hooks/*', 'book/*/api/*') || $request->expectsJson())) {
                 return null;
             }
 

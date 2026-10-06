@@ -123,5 +123,13 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('client-errors', fn (Request $request) => Limit::perMinute(
             (int) config('ozepms.logging.client_errors_per_minute'),
         )->by('client-errors|'.$request->ip()));
+
+        // Public booking engine: searches and bookings per client IP.
+        RateLimiter::for('booking-search', fn (Request $request) => Limit::perMinute(
+            (int) config('ozepms.booking_engine.search_per_minute'),
+        )->by('booking-search|'.$request->ip()));
+        RateLimiter::for('booking-book', fn (Request $request) => Limit::perMinute(
+            (int) config('ozepms.booking_engine.book_per_minute'),
+        )->by('booking-book|'.$request->ip()));
     }
 }
