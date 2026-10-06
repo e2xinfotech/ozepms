@@ -36,7 +36,10 @@
 }
 .cal-head { position: sticky; top: 0; z-index: 4; }
 .cal-head > * { background: var(--surface-2); }
-.cal-head .cal-label { z-index: 5; font-weight: var(--weight-semibold); font-size: var(--text-sm); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; line-height: 52px; }
+.cal-head .cal-label { z-index: 5; flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; white-space: nowrap; }
+.cal-head .cal-label b { font-size: var(--text-md); color: var(--ink); }
+.cal-head .cal-label small { font-size: var(--text-xs); color: var(--muted); }
+.cal-head .cal-label b, .cal-head .cal-label small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .cal-day { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 52px; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); color: var(--muted); }
 .cal-day b { font-size: var(--text-md); color: var(--ink); }
 .cal-day.weekend { background: var(--cal-weekend); color: var(--cal-weekend-text); }

@@ -73,7 +73,7 @@ interface Props {
 export function AriFields({ values, onChange, error, roomType, product, single, priceLocked, restrictionsLocked, occupancies = [], compact }: Props) {
     const set = <K extends keyof AriValues>(key: K, value: AriValues[K]) => onChange({ ...values, [key]: value });
     const e = (name: string) => error?.field(name) ?? null;
-    const span = compact ? 'span-6' : 'span-3';
+    const span = compact ? 'span-6' : 'span-4';
     const yesNo = (yes: string, no: string) => [
         ...(single ? [] : [{ value: '', label: t('calendar.edit.keep') }]),
         { value: '1', label: yes },
@@ -89,15 +89,16 @@ export function AriFields({ values, onChange, error, roomType, product, single, 
             options={yesNo(yes, no)} onChange={(ev) => set(key, ev.target.value)} />
     );
 
+    // Bare fields: the caller provides the 12-column grid (FormSection already has one).
     return (
-        <div className="form-grid">
+        <>
             {roomType && (
                 <>
                     {flag('stop_sell', t('calendar.edit.close'), t('calendar.edit.open'))}
                     <Input fieldClass={span} label={t('calendar.fields.sell_limit')} type="number" min={0} step={1} inputMode="numeric"
                         value={values.sell_limit} disabled={values.remove_limit} placeholder={single ? '' : t('calendar.edit.keep')} error={e('sell_limit')}
                         onChange={(ev) => set('sell_limit', ev.target.value)} />
-                    <div className={`field ${compact ? 'span-12' : 'span-6'} field-inline`}>
+                    <div className={`field ${compact ? 'span-12' : 'span-4'} field-inline`}>
                         <Checkbox label={t('calendar.edit.remove_limit')} checked={values.remove_limit} onChange={(ev) => set('remove_limit', ev.target.checked)} />
                     </div>
                 </>
@@ -121,6 +122,6 @@ export function AriFields({ values, onChange, error, roomType, product, single, 
                     {flag('closed', t('calendar.edit.close'), t('calendar.edit.open'))}
                 </>
             )}
-        </div>
+        </>
     );
 }

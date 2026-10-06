@@ -37,7 +37,7 @@ return [
         'stop_sell' => 'Arrêt des ventes à certaines dates',
         'restricted' => 'Avec restrictions',
     ],
-    'header' => ':month / Chambre PMS / Plan tarifaire',
+    'header' => 'Type de chambre / Chambre PMS / Plan tarifaire',
     'rooms_one' => '1 chambre (:range)',
     'rooms_many' => ':count chambres (:range)',
     'rooms_none' => 'Aucune chambre PMS',
@@ -81,7 +81,7 @@ return [
         'occupancy' => ':count adultes : :price',
     ],
     'bar' => [
-        'guests' => ':adults adultes, :children enfants',
+        'guests' => 'Adultes : :adults · Enfants : :children',
         'dates' => ':from → :to',
     ],
     'edit' => [
@@ -116,7 +116,7 @@ return [
         'date_to' => 'Au',
         'weekdays' => 'Jours de la semaine',
         'price' => 'Prix',
-        'occupancy_price' => 'Prix pour :count adultes',
+        'occupancy_price' => 'Prix avec :count adulte(s)',
         'occupancy_prices' => 'Prix selon l’occupation',
         'sell_limit' => 'Limite de vente (chambres)',
         'stop_sell' => 'Arrêt des ventes',

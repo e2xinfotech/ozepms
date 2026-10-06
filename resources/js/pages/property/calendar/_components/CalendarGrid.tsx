@@ -146,7 +146,10 @@ export function CalendarGrid({ grid, view, range, canEdit, selection, onSelect, 
             onMouseDown={onMouseDown} onMouseOver={onMouseOver} onMouseLeave={() => setTip(null)} onKeyDown={onKeyDown}
             role="grid" aria-readonly={!canEdit} aria-label={t('calendar.title')}>
             <div className="cal-row cal-head" role="row">
-                <div className="cal-label" role="columnheader">{t('calendar.header', { month: windowLabel(grid.from, grid.to, range) })}</div>
+                <div className="cal-label" role="columnheader">
+                    <b>{windowLabel(grid.from, grid.to, range)}</b>
+                    <small title={t('calendar.header')}>{t('calendar.header')}</small>
+                </div>
                 {grid.days.map((d) => (
                     <div key={d.date} role="columnheader" className={clsx('cal-day', d.weekend && 'weekend', d.date === grid.today && 'today')} title={fullDay(d.date)}>
                         <b className="num">{d.day}</b><span>{t(`calendar.weekday_short.${d.dow}`)}</span>
@@ -194,7 +197,7 @@ const RoomTypeGroup = memo(function RoomTypeGroup({ rt, days, view, canEdit, col
                     {rt.image ? <img className="cal-thumb" src={rt.image} alt="" loading="lazy" /> : <span className="cal-thumb"><Icon name="bed-double" size={18} /></span>}
                     <span className="cal-rt-name">
                         <b title={`${rt.name} (${rt.code})`}>{rt.name} ({rt.code})</b>
-                        <small>{summary}{!rt.is_active && <> · {t('calendar.inactive')}</>}</small>
+                        <small title={summary}>{summary}{!rt.is_active && <> · {t('calendar.inactive')}</>}</small>
                     </span>
                 </div>
                 {rt.inventory.map((d, i) => (
@@ -274,7 +277,8 @@ function UnitLine({ u, days }: { u: UnitRow; days: Day[] }) {
                 <span className="cal-unit-name num" title={u.floor ? `${u.name} · ${u.floor}` : u.name}>{u.name}</span>
                 <Badge size="sm" status={u.status}>{t(`ui.status.${u.status}`)}</Badge>
             </div>
-            {days.map((d) => <div key={d.date} className={clsx('cal-cell blank', d.weekend && 'weekend')} />)}
+            {/* Each night is pinned to its column so the bars (placed explicitly) never push cells along. */}
+            {days.map((d, i) => <div key={d.date} className={clsx('cal-cell blank', d.weekend && 'weekend')} style={{ gridColumn: i + 2 }} />)}
             {u.bars.map((b, i) => {
                 const tip = barTip(b);
                 const tone = barToneOf(b.status);

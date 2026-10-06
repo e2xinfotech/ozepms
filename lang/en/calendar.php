@@ -37,7 +37,7 @@ return [
         'stop_sell' => 'Stop sell on some dates',
         'restricted' => 'With restrictions',
     ],
-    'header' => ':month / PMS Room / Rate Plan',
+    'header' => 'Room type / PMS Room / Rate Plan',
     'rooms_one' => '1 Room (:range)',
     'rooms_many' => ':count Rooms (:range)',
     'rooms_none' => 'No PMS rooms',
@@ -81,7 +81,7 @@ return [
         'occupancy' => ':count adults: :price',
     ],
     'bar' => [
-        'guests' => ':adults adults, :children children',
+        'guests' => 'Adults: :adults · Children: :children',
         'dates' => ':from → :to',
     ],
     'edit' => [
@@ -116,7 +116,7 @@ return [
         'date_to' => 'To',
         'weekdays' => 'Days of the week',
         'price' => 'Price',
-        'occupancy_price' => 'Price for :count adults',
+        'occupancy_price' => 'Price with :count adult(s)',
         'occupancy_prices' => 'Occupancy prices',
         'sell_limit' => 'Sell limit (rooms)',
         'stop_sell' => 'Stop sell',

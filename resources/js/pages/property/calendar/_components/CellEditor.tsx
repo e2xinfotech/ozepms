@@ -118,9 +118,11 @@ export function CellEditor({ grid, selection, at, onClose, onSaved }: Props) {
                 {general && <Alert tone="danger">{general}</Alert>}
                 {product?.pricing_mode === 'derived' && <p className="field-hint">{t('calendar.edit.derived_hint', { parent: product.parent ?? '' })}</p>}
                 {product?.inherits_restrictions && <p className="field-hint">{t('calendar.edit.inherit_hint')}</p>}
-                <AriFields values={values} onChange={setValues} error={error} single={single} compact
-                    roomType={!product} product={!!product} occupancies={occupancies}
-                    priceLocked={product?.pricing_mode === 'derived'} restrictionsLocked={product?.inherits_restrictions} />
+                <div className="form-grid">
+                    <AriFields values={values} onChange={setValues} error={error} single={single} compact
+                        roomType={!product} product={!!product} occupancies={occupancies}
+                        priceLocked={product?.pricing_mode === 'derived'} restrictionsLocked={product?.inherits_restrictions} />
+                </div>
                 <p className="field-hint">{t('calendar.edit.empty_hint')}</p>
             </div>
             <footer>

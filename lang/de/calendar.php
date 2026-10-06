@@ -37,7 +37,7 @@ return [
         'stop_sell' => 'An einigen Tagen Verkaufsstopp',
         'restricted' => 'Mit Restriktionen',
     ],
-    'header' => ':month / PMS-Zimmer / Ratenplan',
+    'header' => 'Zimmertyp / PMS-Zimmer / Ratenplan',
     'rooms_one' => '1 Zimmer (:range)',
     'rooms_many' => ':count Zimmer (:range)',
     'rooms_none' => 'Keine PMS-Zimmer',
@@ -81,7 +81,7 @@ return [
         'occupancy' => ':count Erwachsene: :price',
     ],
     'bar' => [
-        'guests' => ':adults Erwachsene, :children Kinder',
+        'guests' => 'Erwachsene: :adults · Kinder: :children',
         'dates' => ':from → :to',
     ],
     'edit' => [
@@ -116,7 +116,7 @@ return [
         'date_to' => 'Bis',
         'weekdays' => 'Wochentage',
         'price' => 'Preis',
-        'occupancy_price' => 'Preis für :count Erwachsene',
+        'occupancy_price' => 'Preis mit :count Erwachsenen',
         'occupancy_prices' => 'Preise nach Belegung',
         'sell_limit' => 'Verkaufslimit (Zimmer)',
         'stop_sell' => 'Verkaufsstopp',
