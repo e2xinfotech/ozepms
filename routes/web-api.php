@@ -37,6 +37,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/properties/{code}', [WebApi\Property\PropertyController::class, 'show'])->middleware('can.do:property.view')->name('properties.show');
             Route::put('/settings', [WebApi\Property\PropertyController::class, 'update'])->middleware('can.do:property.update')->name('settings.update');
             Route::put('/settings/booking-engine', WebApi\Property\BookingEngineSettingsController::class)->middleware('can.do:property.update')->name('settings.booking-engine');
+            Route::middleware('can.do:property.update')->group(function () {
+                Route::get('/settings/api-keys', [WebApi\Property\ApiKeysController::class, 'index'])->name('settings.api-keys.index');
+                Route::post('/settings/api-keys', [WebApi\Property\ApiKeysController::class, 'store'])->middleware('throttle:20,1')->name('settings.api-keys.store');
+                Route::delete('/settings/api-keys/{key}', [WebApi\Property\ApiKeysController::class, 'destroy'])->name('settings.api-keys.destroy');
+            });
             Route::post('/settings/media/{kind}', [WebApi\Property\PropertyController::class, 'uploadMedia'])->whereIn('kind', ['logo', 'cover'])->middleware('can.do:property.update')->name('settings.media.store');
             Route::delete('/settings/media/{kind}', [WebApi\Property\PropertyController::class, 'removeMedia'])->whereIn('kind', ['logo', 'cover'])->middleware('can.do:property.update')->name('settings.media.destroy');
             Route::post('/copy', [WebApi\Property\PropertyController::class, 'copy'])->middleware(['can.do:property.update', 'throttle:20,1'])->name('copy');

@@ -27,6 +27,7 @@ img { max-width: 100%; display: block; }
 .strong { font-weight: var(--weight-semibold); }
 .right { text-align: right; }
 .nowrap { white-space: nowrap; }
+.mono { font-family: var(--font-mono); font-size: 0.95em; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .row { display: flex; align-items: center; gap: 8px; }
 .row-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

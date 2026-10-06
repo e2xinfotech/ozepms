@@ -42,6 +42,7 @@ return [
     'resolved' => 'Marked as resolved.',
     'no_errors' => 'No errors recorded. Everything is running smoothly.',
     'actions' => [
+        'api_key.created' => 'API key created', 'api_key.revoked' => 'API key revoked',
         'booking_engine.updated' => 'Booking engine settings changed',
         'offer.created' => 'Promotion created', 'offer.updated' => 'Promotion updated', 'offer.activated' => 'Promotion activated', 'offer.deactivated' => 'Promotion deactivated', 'offer.deleted' => 'Promotion deleted', 'offer.image_changed' => 'Promotion image changed',
         'auth.login' => 'User login', 'auth.logout' => 'User logout', 'auth.locked' => 'Account locked',

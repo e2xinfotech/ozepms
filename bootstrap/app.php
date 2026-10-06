@@ -30,6 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             Route::middleware('web')->prefix('web-api')->name('webapi.')->group(base_path('routes/web-api.php'));
 
+            // Versioned API for the hotel's website, apps and partners (property API keys, stateless).
+            Route::prefix('api/v1')->name('api.v1.')->middleware('throttle:api-key')->group(base_path('routes/api.php'));
+
             // Public booking engine (no login): /book/{property code}.
             Route::middleware('web')->prefix('book')->name('booking.')->where(['code' => '[A-Za-z0-9]{2,12}'])->group(base_path('routes/booking.php'));
 
@@ -61,6 +64,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'subscription' => EnsureSubscriptionActive::class,
             'two-factor' => EnsureTwoFactorEnrolled::class,
             'can.do' => RequirePermission::class,
+            'api.key' => \App\Http\Middleware\AuthenticateApiKey::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));

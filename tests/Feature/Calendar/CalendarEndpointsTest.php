@@ -28,7 +28,8 @@ class CalendarEndpointsTest extends CalendarTestCase
             public function apply(AriChangeSet $changes, ?User $by = null): AriApplyResult
             {
                 $this->log[] = $changes;
-                $past = array_filter($changes->dates(), fn ($d) => $d < now()->toDateString());
+                $today = now(\App\Models\Property::query()->find($changes->propertyId)?->timezone ?? config('app.timezone'))->toDateString();
+                $past = array_filter($changes->dates(), fn ($d) => $d < $today);
 
                 return new AriApplyResult(count($changes->roomTypeIds) * count($changes->dates()), count($changes->productIds) * count($changes->dates()), 0,
                     $past ? [['type' => 'product', 'id' => 1, 'field' => null, 'reason' => 'past', 'dates' => count($past)]] : [], 7);

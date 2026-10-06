@@ -183,6 +183,7 @@ class BookingEngineService
                 'promo_code' => isset($data['promo_code']) && trim((string) $data['promo_code']) !== '' ? strtoupper(trim((string) $data['promo_code'])) : null,
                 'special_requests' => $data['special_requests'] ?? null,
                 'arrival_time' => $data['arrival_time'] ?? null,
+                'channel_ref' => $data['external_ref'] ?? null,
                 'guest' => [
                     'first_name' => $g['first_name'], 'last_name' => $g['last_name'] ?? null, 'email' => $g['email'],
                     'phone' => $g['phone'] ?? null, 'nationality_iso2' => $g['nationality_iso2'] ?? null, 'guest_type' => 'individual',

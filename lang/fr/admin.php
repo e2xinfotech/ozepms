@@ -42,6 +42,7 @@ return [
     'resolved' => 'Marqué comme résolu.',
     'no_errors' => 'Aucune erreur enregistrée. Tout fonctionne correctement.',
     'actions' => [
+        'api_key.created' => 'Clé API créée', 'api_key.revoked' => 'Clé API révoquée',
         'booking_engine.updated' => 'Paramètres du moteur de réservation modifiés',
         'offer.created' => 'Promotion créée', 'offer.updated' => 'Promotion modifiée', 'offer.activated' => 'Promotion activée', 'offer.deactivated' => 'Promotion désactivée', 'offer.deleted' => 'Promotion supprimée', 'offer.image_changed' => 'Image de la promotion modifiée',
         'auth.login' => 'Connexion utilisateur', 'auth.logout' => 'Déconnexion utilisateur', 'auth.locked' => 'Compte verrouillé',

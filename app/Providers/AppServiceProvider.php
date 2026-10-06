@@ -124,6 +124,13 @@ class AppServiceProvider extends ServiceProvider
             (int) config('ozepms.logging.client_errors_per_minute'),
         )->by('client-errors|'.$request->ip()));
 
+        // Versioned API: per API key (prefix) when presented, else per IP.
+        RateLimiter::for('api-key', function (Request $request) {
+            preg_match('/^ozk_([a-z0-9]{12})_/', (string) ($request->bearerToken() ?: $request->header('X-Api-Key', '')), $m);
+
+            return Limit::perMinute((int) config('ozepms.api.requests_per_minute', 120))->by('api|'.($m[1] ?? $request->ip()));
+        });
+
         // Public booking engine: searches and bookings per client IP.
         RateLimiter::for('booking-search', fn (Request $request) => Limit::perMinute(
             (int) config('ozepms.booking_engine.search_per_minute'),

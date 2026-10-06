@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Alert, Button, PageHeader, toast } from '@/components/ui';
+import { ApiKeysCard } from '@/components/property/ApiKeysCard';
 import { BookingEngineCard, type BookingEngineSettings } from '@/components/property/BookingEngineCard';
 import { PropertyForm, propertyPayload, propertyValues } from '@/components/property/PropertyForm';
 import { PropertyMedia } from '@/components/property/PropertyMedia';
@@ -45,6 +46,7 @@ function SettingsPage({ property, lookups, can_update, booking_engine }: Props) 
             <PropertyForm value={values} onChange={setValues} lookups={lookups} error={error} disabled={!can_update}
                 media={<PropertyMedia endpoint={propertyApiUrl('/settings/media')} logo={property.logo} image={property.image} disabled={!can_update} />} />
             <div style={{ marginTop: 20 }}><BookingEngineCard initial={booking_engine} disabled={!can_update} /></div>
+            <div style={{ marginTop: 20 }}><ApiKeysCard disabled={!can_update} /></div>
             {can_update && (
                 <div className="form-footer">
                     {dirty && <span className="muted text-sm">{t('ui.unsaved_changes')}</span>}

@@ -115,7 +115,12 @@ return [
         'archive_batch' => 5000,
     ],
 
-    // Public booking engine (Phase 6): /book/{property slug}.
+    // Versioned API /api/v1 (property API keys).
+    'api' => [
+        'requests_per_minute' => (int) env('OZ_API_PER_MINUTE', 120),
+    ],
+
+    // Public booking engine (Phase 6): /book/{property code}.
     'booking_engine' => [
         // Minutes a booking waiting for online payment holds its rooms.
         'hold_minutes' => (int) env('OZ_BE_HOLD_MINUTES', 15),

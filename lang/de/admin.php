@@ -42,6 +42,7 @@ return [
     'resolved' => 'Als behoben markiert.',
     'no_errors' => 'Keine Fehler erfasst. Alles läuft reibungslos.',
     'actions' => [
+        'api_key.created' => 'API-Schlüssel erstellt', 'api_key.revoked' => 'API-Schlüssel widerrufen',
         'booking_engine.updated' => 'Einstellungen der Buchungsmaschine geändert',
         'offer.created' => 'Aktion erstellt', 'offer.updated' => 'Aktion geändert', 'offer.activated' => 'Aktion aktiviert', 'offer.deactivated' => 'Aktion deaktiviert', 'offer.deleted' => 'Aktion gelöscht', 'offer.image_changed' => 'Bild der Aktion geändert',
         'auth.login' => 'Benutzeranmeldung', 'auth.logout' => 'Benutzerabmeldung', 'auth.locked' => 'Konto gesperrt',
