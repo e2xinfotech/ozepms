@@ -14,10 +14,11 @@ use Illuminate\Http\Request;
 class SettingsController extends Controller
 {
     /** Property Configuration form; read-only for users without property.update. */
-    public function edit(Request $request, PropertyContext $context, AccessService $access): View
+    public function edit(Request $request, PropertyContext $context, AccessService $access, \App\Domain\BookingEngine\BookingEngineService $engine): View
     {
         return Page::render('property/settings/index', [
             'property' => (new PropertyResource($context->property()))->resolve($request),
+            'booking_engine' => $engine->settings($context->property()) + $engine->status($context->property()),
             'lookups' => Lookups::propertyForm(),
             'can_update' => $access->allows($request->user(), 'property.update'),
         ], __('property.settings_title'));

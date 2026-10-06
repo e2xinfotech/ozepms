@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
         Route::prefix('p/{property}')->middleware(['property', 'subscription'])->name('property.')->group(function () {
             Route::get('/properties/{code}', [WebApi\Property\PropertyController::class, 'show'])->middleware('can.do:property.view')->name('properties.show');
             Route::put('/settings', [WebApi\Property\PropertyController::class, 'update'])->middleware('can.do:property.update')->name('settings.update');
+            Route::put('/settings/booking-engine', WebApi\Property\BookingEngineSettingsController::class)->middleware('can.do:property.update')->name('settings.booking-engine');
             Route::post('/settings/media/{kind}', [WebApi\Property\PropertyController::class, 'uploadMedia'])->whereIn('kind', ['logo', 'cover'])->middleware('can.do:property.update')->name('settings.media.store');
             Route::delete('/settings/media/{kind}', [WebApi\Property\PropertyController::class, 'removeMedia'])->whereIn('kind', ['logo', 'cover'])->middleware('can.do:property.update')->name('settings.media.destroy');
             Route::post('/copy', [WebApi\Property\PropertyController::class, 'copy'])->middleware(['can.do:property.update', 'throttle:20,1'])->name('copy');

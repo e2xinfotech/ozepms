@@ -42,6 +42,7 @@ return [
     'resolved' => 'Segnato come risolto.',
     'no_errors' => 'Nessun errore registrato. Tutto funziona correttamente.',
     'actions' => [
+        'booking_engine.updated' => 'Impostazioni del booking engine modificate',
         'offer.created' => 'Promozione creata', 'offer.updated' => 'Promozione modificata', 'offer.activated' => 'Promozione attivata', 'offer.deactivated' => 'Promozione disattivata', 'offer.deleted' => 'Promozione eliminata', 'offer.image_changed' => 'Immagine della promozione modificata',
         'auth.login' => 'Accesso utente', 'auth.logout' => 'Uscita utente', 'auth.locked' => 'Account bloccato',
         'property.created' => 'Nuova struttura aggiunta', 'property.updated' => 'Struttura aggiornata', 'property.status_changed' => 'Stato della struttura modificato',

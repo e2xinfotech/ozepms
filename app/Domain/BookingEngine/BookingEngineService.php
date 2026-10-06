@@ -64,6 +64,25 @@ class BookingEngineService
         return (bool) (($sub->plan?->features ?? [])['booking_engine'] ?? false);
     }
 
+    /**
+     * For the hotel's own settings screen: is the public page open, and if not, why.
+     *
+     * @return array{open: bool, reason: ?string, url: string}
+     */
+    public function status(Property $property): array
+    {
+        $sub = $property->currentSubscription;
+        $reason = match (true) {
+            $property->status !== 'active' => 'property_inactive',
+            $sub === null || $this->subscriptions->state($property)['read_only'] => 'subscription',
+            ! (bool) (($sub->plan?->features ?? [])['booking_engine'] ?? false) => 'plan',
+            ! $this->settings($property)['enabled'] => 'switched_off',
+            default => null,
+        };
+
+        return ['open' => $reason === null, 'reason' => $reason, 'url' => route('booking.search', ['code' => $property->code])];
+    }
+
     /** @return array{enabled: bool, intro: ?string, terms: ?string} */
     public function settings(Property $property): array
     {
