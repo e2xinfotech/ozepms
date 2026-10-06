@@ -4,10 +4,11 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToProperty;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Table: ari_daily_occupancy. Owned by Phase 3 (see docs/04-development-guide.md).
- * Relationships and behaviour are added by the owning module.
+ * Fixed price of a product on one date for a given number of adults (table ari_daily_occupancy);
+ * replaces base price + adult occupancy rules for that occupancy.
  */
 class AriDayOccupancy extends Model
 {
@@ -27,8 +28,14 @@ class AriDayOccupancy extends Model
     protected function casts(): array
     {
         return [
-            'stay_date' => 'date',
+            'stay_date' => 'immutable_date',
+            'adults' => 'integer',
             'price' => 'decimal:2',
         ];
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'product_id');
     }
 }

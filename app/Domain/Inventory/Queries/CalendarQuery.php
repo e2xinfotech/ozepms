@@ -30,6 +30,35 @@ final class CalendarQuery
     /** Filter values for "status". "" = active records only. */
     public const STATUSES = ['all', 'active', 'inactive', 'sold_out', 'stop_sell', 'restricted'];
 
+    /** Window lengths: a calendar month, or two weeks from the chosen date. */
+    public const RANGES = ['month', 'week'];
+
+    public const WEEK_DAYS = 14;
+
+    /**
+     * First night and number of nights for a range ("month" | "week") around a date.
+     * A month always starts on the 1st; two weeks start on the date itself.
+     *
+     * @return array{0: CarbonImmutable, 1: int}
+     */
+    public static function resolveWindow(string $range, ?string $date, Property $property): array
+    {
+        $tz = $property->timezone ?: 'UTC';
+        $start = null;
+        if ($date !== null && preg_match('/^\d{4}-\d{2}(-\d{2})?$/', $date)) {
+            try {
+                $start = CarbonImmutable::createFromFormat('!Y-m-d', strlen($date) === 7 ? $date.'-01' : $date);
+            } catch (\Throwable) {
+                $start = null;
+            }
+        }
+        $start = $start ?: CarbonImmutable::createFromFormat('!Y-m-d', CarbonImmutable::now($tz)->toDateString());
+
+        return $range === 'week'
+            ? [$start, self::WEEK_DAYS]
+            : [$start->startOfMonth(), (int) $start->daysInMonth];
+    }
+
     /**
      * @param  array{room_type?: ?string, unit?: ?string, rate_plan?: ?string, status?: ?string}  $filters  public ids / status key
      * @return array<string, mixed>
@@ -90,7 +119,7 @@ final class CalendarQuery
                 'p.id', 'p.public_id', 'p.room_type_id', 'p.rate_plan_id', 'p.pricing_mode', 'p.parent_product_id', 'p.adjust_type',
                 'p.adjust_value', 'p.inherit_restrictions', 'p.default_price', 'p.is_active',
                 'rp.public_id as rp_public_id', 'rp.code as rp_code', 'rp.name as rp_name', 'rp.is_active as rp_active',
-                'rp.default_min_los', 'rp.default_max_los', 'rp.min_advance_days',
+                'rp.default_min_los', 'rp.default_max_los', 'rp.min_advance_days', 'rp.max_advance_days',
                 'mp.code as meal_code',
             ]);
         // Parents of derived products may sit outside the filter (another rate plan); they are needed for prices.
@@ -101,7 +130,7 @@ final class CalendarQuery
                 ->join('rate_plans as rp', 'rp.id', '=', 'p.rate_plan_id')
                 ->where('p.property_id', $pid)->whereIn('p.id', $missingParents)
                 ->get(['p.id', 'p.room_type_id', 'p.pricing_mode', 'p.parent_product_id', 'p.adjust_type', 'p.adjust_value', 'p.inherit_restrictions', 'p.default_price',
-                    'rp.default_min_los', 'rp.default_max_los', 'rp.min_advance_days']);
+                    'rp.code as rp_code', 'rp.name as rp_name', 'rp.default_min_los', 'rp.default_max_los', 'rp.min_advance_days', 'rp.max_advance_days']);
             foreach ($parents as $p) {
                 $byId[$p->id] = $p;
             }
@@ -126,7 +155,7 @@ final class CalendarQuery
         if ($productIds !== []) {
             foreach (DB::table('ari_daily')->where('property_id', $pid)->where('stay_date', '>=', $fromDate)->where('stay_date', '<', $toDate)
                 ->whereIn('product_id', $productIds)
-                ->get(['product_id', 'stay_date', 'price', 'min_los', 'max_los', 'min_los_arrival', 'cta', 'ctd', 'stop_sell', 'cutoff_days']) as $row) {
+                ->get(['product_id', 'stay_date', 'price', 'min_los', 'max_los', 'min_los_arrival', 'cta', 'ctd', 'stop_sell', 'cutoff_days', 'max_advance_days']) as $row) {
                 $ari[$row->product_id][$row->stay_date] = $row;
             }
             foreach (DB::table('ari_daily_occupancy')->where('property_id', $pid)->where('stay_date', '>=', $fromDate)->where('stay_date', '<', $toDate)
@@ -219,7 +248,7 @@ final class CalendarQuery
                 $inherit = $p->pricing_mode === 'derived' && $p->inherit_restrictions && $parentDays !== null;
                 if ($inherit) {
                     $r = $parentDays[$i];
-                    $day = ['min' => $r['min'], 'max' => $r['max'], 'mla' => $r['mla'], 'cta' => $r['cta'], 'ctd' => $r['ctd'], 'ss' => $r['ss'], 'cut' => $r['cut']];
+                    $day = ['min' => $r['min'], 'max' => $r['max'], 'mla' => $r['mla'], 'cta' => $r['cta'], 'ctd' => $r['ctd'], 'ss' => $r['ss'], 'cut' => $r['cut'], 'adv' => $r['adv']];
                     // A product can still be closed on its own even when it follows the parent's restrictions.
                     $day['ss'] = $day['ss'] || (bool) ($row->stop_sell ?? false);
                 } else {
@@ -231,6 +260,7 @@ final class CalendarQuery
                         'ctd' => (bool) ($row->ctd ?? false),
                         'ss' => (bool) ($row->stop_sell ?? false),
                         'cut' => $row !== null && $row->cutoff_days !== null ? (int) $row->cutoff_days : ($p->min_advance_days !== null ? (int) $p->min_advance_days : null),
+                        'adv' => $row !== null && $row->max_advance_days !== null ? (int) $row->max_advance_days : ($p->max_advance_days !== null ? (int) $p->max_advance_days : null),
                     ];
                 }
                 $out[] = ['p' => $price, 'o' => $occupancy[$productId][$date] ?? null, 'd' => $default, 'i' => $inherit] + $day;
@@ -267,6 +297,9 @@ final class CalendarQuery
                     'rate_plan' => ['id' => $p->rp_public_id, 'code' => $p->rp_code, 'name' => $p->rp_name],
                     'meal_plan' => $p->meal_code,
                     'pricing_mode' => $p->pricing_mode,
+                    'parent' => $p->pricing_mode === 'derived' && isset($byId[$p->parent_product_id])
+                        ? $byId[$p->parent_product_id]->rp_name.' ('.$byId[$p->parent_product_id]->rp_code.')' : null,
+                    'inherits_restrictions' => $p->pricing_mode === 'derived' && (bool) $p->inherit_restrictions,
                     'is_active' => (bool) $p->is_active && (bool) $p->rp_active,
                     'base_adults' => (int) $rt->base_adults,
                     'days' => $resolve((int) $p->id),

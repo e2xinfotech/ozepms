@@ -7,11 +7,13 @@ namespace App\Domain\Availability;
  *
  * roomTypes: list of
  *   [
- *     'room_type_id' => int, 'room_type' => array (public fields), 'available_units' => int,
- *     'occupancy_ok' => bool,
+ *     'room_type_id' => int, 'room_type' => array (public fields: id = public id, code, name, base/max occupancy),
+ *     'available_units' => int (rooms left on the fullest night), 'occupancy_ok' => bool, 'stop_sell' => bool,
  *     'products' => [
- *        ['product_id' => int, 'rate_plan_id' => int, 'rate_plan' => array, 'sellable' => bool,
- *         'reasons' => string[] (e.g. 'stop_sell','cta','ctd','min_los','max_los','cutoff','no_rate'),
+ *        ['product_id' => int, 'product' => array, 'rate_plan_id' => int, 'rate_plan' => array, 'sellable' => bool,
+ *         'reasons' => string[] (occupancy, no_inventory, sold_out, stop_sell, closed, cta, ctd, min_los, max_los,
+ *                    min_los_arrival, cutoff, max_advance, no_rate — texts in lang inventory.reasons.*),
+ *         'nightly' => [['date' => 'Y-m-d', 'price' => decimal string], ...], 'total' => ?decimal string,
  *         'quote' => ?\App\Domain\Pricing\Quote],
  *     ],
  *   ]

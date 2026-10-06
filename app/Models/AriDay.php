@@ -4,10 +4,11 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToProperty;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Table: ari_daily. Owned by Phase 3 (see docs/04-development-guide.md).
- * Relationships and behaviour are added by the owning module.
+ * Price and restrictions of one product on one stay date (table ari_daily). price is NULL on
+ * derived products (computed from the parent). Writes go through App\Domain\Inventory\AriService.
  */
 class AriDay extends Model
 {
@@ -27,11 +28,21 @@ class AriDay extends Model
     protected function casts(): array
     {
         return [
-            'stay_date' => 'date',
+            'stay_date' => 'immutable_date',
             'price' => 'decimal:2',
+            'min_los' => 'integer',
+            'max_los' => 'integer',
+            'min_los_arrival' => 'integer',
+            'cutoff_days' => 'integer',
+            'max_advance_days' => 'integer',
             'cta' => 'boolean',
             'ctd' => 'boolean',
             'stop_sell' => 'boolean',
         ];
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'product_id');
     }
 }

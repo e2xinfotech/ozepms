@@ -41,6 +41,7 @@ return [
         'past' => 'Vergangene Daten können nicht geändert werden',
         'beyond_horizon' => 'Daten jenseits des Buchungshorizonts',
         'sell_limit_too_high' => 'Verkaufslimit auf die Zimmeranzahl begrenzt',
+        'occupancy_too_high' => "Belegung über der maximalen Erwachsenenzahl des Zimmers",
         'not_found' => 'Nicht gefunden',
     ],
 ];

@@ -41,6 +41,7 @@ return [
         'past' => 'Past dates cannot be changed',
         'beyond_horizon' => 'Dates beyond the booking horizon',
         'sell_limit_too_high' => 'Sell limit capped at the number of rooms',
+        'occupancy_too_high' => "Occupancy above the room's maximum adults",
         'not_found' => 'Not found',
     ],
 ];

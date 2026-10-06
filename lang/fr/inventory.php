@@ -41,6 +41,7 @@ return [
         'past' => 'Les dates passées ne peuvent pas être modifiées',
         'beyond_horizon' => 'Dates au-delà de l’horizon de réservation',
         'sell_limit_too_high' => 'Limite de vente plafonnée au nombre de chambres',
+        'occupancy_too_high' => "Occupation supérieure au nombre maximal d’adultes de la chambre",
         'not_found' => 'Introuvable',
     ],
 ];

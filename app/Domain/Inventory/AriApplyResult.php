@@ -12,7 +12,8 @@ namespace App\Domain\Inventory;
  *                  ['type' => 'room_type'|'product', 'id' => int, 'field' => string|null, 'reason' => string, 'dates' => int]
  *                  reasons: derived_price (derived products compute their price), inherits_restrictions
  *                  (derived product follows its parent), past (dates before the property's today),
- *                  beyond_horizon, sell_limit_too_high (limit above total rooms, capped), not_found (wrong property / missing)
+ *                  beyond_horizon, sell_limit_too_high (limit above total rooms, capped), occupancy_too_high
+ *                  (occupancy price for more adults than the room takes), not_found (wrong property / missing)
  *   ariVersion     properties.ari_version after the change (unchanged when nothing changed)
  */
 final class AriApplyResult

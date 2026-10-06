@@ -4,10 +4,11 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToProperty;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Table: ari_change_log. Owned by Phase 3 (see docs/04-development-guide.md).
- * Relationships and behaviour are added by the owning module.
+ * One ARI change (table ari_change_log): what changed, for which dates and by whom. The channel
+ * manager reads it as "everything after id X". Written by App\Domain\Inventory\AriJournal.
  */
 class AriChangeLog extends Model
 {
@@ -22,9 +23,25 @@ class AriChangeLog extends Model
     protected function casts(): array
     {
         return [
-            'date_from' => 'date',
-            'date_to' => 'date',
+            'date_from' => 'immutable_date',
+            'date_to' => 'immutable_date',
+            'weekdays' => 'integer',
             'payload' => 'array',
         ];
+    }
+
+    public function roomType(): BelongsTo
+    {
+        return $this->belongsTo(RoomType::class)->withTrashed();
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }
