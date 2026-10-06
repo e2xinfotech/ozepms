@@ -8,16 +8,21 @@ export function BarLineChart({ labels, bars, line, barLabel, lineLabel, barMax, 
     labels: string[]; bars: number[]; line?: number[]; barLabel: string; lineLabel?: string;
     barMax?: number; lineMax?: number; height?: number; barFormat?: (v: number) => string; lineFormat?: (v: number) => string;
 }) {
-    const W = 760, H = height, padL = 46, padR = line ? 52 : 12, padT = 12, padB = 30;
-    const iw = W - padL - padR, ih = H - padT - padB;
     const bMax = niceMax(barMax ?? Math.max(1, ...bars));
     const lMax = niceMax(lineMax ?? Math.max(1, ...(line ?? [1])));
-    const step = iw / Math.max(1, labels.length);
-    const bw = Math.min(42, step * 0.62);
     const ticks = [0, 0.2, 0.4, 0.6, 0.8, 1];
+    // Long ranges: label every n-th bar so the axis stays readable (every bar keeps its tooltip).
+    const labelEvery = Math.max(1, Math.ceil(labels.length / 14));
     // Small scales (e.g. no data yet) need a decimal so the ticks do not read "0, 0, 1, 1".
     const fb = barFormat ?? ((v: number) => number(v, bMax < 5 ? 1 : 0));
     const fl = lineFormat ?? ((v: number) => number(v, lMax < 5 ? 1 : 0));
+    // Axis margins grow with the longest tick label (e.g. money values).
+    const W = 760, H = height, padT = 12, padB = 30;
+    const padL = Math.max(46, fb(bMax).length * 7 + 14);
+    const padR = line ? Math.max(52, fl(lMax).length * 7 + 14) : 12;
+    const iw = W - padL - padR, ih = H - padT - padB;
+    const step = iw / Math.max(1, labels.length);
+    const bw = Math.min(42, step * 0.62);
     const pts = (line ?? []).map((v, i) => [padL + step * i + step / 2, padT + ih - (v / lMax) * ih] as const);
 
     return (
@@ -36,7 +41,7 @@ export function BarLineChart({ labels, bars, line, barLabel, lineLabel, barMax, 
                 })}
                 {pts.length > 1 && <polyline points={pts.map((p) => p.join(',')).join(' ')} fill="none" stroke="var(--brand-600)" strokeWidth={2.2} />}
                 {pts.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={4.5} fill="var(--brand-600)" stroke="var(--on-brand)" strokeWidth={1.5}><title>{`${labels[i]}: ${fl(line![i])}`}</title></circle>)}
-                {labels.map((l, i) => <text key={l + i} x={padL + step * i + step / 2} y={H - 8} textAnchor="middle">{l}</text>)}
+                {labels.map((l, i) => (i % labelEvery === 0 ? <text key={l + i} x={padL + step * i + step / 2} y={H - 8} textAnchor="middle">{l}</text> : null))}
                 <g transform={`translate(${W / 2 - 110}, ${H + 18})`}>
                     <circle cx={0} cy={-4} r={6} fill="var(--chart-bar)" /><text x={12} y={0} style={{ fill: 'var(--ink-2)', fontSize: 13 }}>{barLabel}</text>
                     {lineLabel && <><line x1={120} x2={140} y1={-4} y2={-4} stroke="var(--brand-600)" strokeWidth={2.4} /><circle cx={130} cy={-4} r={4.5} fill="var(--brand-600)" /><text x={148} y={0} style={{ fill: 'var(--ink-2)', fontSize: 13 }}>{lineLabel}</text></>}

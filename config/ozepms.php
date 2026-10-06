@@ -121,6 +121,11 @@ return [
     ],
 
     // Public booking engine (Phase 6): /book/{property code}.
+    // Reports (Phase 7): longest period of one report run, in days.
+    'reports' => [
+        'max_days' => (int) env('OZ_REPORTS_MAX_DAYS', 400),
+    ],
+
     'booking_engine' => [
         // Minutes a booking waiting for online payment holds its rooms.
         'hold_minutes' => (int) env('OZ_BE_HOLD_MINUTES', 15),

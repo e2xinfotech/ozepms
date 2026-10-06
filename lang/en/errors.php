@@ -21,4 +21,5 @@ return [
     '503' => 'OzePMS is being updated. Please try again in a few minutes.',
     'not_available' => 'The selected room is no longer available for these dates.',
     '402' => 'The subscription for this property is not active.',
+    'plan_feature' => 'This module is not included in the property\'s subscription plan.',
 ];

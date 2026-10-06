@@ -21,4 +21,5 @@ return [
     '503' => 'OzePMS wird gerade aktualisiert. Bitte versuchen Sie es in einigen Minuten erneut.',
     'not_available' => 'Das gewählte Zimmer ist für diese Daten nicht mehr verfügbar.',
     '402' => 'Das Abonnement dieser Unterkunft ist nicht aktiv.',
+    'plan_feature' => 'Dieses Modul ist im Abonnement der Unterkunft nicht enthalten.',
 ];

@@ -21,4 +21,5 @@ return [
     '503' => 'OzePMS è in aggiornamento. Riprova tra qualche minuto.',
     'not_available' => 'La camera selezionata non è più disponibile per queste date.',
     '402' => 'L\'abbonamento di questa struttura non è attivo.',
+    'plan_feature' => 'Questo modulo non è incluso nel piano di abbonamento della struttura.',
 ];

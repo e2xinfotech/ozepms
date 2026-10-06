@@ -64,6 +64,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'subscription' => EnsureSubscriptionActive::class,
             'two-factor' => EnsureTwoFactorEnrolled::class,
             'can.do' => RequirePermission::class,
+            'plan.feature' => \App\Http\Middleware\RequirePlanFeature::class,
             'api.key' => \App\Http\Middleware\AuthenticateApiKey::class,
         ]);
 
