@@ -18,6 +18,7 @@ class SaveReservationRequest extends FormRequest
             'idempotency_key' => ['nullable', 'string', 'max:64', 'regex:/^[A-Za-z0-9_.:-]+$/'],
             'status' => ['sometimes', Rule::in(['confirmed', 'pending', 'inquiry'])],
             'source' => ['sometimes', 'nullable', 'string', 'max:30'],
+            'quoted_total' => ['sometimes', 'nullable', 'decimal:0,2', 'min:0'],
             'promo_code' => ['sometimes', 'nullable', 'string', 'max:30', 'regex:/^[A-Za-z0-9_\- ]+$/'],
             'arrival_time' => ['sometimes', 'nullable', 'date_format:H:i'],
             'departure_time' => ['sometimes', 'nullable', 'date_format:H:i'],

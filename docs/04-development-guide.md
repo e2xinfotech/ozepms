@@ -138,7 +138,7 @@ Never return internal ids; resources expose `public_id` as `id`.
 | **Phase 2 — accommodation & rates** | migrations `2026_10_02_*`; models `RoomType, RoomTypeBed, RoomTypeImage, PhysicalUnit, UnitBlock, Amenity, BedType, MealPlan, CancellationPolicy, CancellationPolicyRule, RatePlan, Product (table room_type_rate_plans), ProductOccupancyRule, TaxCategory, TaxRule, TaxRuleScope, ContentTranslation`; `app/Domain/{Accommodation,Rates,Tax}`; `app/Support/Money.php`; pages `property/{room-types,rooms,rate-plans,taxes,amenities}`; onboarding wizard steps for rate plan / room types; `lang/*/{rooms,rates,taxes,amenities}.php` | Phase 1 code |
 | **Phase 3 — inventory & calendar** | migrations `2026_10_03_*`; models `InventoryDay, AriDay, AriDayOccupancy, AriChangeLog`; `app/Domain/{Inventory,Availability,Pricing}` (`InventoryService, AriService, AriCopyBuilder, InventoryArchiver, AvailabilityService, PricingService, RestrictionEvaluator, CalendarQuery, CalendarYearQuery`); scheduled horizon and archive jobs; page `property/calendar`; `lang/*/calendar.php` | Phase 1–2 models (by class name above) |
 | **Phase 4 — reservations & billing** | migrations `2026_10_04_*`; models `BookingSource, Guest, Reservation, ReservationRoom, ReservationRoomNight, UnitNight, ReservationGuest, ReservationStatusHistory, Service, Folio, FolioLine, FolioLineTax, Payment, PaymentGatewayEvent, Invoice`; `app/Domain/{Reservations,Guests,Billing}`; pages `property/{reservations,guests,front-desk}`; global search endpoint; `lang/*/{reservations,guests,billing}.php` | Phase 1–3 services (`AvailabilityService::search()`, `PricingService::quote()`, `TaxService::calculate()`, `InventoryService::reserve()/release()`) |
-| **Phase 5 — offers** | migrations `2026_10_05_*`; models `Offer, OfferScope, OfferCondition, OfferApplication`; `app/Domain/Offers`; page `property/offers`; `lang/*/offers.php` | Pricing interfaces |
+| **Phase 5 — offers** | migrations `2026_10_05_*`; models `Offer, OfferScope, OfferCondition, OfferApplication`; `app/Domain/Offers` (OfferService, OfferAdminService, OfferContext, OfferResult, Queries/*); listener `Listeners/Offers/ReleaseOfferRedemptions`; pages `property/offers/*`; `lang/*/offers.php`; `OfferDemoSeeder` | Pricing interfaces; `StayPricer` applies offers; `ReservationService` freezes them (offer_applications) |
 
 Cross-module contracts (method signatures agreed up front — implement exactly these):
 
@@ -159,12 +159,14 @@ public function reserve(int $roomTypeId, CarbonImmutable $from, CarbonImmutable 
 public function release(int $roomTypeId, CarbonImmutable $from, CarbonImmutable $to, int $rooms = 1, bool $hold = false): void;
 public function syncUnitCount(int $roomTypeId): void;  // called by Phase 2 when PMS rooms are added/removed/deactivated
 
-// Phase 5 — App\Domain\Offers\OfferService
-public function apply(Property $property, Quote $quote, ?string $promoCode, string $channel, CarbonImmutable $bookedOn): AppliedOffers;
+// Phase 5 — App\Domain\Offers\OfferService (rooms: key => room_type_id, rate_plan_id, check_in, check_out, adults, nights [date => price], fixed [dates])
+public function evaluate(Property $property, OfferContext $context, array $rooms): OfferResult;   // context: booked on, channel pms|booking_engine, promo, source, guest country
+public function redeem(array $offerIds): void;   // inside the booking transaction, guarded by max_redemptions
+public function release(array $offerIds): void;  // cancelled booking
 ```
 
 Shared value objects and events already exist (do not rename): `App\Domain\Pricing\Quote`,
-`App\Domain\Availability\AvailabilityResult`, `App\Domain\Tax\TaxBreakdown`, `App\Domain\Offers\AppliedOffers`,
+`App\Domain\Availability\AvailabilityResult`, `App\Domain\Tax\TaxBreakdown`, `App\Domain\Offers\OfferResult`,
 `App\Domain\Inventory\Exceptions\NotAvailableException`, events `App\Domain\Property\Events\PropertyCreated`
 (dispatched by PropertyService), `App\Domain\Accommodation\Events\{RoomTypeUnitsChanged, UnitBlockChanged, ProductChanged}`
 (dispatched by Phase 2, handled by Phase 3 listeners in `app/Listeners/Inventory/`). Model classes for every table already

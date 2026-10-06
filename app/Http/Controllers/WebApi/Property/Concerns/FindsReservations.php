@@ -93,6 +93,9 @@ trait FindsReservations
         if (isset($v['rooms'])) {
             $data['rooms'] = $this->roomSpecs($v['rooms'], $reservation);
         }
+        if (isset($v['quoted_total'])) {
+            $data['quoted_total'] = (string) $v['quoted_total'];
+        }
         if (array_key_exists('promo_code', $v)) {
             $code = strtoupper(trim((string) $v['promo_code']));
             $data['promo_code'] = $code === '' ? null : $code;

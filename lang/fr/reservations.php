@@ -414,6 +414,7 @@ return [
         'vacant' => 'Libre ce soir',
     ],
     'errors' => [
+        'price_changed' => 'Le prix est passé à :amount depuis son affichage. Vérifiez la réservation et confirmez à nouveau.',
         'invalid_status' => 'Choisissez Confirmée, En attente ou Brouillon.',
         'past_arrival' => 'La date d\'arrivée ne peut pas être passée.',
         'date_order' => 'Le départ doit être après l\'arrivée.',

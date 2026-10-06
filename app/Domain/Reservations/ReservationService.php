@@ -110,6 +110,13 @@ class ReservationService
         $offers = null;
         $priced = $this->pricer->price($property, $rooms, $context, $offers);
         $this->assertPromo($offers);
+        // The form sends the total it showed: a different total (rates or offers changed meanwhile) is never booked silently.
+        if (isset($data['quoted_total'])) {
+            $total = Money::round(Money::sum(array_column($priced, 'grand_total')));
+            if (! Money::equals($total, Money::round((string) $data['quoted_total']))) {
+                throw ValidationException::withMessages(['quoted_total' => __('reservations.errors.price_changed', ['amount' => Money::display($total, (string) $property->currency_code)])]);
+            }
+        }
 
         try {
             $reservation = Tx::run(function () use ($property, $data, $by, $status, $rooms, $priced, $key, $offers, $context) {

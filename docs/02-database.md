@@ -215,3 +215,14 @@ Migration `2026_10_04_000002_add_front_office_columns`:
 | System rows in `booking_sources` | direct, walk_in, phone, email, booking_engine, ota, travel_agent, corporate |
 
 Rules kept by `ReservationService`: `inventory_daily.sold` = number of active `reservation_room_nights` (drafts, cancelled and no-show rooms have inactive nights); `unit_nights` PK prevents double assignment of a PMS room; booking references `R-<year><seq>` and guest numbers come from `property_counters` (row locked until commit); `reservations.idempotency_key` (unique per property) makes a repeated create return the first booking.
+
+## Phase 5 additions (offers & promotions)
+
+* `offers` (Phase 0 table) + migration `2026_10_05_000002_add_offer_design_columns`: `offer_type` (room_discount, package, early_bird, last_minute, long_stay, other — list tabs, index `ix_offers_type`), `description`, `image_path`, and `discount_type` value `free_nights` (stay X pay Y: `min_nights` = X, `discount_value` = free nights per full block).
+* Scope = `offer_scopes` rows (room type × rate plan; no rows = every room). Conditions = `offer_conditions` rows: `source` (in), `guest_country` (in / not_in), `min_adults`, `min_rooms` (gte).
+* Status is derived, never stored: inactive (`is_active` = 0) → expired (stay or booking window over, or `redemptions` ≥ `max_redemptions`) → scheduled (`booking_from` after today) → active.
+* One central engine, `App\Domain\Offers\OfferService::evaluate()`, used by the reservation pricing (`StayPricer`) for quotes, new and changed bookings; the booking engine will call the same method with channel `booking_engine`.
+* Choice per room: a valid entered promo code first, then `priority`, then the bigger discount; more offers are added only while every applied offer `is_stackable`; each works on what is left of the night price. Discounts come before tax (taxes are worked out on the discounted night price).
+* Frozen on the booking: `reservation_room_nights.discount` per night, `reservation_rooms.discount_total`, and `offer_applications` (one row per room and offer, `snapshot` = offer terms + nightly amounts + the code that was entered). Editing an offer later never changes existing bookings; editing a booking keeps the discounts of unchanged nights (a changed promo code re-works them).
+* Redemptions: counted with one guarded `UPDATE … SET redemptions = redemptions + 1 WHERE redemptions < max_redemptions` inside the booking transaction (parallel bookings cannot exceed the limit); a cancelled booking gives its redemption back (`ReleaseOfferRedemptions` listener).
+* Offers used by a booking are deactivated instead of deleted (history stays readable).

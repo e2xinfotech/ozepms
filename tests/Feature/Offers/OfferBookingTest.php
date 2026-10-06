@@ -150,6 +150,11 @@ class OfferBookingTest extends OfferTestCase
         $this->actingAs($this->owner)->postJson($this->api('/reservations/quote'), ['rooms' => $rooms, 'promo_code' => 'NOPE'])->assertOk()
             ->assertJsonPath('discount_total', '0.00')->assertJsonPath('promo.status', 'unknown')->assertJsonPath('promo.message', __('offers.reasons.unknown_code'));
 
+        // The total shown must match the total booked (offers or rates changed meanwhile → review again).
+        $this->actingAs($this->owner)->postJson($this->api('/reservations'), [
+            'status' => 'confirmed', 'guest' => ['first_name' => 'Ann', 'last_name' => 'Lee'], 'rooms' => $rooms, 'promo_code' => null, 'quoted_total' => '1.00',
+        ])->assertStatus(422)->assertJsonStructure(['error' => ['fields' => ['quoted_total']]]);
+
         // Saving with an invalid code is a field error.
         $this->actingAs($this->owner)->postJson($this->api('/reservations'), [
             'status' => 'confirmed', 'guest' => ['first_name' => 'Ann', 'last_name' => 'Lee'], 'rooms' => $rooms, 'promo_code' => 'NOPE',

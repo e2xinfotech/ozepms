@@ -143,8 +143,7 @@ function ReservationForm({ reservation: res, guest: presetGuest, options, defaul
         if (valid.length === 0 || valid.length !== rooms.length) { setQuote(null); return; }
         let alive = true;
         http.post<Quote>(propertyApiUrl('/reservations/quote'), {
-            rooms: rooms.map(roomPayload),
-        ...(editing && !promoTouched ? {} : { promo_code: promo }), reservation_id: res?.id ?? null, source: stay.source || null, guest_country: guest.nationality_iso2 || null,
+            rooms: rooms.map(roomPayload), reservation_id: res?.id ?? null, source: stay.source || null, guest_country: guest.nationality_iso2 || null,
             ...(editing && !promoTouched ? {} : { promo_code: promo }),
         })
             .then((q) => { if (alive) { setQuote(q); setQuoteError(null); } })
@@ -172,6 +171,8 @@ function ReservationForm({ reservation: res, guest: presetGuest, options, defaul
             id_type: guest.id_type || null, ...(guest.id_number ? { id_number: guest.id_number } : {}), company_name: guest.company_name || null,
         },
         rooms: rooms.map(roomPayload),
+        ...(editing && !promoTouched ? {} : { promo_code: promo }),
+        ...(!editing && quote ? { quoted_total: quote.grand_total } : {}),
     });
 
     const focusFirstError = () => setTimeout(() => {

@@ -414,6 +414,7 @@ return [
         'vacant' => 'Heute Nacht frei',
     ],
     'errors' => [
+        'price_changed' => 'Der Preis hat sich seit der Anzeige auf :amount geändert. Bitte prüfen Sie die Buchung und bestätigen Sie erneut.',
         'invalid_status' => 'Wählen Sie Bestätigt, Ausstehend oder Entwurf.',
         'past_arrival' => 'Das Anreisedatum darf nicht in der Vergangenheit liegen.',
         'date_order' => 'Die Abreise muss nach der Anreise liegen.',

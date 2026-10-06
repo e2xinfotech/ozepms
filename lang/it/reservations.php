@@ -414,6 +414,7 @@ return [
         'vacant' => 'Libera stanotte',
     ],
     'errors' => [
+        'price_changed' => 'Il prezzo è cambiato in :amount da quando è stato mostrato. Controlla la prenotazione e conferma di nuovo.',
         'invalid_status' => 'Scegli Confermata, In attesa o Bozza.',
         'past_arrival' => 'La data di check-in non può essere nel passato.',
         'date_order' => 'Il check-out deve essere dopo il check-in.',

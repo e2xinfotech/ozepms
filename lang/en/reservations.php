@@ -258,6 +258,7 @@ return [
     ],
 
     'errors' => [
+        'price_changed' => 'The price changed to :amount since it was shown. Please review the booking and confirm again.',
         'invalid_status' => 'Choose Confirmed, Pending or Draft.',
         'past_arrival' => 'The check-in date cannot be in the past.',
         'date_order' => 'Check-out must be after check-in.',
