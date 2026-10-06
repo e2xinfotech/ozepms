@@ -216,7 +216,7 @@ class ReservationsController extends Controller
 
         return response()->streamDownload(function () use ($rows) {
             $out = fopen('php://output', 'w');
-            fputcsv($out, array_map(fn ($k) => __('reservations.export.'.$k), ['ref', 'status', 'guest', 'phone', 'check_in', 'check_out', 'nights', 'rooms', 'room_type', 'rate_plan', 'adults', 'children', 'total', 'paid', 'balance', 'currency', 'source', 'created']));
+            fputcsv($out, array_map(fn ($k) => __('reservations.export_columns.'.$k), ['ref', 'status', 'guest', 'phone', 'check_in', 'check_out', 'nights', 'rooms', 'room_type', 'rate_plan', 'adults', 'children', 'total', 'paid', 'balance', 'currency', 'source', 'created']));
             $rows->chunk(500, function ($chunk) use ($out) {
                 foreach ($chunk as $r) {
                     fputcsv($out, [

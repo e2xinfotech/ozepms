@@ -94,12 +94,14 @@ class ReservationService
         }
         $today = $this->today($property);
         $rooms = $this->normalizeRooms($property, $data['rooms'] ?? []);
+        // 'allow_past' is internal (imports, demo data): stays that began before today, priced manually.
+        $allowPast = (bool) ($data['allow_past'] ?? false);
         foreach ($rooms as $i => $room) {
-            if ($room['check_in']->lessThan($today)) {
+            if ($room['check_in']->lessThan($today) && ! $allowPast) {
                 throw ValidationException::withMessages(["rooms.$i.check_in" => __('reservations.errors.past_arrival')]);
             }
         }
-        $this->assertSellable($property, $rooms, array_keys($rooms));
+        $this->assertSellable($property, $rooms, array_keys(array_filter($rooms, fn ($r) => $r['check_in']->greaterThanOrEqualTo($today))));
         $priced = $this->pricer->price($property, $rooms);
 
         try {

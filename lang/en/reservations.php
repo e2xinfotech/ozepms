@@ -245,7 +245,7 @@ return [
         'unassigned' => 'Room assignment removed.',
         'note_added' => 'Note added.',
     ],
-    'export' => [
+    'export_columns' => [
         'ref' => 'Booking ID', 'status' => 'Status', 'guest' => 'Guest', 'phone' => 'Phone', 'check_in' => 'Check-in', 'check_out' => 'Check-out',
         'nights' => 'Nights', 'rooms' => 'Rooms', 'room_type' => 'Room Type', 'rate_plan' => 'Rate Plan', 'adults' => 'Adults', 'children' => 'Children',
         'total' => 'Total', 'paid' => 'Paid', 'balance' => 'Balance', 'currency' => 'Currency', 'source' => 'Source', 'created' => 'Created',

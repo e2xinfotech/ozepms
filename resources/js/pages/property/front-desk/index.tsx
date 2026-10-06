@@ -43,14 +43,14 @@ function FrontDeskPage({ list, filters, can }: Props) {
         {
             key: 'room', header: t('reservations.columns.room_no'), render: (r) => {
                 const missing = r.rooms.filter((x) => !x.unit && !['cancelled', 'no_show', 'checked_out'].includes(x.status));
-                return <span className="row">
-                    {r.units.length > 0 && <span className="strong">{r.units.join(', ')}</span>}
+                return <span className="row" title={roomTypeLabel(r)}>
+                    {r.units.length > 0 && <span><span className="strong">{r.units.join(', ')}</span><span className="cell-sub" style={{ display: 'block' }}>{roomTypeLabel(r)}</span></span>}
                     {missing.length > 0 && can.assign && <Button size="sm" variant="outline" icon="door-open" loading={busyId === r.id + 'assign'} onClick={() => open(r, 'assign', missing[0].id)}>{t('reservations.actions.assign_room')}</Button>}
                     {missing.length > 0 && !can.assign && <span className="muted">{t('reservations.not_assigned')}</span>}
+                    {r.units.length === 0 && <span className="cell-sub">{roomTypeLabel(r)}</span>}
                 </span>;
             },
         },
-        { key: 'room_type', header: t('reservations.columns.room_type'), render: (r) => <span className="nowrap">{roomTypeLabel(r)}</span> },
         { key: 'check_in', header: t('reservations.columns.check_in'), render: (r) => <span className="nowrap"><StayDate value={r.check_in} late={r.late_arrival} /></span> },
         { key: 'check_out', header: t('reservations.columns.check_out'), render: (r) => <span className="nowrap"><StayDate value={r.check_out} late={r.late_departure} /></span> },
         { key: 'nights', header: t('reservations.columns.nights'), align: 'right', render: (r) => r.nights },

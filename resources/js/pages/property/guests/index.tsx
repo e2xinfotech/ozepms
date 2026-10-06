@@ -31,10 +31,10 @@ function GuestsPage({ list, filters, options, can }: Props) {
     const columns: Column<GuestRow>[] = [
         { key: 'number', header: t('guests.columns.id'), sortable: true, render: (g) => <span className="id-link num">{g.number}</span> },
         { key: 'name', header: t('guests.columns.name'), sortable: true, render: (g) => <span className="row nowrap"><Flag code={g.nationality} /><span className="cell-main">{g.name}</span>{g.vip && <Badge size="sm" tone="amber">VIP</Badge>}</span> },
-        { key: 'contact', header: t('guests.columns.contact'), render: (g) => <div className="text-sm"><div>{g.phone ?? '—'}</div><div className="cell-sub">{g.email ?? ''}</div></div> },
+        { key: 'contact', header: t('guests.columns.contact'), className: 'hide-with-panel', render: (g) => <div className="text-sm"><div>{g.phone ?? '—'}</div><div className="cell-sub">{g.email ?? ''}</div></div> },
         { key: 'nationality', header: t('guests.columns.nationality'), sortable: true, className: 'hide-with-panel', render: (g) => options.countries.find((c) => c.value === g.nationality)?.label ?? g.nationality ?? '—' },
         { key: 'id_doc', header: t('guests.columns.id_doc'), className: 'hide-with-panel', render: (g) => g.id_type ? <div className="text-sm"><div>{t(`guests.id_types.${g.id_type}`)}</div><div className="cell-sub num">{g.id_number ?? ''}</div></div> : '—' },
-        { key: 'stays', header: t('guests.columns.stays'), align: 'right', render: (g) => g.stays },
+        { key: 'stays', header: t('guests.columns.stays'), align: 'right', className: 'hide-with-panel', render: (g) => g.stays },
         { key: 'last_stay', header: t('guests.columns.last_stay'), render: (g) => <span className="nowrap">{g.last_stay ? date(g.last_stay) : '—'}</span> },
         { key: 'status', header: t('guests.columns.status'), render: (g) => <Badge size="sm" status={g.status === 'new' ? 'inactive' : g.status === 'past' ? 'checked_out' : g.status}>{t(`guests.status.${g.status}`)}</Badge> },
         {

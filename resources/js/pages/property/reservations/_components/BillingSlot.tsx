@@ -1,5 +1,5 @@
 import { lazy, Suspense, useMemo, type ComponentType } from 'react';
-import { EmptyState } from '@/components/ui';
+import { EmptyState, Icon } from '@/components/ui';
 import { t } from '@/lib/i18n';
 import type { BillingReservation } from './types';
 
@@ -29,7 +29,10 @@ export function BillingSlot({ name, fallback, ...props }: BillingProps & { name:
         return loader ? lazy(loader) : null;
     }, [name]);
     if (!Comp) {
-        return fallback === undefined ? <EmptyState icon="receipt" title={t('reservations.detail.billing_pending')} /> : <>{fallback}</>;
+        if (fallback !== undefined) return <>{fallback}</>;
+        return props.compact
+            ? <p className="billing-note"><Icon name="receipt" size={18} />{t('reservations.detail.billing_pending')}</p>
+            : <EmptyState icon="receipt" title={t('reservations.detail.billing_pending')} />;
     }
     return (
         <Suspense fallback={<div className="skeleton" style={{ height: 120 }} />}>

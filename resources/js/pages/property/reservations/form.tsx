@@ -214,7 +214,7 @@ function ReservationForm({ reservation: res, guest: presetGuest, options, defaul
                             <Input fieldClass="span-2" type="number" min={1} max={20} label={t('reservations.fields.adults')} value={stay.adults} onChange={(e) => setS('adults', Math.max(1, Number(e.target.value) || 1))} />
                             <Input fieldClass="span-2" type="number" min={0} max={10} label={t('reservations.fields.children')} value={stay.children} onChange={(e) => setS('children', Math.max(0, Number(e.target.value) || 0))} />
                             <Input fieldClass="span-2" type="number" min={0} max={10} label={t('reservations.fields.infants')} value={stay.infants} onChange={(e) => setS('infants', Math.max(0, Number(e.target.value) || 0))} />
-                            <div className="field span-12 row-between">
+                            <div className="span-12 row-between">
                                 <span className="muted text-sm">{t('reservations.nights_count', { count: nights })}</span>
                                 <Button variant="primary" icon="search" loading={searching} onClick={search}>{t('reservations.form.search_availability')}</Button>
                             </div>
@@ -224,21 +224,19 @@ function ReservationForm({ reservation: res, guest: presetGuest, options, defaul
                                         <thead><tr>
                                             <th>{t('reservations.fields.room_type')}</th><th>{t('reservations.fields.rate_plan')}</th>
                                             <th className="num">{t('reservations.fields.rate')}</th><th className="num">{t('reservations.form.total')}</th>
-                                            <th>{t('reservations.columns.status')}</th><th>{t('reservations.fields.policy')}</th><th className="col-actions" />
+                                            <th>{t('reservations.columns.status')}</th><th className="col-actions" />
                                         </tr></thead>
                                         <tbody>{results.map((row) => {
                                             const added = rooms.some((r) => r.room_type_id === row.room_type.id && r.rate_plan_id === row.rate_plan.id && !r.id);
                                             return (
                                                 <tr key={`${row.room_type.id}-${row.rate_plan.id}`}>
-                                                    <td><div className="media-cell"><span className="rt-thumb">{row.room_type.image ? <img src={row.room_type.image} alt="" /> : <Icon name="bed-double" size={20} />}</span>
-                                                        <div><div className="cell-main">{row.room_type.name}</div><div className="cell-sub">{t('reservations.form.occupancy_short', { adults: stay.adults, children: stay.children, infants: stay.infants })}</div></div></div></td>
-                                                    <td>{row.rate_plan.name}</td>
+                                                    <td><div className="cell-main">{row.room_type.name}</div><div className="cell-sub">{t('reservations.form.occupancy_short', { adults: stay.adults, children: stay.children, infants: stay.infants })}</div></td>
+                                                    <td><div>{row.rate_plan.name}</div><Badge size="sm" status={row.policy.refundable ? 'refundable' : 'non_refundable'} /></td>
                                                     <td className="num">{row.average ? money(row.average, cur) : '—'}</td>
                                                     <td className="num strong">{row.total ? money(row.total, cur) : '—'}</td>
                                                     <td>{row.sellable
                                                         ? <span className="text-success text-sm strong">{t('reservations.form.rooms_left', { count: row.available })}</span>
                                                         : <span className="text-danger text-sm" title={row.reasons.map((x) => x.label).join(', ')}>{row.reasons.some((x) => x.code === 'sold_out') ? t('reservations.form.sold_out') : row.reasons.map((x) => x.label).join(', ') || t('reservations.form.not_bookable')}</span>}</td>
-                                                    <td><Badge size="sm" status={row.policy.refundable ? 'refundable' : 'non_refundable'} /></td>
                                                     <td className="col-actions"><Button size="sm" variant={added ? 'secondary' : 'outline'} disabled={!row.sellable} icon={added ? 'check' : undefined}
                                                         onClick={() => addRoom(row.room_type.id, row.rate_plan.id)}>{added ? t('reservations.form.selected') : t('reservations.form.select')}</Button></td>
                                                 </tr>
@@ -287,11 +285,6 @@ function ReservationForm({ reservation: res, guest: presetGuest, options, defaul
                             <div className="span-12">
                                 {rooms.length === 0 ? <EmptyState icon="bed-double" title={t('reservations.form.no_room_selected')} text={t('reservations.form.search_first')} /> : (
                                     <div className="room-rows">
-                                        <div className="room-row head">
-                                            <span>{t('reservations.fields.room_type')}</span><span>{t('reservations.fields.unit')}</span><span>{t('reservations.fields.rate_plan')}</span>
-                                            <span>{t('reservations.fields.adults')}</span><span>{t('reservations.fields.children')}</span><span>{t('reservations.fields.rate')}</span>
-                                            <span className="num">{t('reservations.fields.nights')}</span><span className="num">{t('reservations.form.total')}</span><span />
-                                        </div>
                                         {rooms.map((r, i) => <RoomRowEditor key={r.key} row={r} index={i} options={options} plans={plansFor(r.room_type_id)} quote={quote?.rooms[i] ?? null} cur={cur}
                                             err={err} onChange={(patch) => setRoom(r.key, patch)} onRemove={() => { setRooms((l) => l.filter((x) => x.key !== r.key)); setDirty(true); }} />)}
                                     </div>
@@ -310,7 +303,7 @@ function ReservationForm({ reservation: res, guest: presetGuest, options, defaul
                     <div className="card">
                         <div className="card-head"><h3>{t('reservations.form.summary')}</h3></div>
                         <div className="card-body">
-                            {rooms.length === 0 && <p className="muted text-sm">{t('reservations.form.no_room_selected')} — {t('reservations.form.no_room_hint')}</p>}
+                            {rooms.length === 0 && <p className="muted text-sm sum-empty">{t('reservations.form.no_room_selected')} — {t('reservations.form.no_room_hint')}</p>}
                             <dl className="sum-list">
                                 <dt>{t('reservations.fields.check_in')}</dt><dd>{date(stay.check_in)} <span className="muted">{stay.arrival_time}</span></dd>
                                 <dt>{t('reservations.fields.check_out')}</dt><dd>{date(stay.check_out)} <span className="muted">{stay.departure_time}</span></dd>
@@ -380,22 +373,22 @@ function RoomRowEditor({ row, index, options, plans, quote, cur, err, onChange, 
 
     return (
         <div className="room-row">
-            <Select size="sm" aria-label={t('reservations.fields.room_type')} value={row.room_type_id} disabled={row.locked} options={options.room_types}
+            <Select size="sm" label={t('reservations.fields.room_type')} value={row.room_type_id} disabled={row.locked} options={options.room_types}
                 onChange={(ev) => onChange({ room_type_id: ev.target.value, rate_plan_id: (options.products[ev.target.value] ?? [])[0] ?? '', unit_id: '' })} error={e('room_type_id')} />
-            <Select size="sm" aria-label={t('reservations.fields.unit')} value={row.unit_id} placeholder={t('reservations.form.any_room')} options={unitOptions}
+            <Select size="sm" label={t('reservations.fields.unit')} value={row.unit_id} placeholder={t('reservations.form.any_room')} options={unitOptions}
                 onFocus={loadUnits} onMouseDown={loadUnits} onChange={(ev) => onChange({ unit_id: ev.target.value })} error={e('unit_id')} />
-            <Select size="sm" aria-label={t('reservations.fields.rate_plan')} value={row.rate_plan_id} disabled={row.locked} placeholder="—" options={plans}
+            <Select size="sm" label={t('reservations.fields.rate_plan')} value={row.rate_plan_id} disabled={row.locked} placeholder="—" options={plans}
                 onChange={(ev) => onChange({ rate_plan_id: ev.target.value })} error={e('rate_plan_id')} />
-            <Select size="sm" aria-label={t('reservations.fields.adults')} value={row.adults} disabled={row.locked}
+            <Select size="sm" label={t('reservations.fields.adults')} value={row.adults} disabled={row.locked}
                 options={Array.from({ length: Math.max(1, rt?.max_adults ?? 4) }, (_, i) => ({ value: i + 1, label: String(i + 1) }))} onChange={(ev) => onChange({ adults: Number(ev.target.value) })} error={e('adults')} />
-            <Select size="sm" aria-label={t('reservations.fields.children')} value={row.children} disabled={row.locked}
+            <Select size="sm" label={t('reservations.fields.children')} value={row.children} disabled={row.locked}
                 options={Array.from({ length: (rt?.max_children ?? 3) + 1 }, (_, i) => ({ value: i, label: String(i) }))} onChange={(ev) => onChange({ children: Number(ev.target.value) })} />
-            <Input size="sm" type="number" min={0} step="0.01" inputMode="decimal" aria-label={t('reservations.fields.rate')} className="num" value={row.rate}
+            <Input size="sm" type="number" min={0} step="0.01" inputMode="decimal" label={t('reservations.fields.rate')} className="num" value={row.rate}
                 placeholder={quote?.rate ? money(quote.rate, cur) : t('reservations.form.auto_price')} title={t('reservations.form.manual_price_hint')}
                 onChange={(ev) => onChange({ rate: ev.target.value })} error={e('rate')} />
-            <span className="num" title={`${date(row.check_in)} – ${date(row.check_out)}`}>{nights}</span>
-            <span className="num strong">{quote ? money(quote.grand_total, cur) : '—'}</span>
-            <Button size="sm" variant="danger-soft" icon="trash" aria-label={t('reservations.form.remove_room')} title={t('reservations.form.remove_room')} disabled={row.locked} onClick={onRemove} />
+            <div className="field rr-nights"><span className="field-label">{t('reservations.fields.nights')}</span><span className="num rr-value" title={`${date(row.check_in)} – ${date(row.check_out)}`}>{nights}</span></div>
+            <div className="field rr-total"><span className="field-label">{t('reservations.form.total')}</span><span className="num strong rr-value">{quote ? money(quote.grand_total, cur) : '—'}</span></div>
+            <div className="field rr-del"><span className="field-label">&nbsp;</span><Button size="sm" variant="danger-soft" icon="trash" aria-label={t('reservations.form.remove_room')} title={t('reservations.form.remove_room')} disabled={row.locked} onClick={onRemove} /></div>
             {(e('check_in') || e('check_out') || e('id')) && <div className="field-error span-row">{e('check_in') ?? e('check_out') ?? e('id')}</div>}
         </div>
     );
