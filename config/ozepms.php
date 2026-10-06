@@ -96,6 +96,16 @@ return [
         'password' => env('OZ_DEMO_PASSWORD', 'Demo@12345'),
     ],
 
+    'inventory' => [
+        // Days ahead (from the property's today) for which daily inventory, rates and
+        // restrictions are kept ready; extended every night by the scheduler.
+        'horizon_days' => (int) env('OZ_INVENTORY_HORIZON_DAYS', 730),
+        // Longest date range one calendar edit may cover.
+        'max_edit_days' => 731,
+        // Booking-engine holds are released after this many minutes without payment.
+        'hold_minutes' => 15,
+    ],
+
     'uploads' => [
         'max_image_kb' => 4096,
         'image_mimes' => ['jpg', 'jpeg', 'png', 'webp'],
