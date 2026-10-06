@@ -58,14 +58,14 @@ function RoomTypesPage({ list, filters, options, can }: Props) {
                 </div>
             ),
         },
-        { key: 'code', header: t('rooms.columns.code'), sortable: true, render: (r) => r.code },
+        { key: 'code', header: t('rooms.columns.code'), sortable: true, className: 'col-code', render: (r) => r.code },
         { key: 'category', header: t('rooms.columns.category'), sortable: true, render: (r) => labelOf(options.categories, r.category) },
-        { key: 'base', header: t('rooms.columns.base_occupancy'), align: 'center', render: (r) => <Occupancy adults={r.base_adults} /> },
-        { key: 'max', header: t('rooms.columns.max_occupancy'), align: 'center', render: (r) => <Occupancy adults={r.max_occupancy} /> },
-        { key: 'total', header: t('rooms.columns.total_rooms'), align: 'right', render: (r) => r.total_rooms },
-        { key: 'active', header: t('rooms.columns.active_rooms'), align: 'right', render: (r) => <a href={propertyUrl(`/rooms?room_type=${r.id}`)} title={t('rooms.manage_rooms')}>{r.active_rooms}</a> },
+        { key: 'base', header: t('rooms.columns.base_occupancy'), align: 'center', className: 'th-wrap', render: (r) => <Occupancy adults={r.base_adults} /> },
+        { key: 'max', header: t('rooms.columns.max_occupancy'), align: 'center', className: 'th-wrap', render: (r) => <Occupancy adults={r.max_occupancy} /> },
+        { key: 'total', header: t('rooms.columns.total_rooms'), align: 'right', className: 'th-wrap', render: (r) => r.total_rooms },
+        { key: 'active', header: t('rooms.columns.active_rooms'), align: 'right', className: 'th-wrap', render: (r) => <a href={propertyUrl(`/rooms?room_type=${r.id}`)} title={t('rooms.manage_rooms')}>{r.active_rooms}</a> },
         {
-            key: 'default_rate_plan', header: t('rooms.columns.default_rate_plan'), render: (r) => r.products.length === 0
+            key: 'default_rate_plan', header: t('rooms.columns.default_rate_plan'), className: 'th-wrap', render: (r) => r.products.length === 0
                 ? <span className="muted">{t('rooms.no_rate_plan')}</span>
                 : <span onClick={(e) => e.stopPropagation()}>
                     <Select size="sm" className="table-select" aria-label={t('rooms.columns.default_rate_plan')} disabled={!can.update}
@@ -112,11 +112,13 @@ function RoomTypesPage({ list, filters, options, can }: Props) {
                 { key: 'inactive', label: t('ui.status.inactive'), count: list.counts.inactive },
             ]} />
 
-            <DataTable columns={columns} rows={list.rows} rowKey={(r) => r.id} selectable selected={checked} onSelect={setChecked}
-                empty={!hasFilters && list.counts.all === 0
-                    ? <EmptyState icon="bed-double" title={t('rooms.no_room_types')} text={t('rooms.no_room_types_hint')}
-                        action={can.create && <LinkButton variant="primary" icon="plus" href={propertyUrl('/room-types/new')}>{t('rooms.add_room_type')}</LinkButton>} />
-                    : undefined} />
+            <div className="rt-table">
+                <DataTable columns={columns} rows={list.rows} rowKey={(r) => r.id} selectable selected={checked} onSelect={setChecked}
+                    empty={!hasFilters && list.counts.all === 0
+                        ? <EmptyState icon="bed-double" title={t('rooms.no_room_types')} text={t('rooms.no_room_types_hint')}
+                            action={can.create && <LinkButton variant="primary" icon="plus" href={propertyUrl('/room-types/new')}>{t('rooms.add_room_type')}</LinkButton>} />
+                        : undefined} />
+            </div>
             <Pagination meta={list.meta} label={t('rooms.room_type_plural')} />
 
             <ConfirmDialog open={!!toggle} busy={busy} danger={toggle?.is_active}

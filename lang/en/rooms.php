@@ -100,7 +100,7 @@ return [
     'derived_from' => 'Derived from',
     'adjustment' => 'Adjustment',
     'make_default' => 'Default',
-    'no_rate_plans' => 'No rate plans yet. Create a rate plan first.',
+    'no_rate_plans' => 'A room type is sold through rate plans. Create one here without leaving this page; you return to this form afterwards.',
 
     // PMS rooms
     'rooms_title' => 'Rooms (PMS Rooms)',
@@ -203,4 +203,12 @@ return [
         'rate_plan_made_default' => 'Made default rate plan',
         'tax_rule_created' => 'Created', 'tax_rule_updated' => 'Updated',
     ],
+    'no_rate_plan_found' => 'No Rate Plan Found',
+    'quick_rate_plan' => [
+        'button' => 'Create Rate Plan', 'title' => 'Create Rate Plan', 'save' => 'Create and Link',
+        'intro' => 'The new rate plan is linked to this room type. Enter its price in the table after saving; meal plan and policy can be changed later on the Rate Plans page.',
+        'created' => 'Rate plan :name created. Enter its price below.', 'default_name' => 'Room Only',
+        'no_policy' => 'Add a cancellation policy on the Rate Plans page first.', 'no_permission' => 'Ask a manager to create a rate plan.',
+    ],
+    'setup' => ['title' => 'Setup, step 3 of 3:', 'text' => 'add your room types and their PMS rooms. The property is ready for reservations once this is saved.'],
 ];

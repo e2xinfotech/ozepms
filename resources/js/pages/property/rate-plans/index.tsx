@@ -36,17 +36,17 @@ function RatePlansPage({ list, filters, options, can }: Props) {
 
     const columns: Column<RatePlanRow>[] = [
         {
-            key: 'name', header: t('rates.columns.name'), sortable: true, render: (r) => (
+            key: 'name', header: t('rates.columns.name'), sortable: true, className: 'th-wrap', render: (r) => (
                 <span className="cell-main">{r.name}{r.is_default && <> <Badge size="sm" tone="blue">{t('rates.default_badge')}</Badge></>}</span>
             ),
         },
-        { key: 'code', header: t('rates.columns.code'), sortable: true, render: (r) => r.code },
+        { key: 'code', header: t('rates.columns.code'), sortable: true, className: 'hide-with-panel', render: (r) => r.code },
         { key: 'meal_plan', header: t('rates.columns.meal_plan'), render: (r) => <span className="row" title={r.meal_plan?.label}><Icon name="utensils" size={16} />{r.meal_plan?.label ?? '—'}</span> },
-        { key: 'room_types', header: t('rates.columns.room_types'), render: (r) => r.all_room_types ? t('rates.all_room_types') : (r.room_types.join(', ') || <span className="muted">{t('rates.none_linked')}</span>) },
-        { key: 'policy', header: t('rates.columns.policy'), render: (r) => <span title={r.policy?.name}><PolicyBadge refundable={r.policy?.refundable} /></span> },
-        { key: 'base_rate', header: t('rates.columns.base_rate', { currency: cur }), align: 'right', render: (r) => r.base_rate ? number(Number(r.base_rate), 2) : '—' },
-        { key: 'min_los', header: t('rates.columns.min_los'), sortable: true, align: 'right', render: (r) => r.min_los },
-        { key: 'channels', header: t('rates.columns.channels'), render: (r) => <ChannelIcons channels={r.channels} /> },
+        { key: 'room_types', header: t('rates.columns.room_types'), className: 'hide-with-panel', render: (r) => r.all_room_types ? t('rates.all_room_types') : (r.room_types.join(', ') || <span className="muted">{t('rates.none_linked')}</span>) },
+        { key: 'policy', header: t('rates.columns.policy'), className: 'th-wrap', render: (r) => <span title={r.policy?.name}><PolicyBadge refundable={r.policy?.refundable} /></span> },
+        { key: 'base_rate', header: t('rates.columns.base_rate', { currency: cur }), align: 'right', className: 'th-wrap', render: (r) => r.base_rate ? number(Number(r.base_rate), 2) : '—' },
+        { key: 'min_los', header: t('rates.columns.min_los'), sortable: true, align: 'right', className: 'hide-with-panel', render: (r) => r.min_los },
+        { key: 'channels', header: t('rates.columns.channels'), className: 'hide-with-panel', render: (r) => <ChannelIcons channels={r.channels} /> },
         { key: 'status', header: t('rates.columns.status'), sortable: true, render: (r) => <Badge size="sm" status={r.is_active ? 'active' : 'inactive'} /> },
         {
             key: 'actions', header: t('rates.columns.actions'), className: 'col-actions', render: (r) => (
@@ -78,16 +78,18 @@ function RatePlansPage({ list, filters, options, can }: Props) {
 
                 <div className="kpi-tabs" role="tablist">
                     {KPIS.map((k) => (
-                        <KpiCard key={k.key} compact icon={k.icon} tone={k.tone} label={t(`rates.kpis.${k.key}`)} value={list.counts[k.key]}
+                        <KpiCard key={k.key} icon={k.icon} tone={k.tone} label={t(`rates.kpis.${k.key}`)} value={list.counts[k.key]}
                             active={tab === k.key} onClick={() => navigateWithQuery({ tab: k.key === 'all' ? null : k.key })} />
                     ))}
                 </div>
 
-                <DataTable columns={columns} rows={list.rows} rowKey={(r) => r.id} onRowClick={(r) => setSelected(r.id)} selectedKey={selected}
-                    selectable selected={checked} onSelect={setChecked}
-                    empty={!hasFilters && list.counts.all === 0
-                        ? <EmptyState icon="tags" title={t('rates.no_rate_plans')} text={t('rates.no_rate_plans_hint')} />
-                        : undefined} />
+                <div className="rp-table">
+                    <DataTable columns={columns} rows={list.rows} rowKey={(r) => r.id} onRowClick={(r) => setSelected(r.id)} selectedKey={selected}
+                        selectable selected={checked} onSelect={setChecked}
+                        empty={!hasFilters && list.counts.all === 0
+                            ? <EmptyState icon="tags" title={t('rates.no_rate_plans')} text={t('rates.no_rate_plans_hint')} />
+                            : undefined} />
+                </div>
                 <Pagination meta={list.meta} label={t('rates.rate_plan_plural')} />
             </div>
             {selected && <RatePlanPanel id={selected} canUpdate={can.update} canCreate={can.create} onClose={() => setSelected(null)} />}

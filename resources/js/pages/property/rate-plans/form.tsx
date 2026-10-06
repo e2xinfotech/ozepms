@@ -56,6 +56,8 @@ function RatePlanForm({ rate_plan: rp, options }: Props) {
     const policy = policies.find((p) => p.value === data.cancellation_policy);
     const roomType = (id: string) => options.room_types.find((r) => r.value === id);
     const nullable = (v: string) => (v === '' ? null : Number(v));
+    // First-time setup: property → rate plan → room types.
+    const inSetup = new URLSearchParams(window.location.search).get('onboarding') === '1';
 
     const deriveAll = () => {
         if (!bulk.parent) return;
@@ -84,7 +86,6 @@ function RatePlanForm({ rate_plan: rp, options }: Props) {
             : http.post<{ message: string; rate_plan: RatePlanDetail }>(propertyApiUrl('/rate-plans'), body), (e) => { setError(e); toast.error(e.message); });
         setSaving(false);
         // During first-time setup the next step is the room types.
-        const inSetup = new URLSearchParams(window.location.search).get('onboarding') === '1';
         if (res) window.location.href = inSetup && !editing ? propertyUrl('/room-types/new?onboarding=1') : propertyUrl(`/rate-plans?selected=${res.rate_plan.id}`);
     };
 
@@ -92,6 +93,7 @@ function RatePlanForm({ rate_plan: rp, options }: Props) {
         <div className="content">
             <PageHeader back={propertyUrl('/rate-plans')} title={editing ? `${t('rates.edit_rate_plan')}: ${rp.name}` : t('rates.add_rate_plan')} description={t('rates.description')} />
             <div className="form-page">
+                {inSetup && !editing && <Alert tone="info"><strong>{t('rates.setup.title')}</strong> {t('rates.setup.text')}</Alert>}
                 {error && Object.keys(error.fields).length > 0 && <Alert tone="danger">{t('errors.validation')}</Alert>}
 
                 <FormSection title={t('rates.sections.basic')} description={t('rates.sections.basic_desc')}>
@@ -164,9 +166,10 @@ function RatePlanForm({ rate_plan: rp, options }: Props) {
                         {links.length === 0 ? <p className="muted">{t('rates.no_room_types')}</p> : (
                             <div className="table-wrap"><div className="table-scroll">
                                 <table className="table product-table">
+                                    <colgroup><col className="col-plan" /><col className="col-enabled" /><col className="col-mode" /><col /><col className="col-occ" /></colgroup>
                                     <thead><tr>
                                         <th>{t('rooms.room_type')}</th><th>{t('rooms.enabled')}</th><th>{t('rates.fields.pricing')}</th>
-                                        <th>{t('rates.fields.price')}</th><th>{t('rates.sections.occupancy')}</th>
+                                        <th>{t('rates.fields.price')}</th><th className="th-wrap">{t('rates.sections.occupancy')}</th>
                                     </tr></thead>
                                     <tbody>
                                         {links.map((l, i) => [
@@ -190,7 +193,7 @@ function RatePlanForm({ rate_plan: rp, options }: Props) {
                                                         </div>}
                                                     {l.base_price && l.pricing_mode === 'derived' && <div className="field-hint num">{t('rates.current_price', { price: price(l.base_price) })}</div>}
                                                 </td>
-                                                <td><Button size="sm" variant="ghost" disabled={!l.enabled} iconRight={l.open ? 'chevron-up' : 'chevron-down'} onClick={() => setLink(i, { open: !l.open })}>{l.occupancy_rules.length}</Button></td>
+                                                <td><Button size="sm" variant="ghost" disabled={!l.enabled} title={t('rates.sections.occupancy')} iconRight={l.open ? 'chevron-up' : 'chevron-down'} onClick={() => setLink(i, { open: !l.open })}>{l.occupancy_rules.length}</Button></td>
                                             </tr>,
                                             l.open && l.enabled ? (
                                                 <tr key={`${l.room_type_id}-occ`} className="sub-row"><td colSpan={5}>

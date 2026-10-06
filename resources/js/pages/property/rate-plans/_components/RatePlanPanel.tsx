@@ -56,11 +56,11 @@ export function RatePlanPanel({ id, canUpdate, canCreate, onClose }: { id: strin
                 </div>
                 {canUpdate && <LinkButton size="sm" variant="outline" icon="pencil" href={propertyUrl(`/rate-plans/${plan.id}/edit`)}>{t('ui.edit')}</LinkButton>}
             </div>
-            <div style={{ padding: '0 20px' }}>
+            <div className="panel-tabs" style={{ padding: '0 20px' }}>
                 <Tabs active={tab} onChange={setTab} items={[
                     { key: 'overview', label: t('rates.panel_tabs.overview') },
                     { key: 'rates', label: t('rates.panel_tabs.rates') },
-                    { key: 'room_types', label: t('rates.panel_tabs.room_types'), count: plan.products.filter((p) => p.is_active).length },
+                    { key: 'room_types', label: t('rates.panel_tabs.room_types') },
                     { key: 'channels', label: t('rates.panel_tabs.channels') },
                 ]} />
             </div>
@@ -122,9 +122,8 @@ export function RatePlanPanel({ id, canUpdate, canCreate, onClose }: { id: strin
             <div className="sp-section">
                 <h3>{t('ui.quick_actions')}</h3>
                 <div className="action-grid">
-                    {calendarUrl
-                        ? <LinkButton variant="outline" icon="trending-up" href={calendarUrl} title={t('rates.daily_rates_hint')}>{t('rates.quick.set_rates')}</LinkButton>
-                        : <Button variant="outline" icon="trending-up" disabled title={t('nav.coming_soon')}>{t('rates.quick.set_rates')}</Button>}
+                    {/* Daily rates are edited on the calendar; the action appears once that page exists. */}
+                    {calendarUrl && <LinkButton variant="outline" icon="trending-up" href={calendarUrl} title={t('rates.daily_rates_hint')}>{t('rates.quick.set_rates')}</LinkButton>}
                     {canCreate && <Button variant="outline" icon="copy" loading={busy} onClick={copy}>{t('rates.quick.copy')}</Button>}
                     {canUpdate && (plan.is_active
                         ? <Button variant="danger-soft" icon="pause" loading={busy} onClick={toggle} disabled={plan.is_default} title={plan.is_default ? t('rates.errors.default_cannot_deactivate') : undefined}>{t('rates.quick.deactivate')}</Button>

@@ -1,10 +1,11 @@
 import { useMemo, useState, type ChangeEvent } from 'react';
-import { Alert, Button, Checkbox, ConfirmDialog, FormSection, Icon, Input, LinkButton, PageHeader, Segmented, Select, Textarea, Toggle, toast, type Option } from '@/components/ui';
+import { Alert, Button, Checkbox, ConfirmDialog, EmptyState, FormSection, Icon, Input, LinkButton, PageHeader, Segmented, Select, Textarea, Toggle, toast, type Option } from '@/components/ui';
 import { createPage } from '@/lib/boot';
 import { http, type ApiError } from '@/lib/http';
 import { t } from '@/lib/i18n';
 import { propertyApiUrl, propertyUrl } from '@/lib/page';
 import { act, errorsUnder, fieldError, MoneyInput, OccupancyEditor, price, type OccupancyRule } from '../_accommodation/shared';
+import { QuickRatePlanModal, type CreatedRatePlan, type PolicyChoice } from './_components/QuickRatePlanModal';
 
 interface Unit { id: string | null; name: string; floor: string | null; is_active: boolean }
 interface Product {
@@ -21,14 +22,15 @@ interface RoomType {
     units: Unit[]; active_units: number; products: Product[];
 }
 interface AmenityOption { value: string; label: string; category: string; icon: string | null }
-interface RatePlanOption { value: string; label: string; name: string; code: string; is_active: boolean }
+interface RatePlanOption { value: string; label: string; name: string; code: string; is_active: boolean; is_default?: boolean }
 interface Props {
     room_type: RoomType | null;
     options: {
         categories: Option[]; bed_types: Option[]; amenities: AmenityOption[]; amenity_categories: Option[];
-        rate_plans: RatePlanOption[]; age_bands: Option[];
+        rate_plans: RatePlanOption[]; age_bands: Option[]; meal_plans: Option[]; policies: PolicyChoice[];
         usage: { units: number | null; used_units: number; room_types: number | null; used_room_types: number };
     };
+    can: { create_rate_plan: boolean };
 }
 
 interface ProductRow {
@@ -37,8 +39,12 @@ interface ProductRow {
 }
 
 /** Create / edit a room type: details, occupancy, beds, amenities, PMS rooms, rate plans and images. */
-function RoomTypeForm({ room_type: rt, options }: Props) {
+function RoomTypeForm({ room_type: rt, options, can }: Props) {
     const editing = rt !== null;
+    // First-time setup (property → rate plan → room types): show the step and return to the dashboard afterwards.
+    const inSetup = new URLSearchParams(window.location.search).get('onboarding') === '1';
+    const [ratePlans, setRatePlans] = useState<RatePlanOption[]>(options.rate_plans);
+    const [quickPlan, setQuickPlan] = useState(false);
     const [data, setData] = useState({
         code: rt?.code ?? '', name: rt?.name ?? '', category: rt?.category ?? '', description: rt?.description ?? '',
         base_adults: rt?.base_adults ?? 2, max_adults: rt?.max_adults ?? 2, max_children: rt?.max_children ?? 0,
@@ -57,13 +63,14 @@ function RoomTypeForm({ room_type: rt, options }: Props) {
     const [quantity, setQuantity] = useState(String(rt?.active_units ?? 1));
     const [floor, setFloor] = useState('');
     const [units, setUnits] = useState<Unit[]>(rt?.units ?? []);
-    const [products, setProducts] = useState<ProductRow[]>(() => options.rate_plans.map((p) => {
+    const [products, setProducts] = useState<ProductRow[]>(() => options.rate_plans.map((p, index) => {
         const existing = rt?.products.find((x) => x.rate_plan === p.value);
         return {
-            rate_plan_id: p.value, enabled: existing?.is_active ?? false, pricing_mode: existing?.pricing_mode ?? 'manual',
+            // A new room type starts linked to the property's default rate plan (or the only one).
+            rate_plan_id: p.value, enabled: existing ? existing.is_active : (!editing && p.is_active && (p.is_default || (index === 0 && options.rate_plans.length === 1))), pricing_mode: existing?.pricing_mode ?? 'manual',
             default_price: existing?.default_price ?? '', parent_rate_plan_id: existing?.parent_rate_plan ?? '',
             adjust_type: existing?.adjust_type ?? 'percent', adjust_value: existing?.adjust_value ? String(Number(existing.adjust_value)) : '-10',
-            is_default: existing?.is_default ?? false, occupancy_rules: existing?.occupancy_rules ?? [], open: false,
+            is_default: existing ? existing.is_default : (!editing && (p.is_default || options.rate_plans.length === 1)), occupancy_rules: existing?.occupancy_rules ?? [], open: false,
         };
     }));
     const [images, setImages] = useState(rt?.images ?? []);
@@ -113,7 +120,10 @@ function RoomTypeForm({ room_type: rt, options }: Props) {
             (e) => { setError(e); toast.error(e.message); },
         );
         setSaving(false);
-        if (res) window.location.href = editing ? propertyUrl('/room-types') : propertyUrl(`/room-types/${res.room_type.id}/edit`);
+        if (res) {
+            window.location.href = inSetup ? propertyUrl('/dashboard')
+                : editing ? propertyUrl('/room-types') : propertyUrl(`/room-types/${res.room_type.id}/edit`);
+        }
     };
 
     const upload = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -149,7 +159,19 @@ function RoomTypeForm({ room_type: rt, options }: Props) {
         setRemoveImage(null);
     };
 
-    const ratePlanLabel = (id: string) => options.rate_plans.find((p) => p.value === id)?.label ?? id;
+    const ratePlanLabel = (id: string) => ratePlans.find((p) => p.value === id)?.label ?? id;
+
+    // A plan created in the modal is added to the table, ticked, and made the default when it is the first one.
+    const ratePlanCreated = (plan: CreatedRatePlan) => {
+        const first = !products.some((p) => p.enabled && p.is_default);
+        setRatePlans((l) => [...l, { value: plan.id, label: `${plan.name} (${plan.code})`, name: plan.name, code: plan.code, is_active: plan.is_active }]);
+        setProducts((l) => [...l, {
+            rate_plan_id: plan.id, enabled: true, pricing_mode: 'manual', default_price: '', parent_rate_plan_id: '', adjust_type: 'percent',
+            adjust_value: '-10', is_default: first, occupancy_rules: [], open: false,
+        }]);
+        setQuickPlan(false);
+        toast.success(t('rooms.quick_rate_plan.created', { name: plan.name }));
+    };
 
     return (
         <div className="content">
@@ -157,6 +179,7 @@ function RoomTypeForm({ room_type: rt, options }: Props) {
                 description={t('rooms.room_types_desc')} />
 
             <div className="form-page">
+                {inSetup && <Alert tone="info"><strong>{t('rooms.setup.title')}</strong> {t('rooms.setup.text')}</Alert>}
                 {error && Object.keys(error.fields).length > 0 && <Alert tone="danger">{t('errors.validation')}</Alert>}
 
                 <FormSection title={t('rooms.sections.basic')} description={t('rooms.sections.basic_desc')}>
@@ -246,6 +269,10 @@ function RoomTypeForm({ room_type: rt, options }: Props) {
                         {!editing && <Input fieldClass="span-3" label={t('rooms.fields.floor')} optional value={floor} maxLength={10} onChange={(e) => setFloor(e.target.value)} />}
                     </> : (
                         <div className="span-12 edit-rows">
+                            {units.length > 0 && <div className="units-head" aria-hidden="true">
+                                <span className="field-label">{t('rooms.fields.room_name')}</span><span className="field-label">{t('rooms.fields.floor')}</span>
+                                <span className="field-label">{t('rooms.fields.status')}</span><span />
+                            </div>}
                             {units.map((u, i) => (
                                 <div key={u.id ?? `new-${i}`} className="edit-row units">
                                     <Input aria-label={t('rooms.fields.room_name')} placeholder={t('rooms.fields.room_name')} value={u.name} maxLength={30}
@@ -265,14 +292,23 @@ function RoomTypeForm({ room_type: rt, options }: Props) {
                     )}
                 </FormSection>
 
-                <FormSection title={t('rooms.sections.rate_plans')} description={t('rooms.sections.rate_plans_desc')}>
+                <FormSection title={t('rooms.sections.rate_plans')} description={t('rooms.sections.rate_plans_desc')}
+                    actions={can.create_rate_plan && ratePlans.length > 0 && <Button size="sm" variant="outline" icon="plus" onClick={() => setQuickPlan(true)}>{t('rooms.quick_rate_plan.button')}</Button>}>
                     <div className="span-12">
-                        {options.rate_plans.length === 0 ? <p className="muted">{t('rooms.no_rate_plans')}</p> : (
+                        {ratePlans.length === 0 ? (
+                            <EmptyState icon="tags" title={t('rooms.no_rate_plan_found')} text={t('rooms.no_rate_plans')}
+                                action={can.create_rate_plan
+                                    ? <Button variant="primary" icon="plus" onClick={() => setQuickPlan(true)}>{t('rooms.quick_rate_plan.button')}</Button>
+                                    : <span className="muted text-sm">{t('rooms.quick_rate_plan.no_permission')}</span>} />
+                        ) : (
                             <div className="table-wrap"><div className="table-scroll">
                                 <table className="table product-table">
+                                    <colgroup>
+                                        <col className="col-plan" /><col className="col-enabled" /><col className="col-mode" /><col /><col className="col-occ" /><col className="col-default" />
+                                    </colgroup>
                                     <thead><tr>
                                         <th>{t('rates.rate_plan')}</th><th>{t('rooms.enabled')}</th><th>{t('rates.fields.pricing')}</th>
-                                        <th>{t('rooms.price')}</th><th>{t('rates.sections.occupancy')}</th><th>{t('rooms.make_default')}</th>
+                                        <th>{t('rooms.price')}</th><th className="th-wrap">{t('rates.sections.occupancy')}</th><th className="th-wrap col-default">{t('rooms.make_default')}</th>
                                     </tr></thead>
                                     <tbody>
                                         {products.map((p, i) => [
@@ -289,7 +325,7 @@ function RoomTypeForm({ room_type: rt, options }: Props) {
                                                         ? <MoneyInput value={p.default_price} onChange={(v) => setProduct(i, { default_price: v })} error={err(`products.${i}.default_price`)} />
                                                         : <div className="inline-fields">
                                                             <Select size="sm" aria-label={t('rooms.derived_from')} disabled={!p.enabled} value={p.parent_rate_plan_id} placeholder={t('rooms.derived_from')}
-                                                                options={options.rate_plans.filter((x) => x.value !== p.rate_plan_id)} onChange={(e) => setProduct(i, { parent_rate_plan_id: e.target.value })}
+                                                                options={ratePlans.filter((x) => x.value !== p.rate_plan_id)} onChange={(e) => setProduct(i, { parent_rate_plan_id: e.target.value })}
                                                                 error={err(`products.${i}.parent_rate_plan_id`)} />
                                                             <Select size="sm" aria-label={t('rates.fields.adjust_type')} value={p.adjust_type}
                                                                 options={['percent', 'fixed', 'fixed_per_person'].map((v) => ({ value: v, label: t(`rates.adjust_types.${v}`) }))}
@@ -302,7 +338,7 @@ function RoomTypeForm({ room_type: rt, options }: Props) {
                                                 </td>
                                                 <td>
                                                     <Button size="sm" variant="ghost" iconRight={p.open ? 'chevron-up' : 'chevron-down'} disabled={!p.enabled}
-                                                        onClick={() => setProduct(i, { open: !p.open })}>{p.occupancy_rules.length}</Button>
+                                                        title={t('rates.sections.occupancy')} onClick={() => setProduct(i, { open: !p.open })}>{p.occupancy_rules.length}</Button>
                                                 </td>
                                                 <td className="radio-cell">
                                                     <input type="radio" name="default-rate-plan" aria-label={t('rooms.make_default')} title={t('rooms.make_default')} disabled={!p.enabled}
@@ -349,6 +385,8 @@ function RoomTypeForm({ room_type: rt, options }: Props) {
                 </div>
             </div>
 
+            {quickPlan && <QuickRatePlanModal mealPlans={options.meal_plans} policies={options.policies} first={ratePlans.length === 0}
+                onClose={() => setQuickPlan(false)} onCreated={ratePlanCreated} />}
             <ConfirmDialog open={removeImage !== null} danger title={t('rooms.remove_image')} message={t('rooms.remove_image')} confirmLabel={t('ui.delete')}
                 onConfirm={deleteImage} onClose={() => setRemoveImage(null)} />
         </div>

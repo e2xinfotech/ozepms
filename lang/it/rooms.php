@@ -100,7 +100,7 @@ return [
     'derived_from' => 'Derivato da',
     'adjustment' => 'Variazione',
     'make_default' => 'Predefinita',
-    'no_rate_plans' => 'Nessuna tariffa. Crea prima una tariffa.',
+    'no_rate_plans' => 'Una tipologia di camera si vende tramite le tariffe. Creane una qui senza lasciare la pagina; poi torni a questo modulo.',
 
     // PMS rooms
     'rooms_title' => 'Camere (camere PMS)',
@@ -203,4 +203,12 @@ return [
         'rate_plan_made_default' => 'Impostata come tariffa predefinita',
         'tax_rule_created' => 'Creata', 'tax_rule_updated' => 'Modificata',
     ],
+    'no_rate_plan_found' => 'Nessuna tariffa trovata',
+    'quick_rate_plan' => [
+        'button' => 'Crea tariffa', 'title' => 'Crea tariffa', 'save' => 'Crea e collega',
+        'intro' => 'La nuova tariffa viene collegata a questa tipologia di camera. Inserisci il prezzo nella tabella dopo il salvataggio; trattamento e politica si possono modificare in seguito nella pagina Tariffe.',
+        'created' => 'Tariffa :name creata. Inserisci il prezzo qui sotto.', 'default_name' => 'Solo pernottamento',
+        'no_policy' => 'Aggiungi prima una politica di cancellazione nella pagina Tariffe.', 'no_permission' => 'Chiedi a un responsabile di creare una tariffa.',
+    ],
+    'setup' => ['title' => 'Configurazione, passo 3 di 3:', 'text' => 'aggiungi le tipologie di camera e le relative camere PMS. La struttura può ricevere prenotazioni appena salvi.'],
 ];

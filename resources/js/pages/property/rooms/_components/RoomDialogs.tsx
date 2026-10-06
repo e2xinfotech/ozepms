@@ -108,8 +108,13 @@ export function EditRoomModal({ room, roomTypes, onClose, onSaved }: { room: Roo
 }
 
 /** Out of order / maintenance / owner hold for a date range (end = first night back in service). */
+/** The day after a Y-m-d date. Plain calendar arithmetic in UTC, so the browser time zone cannot shift it. */
+function nextDay(date: string): string {
+    return new Date(Date.parse(`${date}T00:00:00Z`) + 86400000).toISOString().slice(0, 10);
+}
+
 export function BlockRoomModal({ room, blockTypes, today, onClose, onSaved }: { room: RoomDetail; blockTypes: Option[]; today: string; onClose: () => void; onSaved: () => void }) {
-    const tomorrow = new Date(new Date(`${today}T00:00:00`).getTime() + 86400000).toISOString().slice(0, 10);
+    const tomorrow = nextDay(today);
     const [form, setForm] = useState({ block_type: 'maintenance', start_date: today, end_date: tomorrow, reason: '' });
     const [error, setError] = useState<ApiError | null>(null);
     const [busy, setBusy] = useState(false);
@@ -129,7 +134,7 @@ export function BlockRoomModal({ room, blockTypes, today, onClose, onSaved }: { 
         </>}>
             <div className="form-grid">
                 <Select fieldClass="span-12" label={t('rooms.block_fields.type')} value={form.block_type} options={blockTypes} onChange={(e) => setForm({ ...form, block_type: e.target.value })} error={fieldError(error, 'block_type')} />
-                <Input fieldClass="span-6" type="date" label={t('rooms.block_fields.start_date')} required min={today} value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} error={fieldError(error, 'start_date')} />
+                <Input fieldClass="span-6" type="date" label={t('rooms.block_fields.start_date')} required min={today} value={form.start_date} onChange={(e) => { const start = e.target.value; setForm({ ...form, start_date: start, end_date: form.end_date > start ? form.end_date : nextDay(start) }); }} error={fieldError(error, 'start_date')} />
                 <Input fieldClass="span-6" type="date" label={t('rooms.block_fields.end_date')} required min={form.start_date} value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} error={fieldError(error, 'end_date')} />
                 <Input fieldClass="span-12" label={t('rooms.block_fields.reason')} optional maxLength={255} value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} />
             </div>

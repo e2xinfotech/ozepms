@@ -68,8 +68,9 @@ class PhysicalUnitQuery
             ->selectRaw("($statusSql) AS room_status", $statusBindings);
         $this->applyTab($rows, $tab, $statusSql, $statusBindings);
 
-        Listing::sort($rows, $request, self::SORTS, 'physical_units.sort_order');
-        $rows->orderBy('room_types.sort_order')->orderBy('physical_units.name');
+        // Default order: room types in their display order, then each type's rooms (101, 102, …).
+        Listing::sort($rows, $request, self::SORTS, 'room_types.sort_order');
+        $rows->orderBy('room_types.sort_order')->orderBy('physical_units.sort_order')->orderBy('physical_units.name');
 
         return Listing::paginate($rows, $request, fn (PhysicalUnit $u) => $this->row($u)) + ['counts' => $counts, 'today' => $today];
     }

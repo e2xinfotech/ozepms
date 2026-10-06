@@ -43,8 +43,8 @@ return [
     'fields' => [
         'name' => 'Name des Ratenplans', 'code' => 'Code', 'description' => 'Beschreibung (für Gäste sichtbar)', 'meal_plan' => 'Verpflegung',
         'policy' => 'Stornobedingungen', 'payment_type' => 'Zahlung', 'deposit_value' => 'Anzahlung',
-        'min_los' => 'Mindestaufenthalt', 'max_los' => 'Höchstaufenthalt', 'min_advance' => 'Buchung mindestens (Tage vor Anreise)',
-        'max_advance' => 'Buchung höchstens (Tage vor Anreise)', 'booking_window' => 'Buchungszeitraum', 'sell_on' => 'Verkauf über',
+        'min_los' => 'Mindestaufenthalt', 'max_los' => 'Höchstaufenthalt', 'min_advance' => 'Min. Tage im Voraus',
+        'max_advance' => 'Max. Tage im Voraus', 'booking_window' => 'Buchungszeitraum', 'sell_on' => 'Verkauf über',
         'status' => 'Status', 'is_default' => 'Standard-Ratenplan des Hauses', 'price' => 'Preis pro Nacht',
         'base_rate' => 'Grundpreis', 'applicable_to' => 'Gilt für', 'pricing' => 'Preisgestaltung',
         'parent' => 'Abgeleitet von', 'adjust_type' => 'Art der Anpassung', 'adjust_value' => 'Anpassung',
@@ -157,4 +157,5 @@ return [
         'meal_plan_required' => 'Wählen Sie eine Verpflegung.',
         'policy_required' => 'Wählen Sie Stornobedingungen.',
     ],
+    'setup' => ['title' => 'Einrichtung, Schritt 2 von 3:', 'text' => 'Legen Sie den Ratenplan an, mit dem Ihre Zimmer verkauft werden. Danach fügen Sie die Zimmertypen und deren PMS-Zimmer hinzu.'],
 ];

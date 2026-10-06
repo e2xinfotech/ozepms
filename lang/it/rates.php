@@ -43,8 +43,8 @@ return [
     'fields' => [
         'name' => 'Nome tariffa', 'code' => 'Codice', 'description' => 'Descrizione (visibile agli ospiti)', 'meal_plan' => 'Trattamento',
         'policy' => 'Politica di cancellazione', 'payment_type' => 'Pagamento', 'deposit_value' => 'Acconto',
-        'min_los' => 'Soggiorno minimo', 'max_los' => 'Soggiorno massimo', 'min_advance' => "Prenotare almeno (giorni prima dell'arrivo)",
-        'max_advance' => "Prenotare al massimo (giorni prima dell'arrivo)", 'booking_window' => 'Finestra di prenotazione', 'sell_on' => 'Vendi su',
+        'min_los' => 'Soggiorno minimo', 'max_los' => 'Soggiorno massimo', 'min_advance' => "Giorni di anticipo min.",
+        'max_advance' => "Giorni di anticipo max.", 'booking_window' => 'Finestra di prenotazione', 'sell_on' => 'Vendi su',
         'status' => 'Stato', 'is_default' => 'Tariffa predefinita della struttura', 'price' => 'Prezzo a notte',
         'base_rate' => 'Tariffa base', 'applicable_to' => 'Applicabile a', 'pricing' => 'Prezzo',
         'parent' => 'Derivata da', 'adjust_type' => 'Tipo di variazione', 'adjust_value' => 'Variazione',
@@ -157,4 +157,5 @@ return [
         'meal_plan_required' => 'Scegli un trattamento.',
         'policy_required' => 'Scegli una politica di cancellazione.',
     ],
+    'setup' => ['title' => 'Configurazione, passo 2 di 3:', 'text' => 'crea la tariffa con cui vendi le camere. Poi aggiungi le tipologie di camera e le relative camere PMS.'],
 ];

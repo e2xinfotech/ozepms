@@ -100,7 +100,7 @@ return [
     'derived_from' => 'Dérivé de',
     'adjustment' => 'Ajustement',
     'make_default' => 'Par défaut',
-    'no_rate_plans' => "Aucun plan tarifaire. Créez d'abord un plan tarifaire.",
+    'no_rate_plans' => "Un type de chambre est vendu via des plans tarifaires. Créez-en un ici sans quitter cette page ; vous revenez ensuite à ce formulaire.",
 
     // PMS rooms
     'rooms_title' => 'Chambres (chambres PMS)',
@@ -203,4 +203,12 @@ return [
         'rate_plan_made_default' => 'Défini comme plan par défaut',
         'tax_rule_created' => 'Créé', 'tax_rule_updated' => 'Modifié',
     ],
+    'no_rate_plan_found' => 'Aucun plan tarifaire trouvé',
+    'quick_rate_plan' => [
+        'button' => 'Créer un plan tarifaire', 'title' => 'Créer un plan tarifaire', 'save' => 'Créer et associer',
+        'intro' => "Le nouveau plan tarifaire est associé à ce type de chambre. Saisissez son prix dans le tableau après l'enregistrement ; le plan de repas et la politique peuvent être modifiés plus tard dans Plans tarifaires.",
+        'created' => 'Plan tarifaire :name créé. Saisissez son prix ci-dessous.', 'default_name' => 'Chambre seule',
+        'no_policy' => "Ajoutez d'abord une politique d'annulation dans Plans tarifaires.", 'no_permission' => 'Demandez à un responsable de créer un plan tarifaire.',
+    ],
+    'setup' => ['title' => 'Configuration, étape 3 sur 3 :', 'text' => "ajoutez vos types de chambres et leurs chambres PMS. L'établissement peut recevoir des réservations dès l'enregistrement."],
 ];

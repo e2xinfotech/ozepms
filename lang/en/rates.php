@@ -43,8 +43,8 @@ return [
     'fields' => [
         'name' => 'Rate Plan Name', 'code' => 'Code', 'description' => 'Description (shown to guests)', 'meal_plan' => 'Meal Plan',
         'policy' => 'Cancellation Policy', 'payment_type' => 'Payment', 'deposit_value' => 'Deposit',
-        'min_los' => 'Min Length of Stay', 'max_los' => 'Max Length of Stay', 'min_advance' => 'Book at least (days before arrival)',
-        'max_advance' => 'Book at most (days before arrival)', 'booking_window' => 'Booking Window', 'sell_on' => 'Sell On',
+        'min_los' => 'Min Length of Stay', 'max_los' => 'Max Length of Stay', 'min_advance' => 'Min. Days in Advance',
+        'max_advance' => 'Max. Days in Advance', 'booking_window' => 'Booking Window', 'sell_on' => 'Sell On',
         'status' => 'Status', 'is_default' => 'Default rate plan of the property', 'price' => 'Price per night',
         'base_rate' => 'Base Rate', 'applicable_to' => 'Applicable To', 'pricing' => 'Pricing',
         'parent' => 'Derived From', 'adjust_type' => 'Adjustment Type', 'adjust_value' => 'Adjustment',
@@ -157,4 +157,5 @@ return [
         'meal_plan_required' => 'Choose a meal plan.',
         'policy_required' => 'Choose a cancellation policy.',
     ],
+    'setup' => ['title' => 'Setup, step 2 of 3:', 'text' => 'create the rate plan your rooms are sold with. Next you add the room types and their PMS rooms.'],
 ];

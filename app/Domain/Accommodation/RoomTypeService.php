@@ -48,6 +48,10 @@ class RoomTypeService
 
             $roomType = new RoomType(array_intersect_key($data, array_flip(self::FIELDS)));
             $roomType->code = strtoupper((string) $roomType->code);
+            // Checked again under the lock taken by the limit check: two forms saved at once with one code.
+            if (RoomType::query()->withTrashed()->where('code', $roomType->code)->exists()) {
+                throw ValidationException::withMessages(['code' => __('validation.unique', ['attribute' => __('rooms.fields.code')])]);
+            }
             $roomType->sort_order ??= (int) RoomType::query()->max('sort_order') + 1;
             $roomType->is_active = (bool) ($data['is_active'] ?? true);
             $roomType->save();

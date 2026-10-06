@@ -31,6 +31,7 @@ class RoomTypesController extends Controller
         return Page::render('property/room-types/form', [
             'room_type' => null,
             'options' => $this->formOptions($options),
+            'can' => $this->can(['create_rate_plan' => 'rate_plans.create']),
         ], __('rooms.add_room_type'));
     }
 
@@ -41,6 +42,7 @@ class RoomTypesController extends Controller
         return Page::render('property/room-types/form', [
             'room_type' => (new RoomTypeResource($model))->resolve($request),
             'options' => $this->formOptions($options),
+            'can' => $this->can(['create_rate_plan' => 'rate_plans.create']),
         ], __('rooms.edit_room_type'));
     }
 
@@ -54,6 +56,9 @@ class RoomTypesController extends Controller
             'amenity_categories' => $options->amenityCategories(),
             'rate_plans' => $options->ratePlans(),
             'age_bands' => $options->ageBands(),
+            // For "+ Create Rate Plan" inside the form (no rate plan yet, or one more is needed).
+            'meal_plans' => $options->mealPlans(),
+            'policies' => array_map(fn (array $p) => ['value' => $p['value'], 'label' => $p['label'], 'refundable' => $p['refundable']], $options->cancellationPolicies()),
             'usage' => $options->usage(),
         ];
     }

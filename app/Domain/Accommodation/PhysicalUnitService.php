@@ -49,6 +49,8 @@ class PhysicalUnitService
 
         return Tx::run(function () use ($roomType, $rows, $field) {
             $property = $this->context->property();
+            // Lock before checking names and the plan limit, so parallel requests cannot both pass.
+            $this->limits->lockInventory($property);
             $this->assertUniqueNames(array_column($rows, 'name'), $field);
             $this->limits->assertCanAddUnits($property, count($rows), $field);
 
@@ -81,6 +83,7 @@ class PhysicalUnitService
             $oldRoomTypeId = (int) $unit->room_type_id;
 
             if (isset($data['name']) && trim((string) $data['name']) !== $unit->name) {
+                $this->limits->lockInventory($property);
                 $this->assertUniqueNames([(string) $data['name']], 'name', $unit->id);
             }
 

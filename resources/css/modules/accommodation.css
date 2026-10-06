@@ -49,3 +49,40 @@
 .rt-name-cell { min-width: 320px; }
 .rt-name-cell .cell-main { white-space: nowrap; }
 .carousel.empty { aspect-ratio: 16 / 6; }
+
+/* Laptop width (1440px): long lists fit without horizontal scrolling. */
+.table thead th.th-wrap { white-space: normal; line-height: 1.25; min-width: 72px; hyphens: auto; }
+.rt-table .rt-name-cell { min-width: 250px; }
+.rt-table .rt-desc { max-width: 220px; }
+.rt-table .table-select { min-width: 150px; }
+.rt-table .table thead th, .rt-table .table tbody td { padding-left: 10px; padding-right: 10px; }
+.with-panel .table .hide-with-panel { display: none; }
+.cell-nowrap { white-space: nowrap; }
+.kpi-tabs .kpi-label { white-space: normal; line-height: 1.2; }
+.with-panel .kpi-tabs { gap: 10px; }
+.with-panel .kpi-tabs .kpi { padding: 10px 12px; gap: 10px; }
+.with-panel .kpi-tabs .kpi-icon { width: 32px; height: 32px; }
+.panel-tabs .tabs { gap: 0; }
+.panel-tabs .tab { padding: 0 8px; font-size: var(--text-sm); }
+.panel-tabs + .sp-section { border-top: 0; }
+.product-table { table-layout: fixed; }
+.product-table .col-plan { width: 22%; }
+.product-table .col-enabled { width: 76px; }
+.product-table .col-mode { width: 168px; }
+.product-table .col-occ { width: 96px; }
+.product-table .col-default { width: 84px; text-align: center; }
+.product-table td.radio-cell { text-align: center; }
+.product-table .cell-main { white-space: normal; }
+.units-head { display: grid; grid-template-columns: minmax(0, 2fr) 120px 110px 40px; gap: 12px; }
+.units-head .field-label { margin: 0; }
+.panel-tabs .tabs { flex-wrap: wrap; overflow: visible; }
+@media (max-width: 1600px) {
+    .rt-table .col-code { display: none; }
+    .rt-table .rt-desc { max-width: 200px; }
+    .rt-table .table-select { min-width: 0; width: 140px; }
+    .rt-table .rt-name-cell { min-width: 220px; }
+    .rt-table .rt-thumb { width: 64px; height: 44px; }
+    .rp-table .table thead th, .rp-table .table tbody td { padding-left: 8px; padding-right: 8px; }
+}
+@media (max-width: 1600px) { .panel-actions { grid-template-columns: 1fr; } }
+.panel-actions .dropdown, .panel-actions .dropdown > .btn { width: 100%; }

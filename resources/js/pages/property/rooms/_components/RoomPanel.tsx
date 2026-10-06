@@ -50,11 +50,11 @@ export function RoomPanel({ id, version, canUpdate, canHousekeeping, onClose, on
                     { label: t('rooms.fields.reservation'), value: room.guest?.reservation },
                 ]} />
             </div>
-            <div style={{ padding: '6px 20px 0' }}>
+            <div className="panel-tabs" style={{ padding: '6px 20px 0' }}>
                 <Tabs active={tab} onChange={setTab} items={[
                     { key: 'details', label: t('rooms.panel_tabs.details') },
-                    { key: 'amenities', label: t('rooms.panel_tabs.amenities'), count: room.amenities.length },
-                    { key: 'images', label: t('rooms.panel_tabs.images'), count: room.images.length },
+                    { key: 'amenities', label: t('rooms.panel_tabs.amenities') },
+                    { key: 'images', label: t('rooms.panel_tabs.images') },
                     { key: 'notes', label: t('rooms.panel_tabs.notes') },
                     { key: 'history', label: t('rooms.panel_tabs.history') },
                 ]} />

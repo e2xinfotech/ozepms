@@ -58,12 +58,12 @@ function TaxesPage({ list, filters, options, has_own_rules, templates_available 
 
     const columns: Column<Row>[] = [
         { key: 'name', header: t('taxes.columns.name'), sortable: true, render: (r) => <span className="cell-main">{r.name}</span> },
-        { key: 'code', header: t('taxes.columns.code'), sortable: true, render: (r) => r.code },
+        { key: 'code', header: t('taxes.columns.code'), sortable: true, className: 'hide-with-panel', render: (r) => r.code },
         { key: 'type', header: t('taxes.columns.type'), render: (r) => <Badge size="sm" status={r.kind}>{t(`taxes.kinds.${r.kind}`)}</Badge> },
         { key: 'rate', header: t('taxes.columns.rate'), sortable: true, render: rateCell },
         { key: 'apply_to', header: t('taxes.columns.apply_to'), render: (r) => r.apply_to.map((a) => labelOf(options.apply_to, a)).join(', ') },
         {
-            key: 'calculation', header: t('taxes.columns.calculation'), render: (r) => {
+            key: 'calculation', header: t('taxes.columns.calculation'), className: 'hide-with-panel', render: (r) => {
                 const [method, basis] = splitCalc(r.calc_type);
                 return <span title={r.component_mode === 'gst_split' ? labelOf(options.component_modes, 'gst_split') : undefined}>
                     {method === 'percent' ? t('taxes.methods.percent') : t(`taxes.bases.${basis}`)}{r.component_mode === 'gst_split' ? ' · CGST/SGST' : ''}

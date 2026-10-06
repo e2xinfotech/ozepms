@@ -43,8 +43,8 @@ return [
     'fields' => [
         'name' => 'Nom du plan', 'code' => 'Code', 'description' => 'Description (visible par les clients)', 'meal_plan' => 'Formule repas',
         'policy' => "Conditions d'annulation", 'payment_type' => 'Paiement', 'deposit_value' => 'Acompte',
-        'min_los' => 'Durée de séjour min.', 'max_los' => 'Durée de séjour max.', 'min_advance' => "Réserver au moins (jours avant l'arrivée)",
-        'max_advance' => "Réserver au plus (jours avant l'arrivée)", 'booking_window' => 'Fenêtre de réservation', 'sell_on' => 'Vendre sur',
+        'min_los' => 'Durée de séjour min.', 'max_los' => 'Durée de séjour max.', 'min_advance' => "Jours d'avance min.",
+        'max_advance' => "Jours d'avance max.", 'booking_window' => 'Fenêtre de réservation', 'sell_on' => 'Vendre sur',
         'status' => 'Statut', 'is_default' => "Plan tarifaire par défaut de l'établissement", 'price' => 'Prix par nuit',
         'base_rate' => 'Tarif de base', 'applicable_to' => 'Applicable à', 'pricing' => 'Tarification',
         'parent' => 'Dérivé de', 'adjust_type' => "Type d'ajustement", 'adjust_value' => 'Ajustement',
@@ -157,4 +157,5 @@ return [
         'meal_plan_required' => 'Choisissez une formule repas.',
         'policy_required' => "Choisissez des conditions d'annulation.",
     ],
+    'setup' => ['title' => 'Configuration, étape 2 sur 3 :', 'text' => 'créez le plan tarifaire avec lequel vos chambres sont vendues. Ensuite, vous ajoutez les types de chambres et leurs chambres PMS.'],
 ];

@@ -100,7 +100,7 @@ return [
     'derived_from' => 'Abgeleitet von',
     'adjustment' => 'Anpassung',
     'make_default' => 'Standard',
-    'no_rate_plans' => 'Noch keine Ratenpläne. Legen Sie zuerst einen Ratenplan an.',
+    'no_rate_plans' => 'Ein Zimmertyp wird über Ratenpläne verkauft. Legen Sie hier einen an, ohne die Seite zu verlassen; danach kehren Sie zu diesem Formular zurück.',
 
     // PMS rooms
     'rooms_title' => 'Zimmer (PMS-Zimmer)',
@@ -203,4 +203,12 @@ return [
         'rate_plan_made_default' => 'Als Standard-Ratenplan festgelegt',
         'tax_rule_created' => 'Angelegt', 'tax_rule_updated' => 'Geändert',
     ],
+    'no_rate_plan_found' => 'Kein Ratenplan gefunden',
+    'quick_rate_plan' => [
+        'button' => 'Ratenplan anlegen', 'title' => 'Ratenplan anlegen', 'save' => 'Anlegen und verknüpfen',
+        'intro' => 'Der neue Ratenplan wird mit diesem Zimmertyp verknüpft. Tragen Sie nach dem Speichern den Preis in der Tabelle ein; Verpflegung und Stornobedingungen können später unter Ratenpläne geändert werden.',
+        'created' => 'Ratenplan :name angelegt. Tragen Sie unten den Preis ein.', 'default_name' => 'Nur Übernachtung',
+        'no_policy' => 'Legen Sie zuerst unter Ratenpläne eine Stornobedingung an.', 'no_permission' => 'Bitten Sie einen Manager, einen Ratenplan anzulegen.',
+    ],
+    'setup' => ['title' => 'Einrichtung, Schritt 3 von 3:', 'text' => 'Legen Sie Ihre Zimmertypen und deren PMS-Zimmer an. Nach dem Speichern kann die Unterkunft Reservierungen annehmen.'],
 ];

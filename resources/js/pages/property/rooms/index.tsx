@@ -54,7 +54,7 @@ function RoomsPage({ list, filters, options, can }: Props) {
         { key: 'floor', header: t('rooms.columns.floor'), sortable: true, align: 'center', render: (r) => r.floor ?? '—' },
         { key: 'status', header: t('rooms.room_status'), render: (r) => <Badge status={r.status} /> },
         {
-            key: 'housekeeping', header: t('rooms.columns.housekeeping'), sortable: true, render: (r) => (
+            key: 'housekeeping', header: t('rooms.columns.housekeeping'), sortable: true, className: 'hide-with-panel', render: (r) => (
                 <span className="row" title={t('rooms.fields.housekeeping_status')}><Badge size="sm" status={r.housekeeping_status} /></span>
             ),
         },
