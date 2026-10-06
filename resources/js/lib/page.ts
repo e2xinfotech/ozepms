@@ -29,6 +29,7 @@ export interface ShellData {
     property?: {
         code: string; name: string; location: string; image: string | null;
         currency: string; timezone: string; subscription: SubscriptionState;
+        date_format?: string | null; number_format?: string | null; week_start?: number;
     } | null;
     properties?: { code: string; name: string; location: string }[];
     current_route?: string | null;

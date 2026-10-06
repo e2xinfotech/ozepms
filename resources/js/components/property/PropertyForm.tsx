@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Checkbox, Field, FormSection, Input, Select, Textarea, type Option } from '@/components/ui';
 import { http, type ApiError } from '@/lib/http';
+import { formatPattern } from '@/lib/format';
 import { t } from '@/lib/i18n';
 import type { PropertyDetail, PropertyLookups } from './types';
 
@@ -80,7 +81,7 @@ export function propertyPayload(v: PropertyFormValues): Record<string, unknown> 
  * The property form as titled sections on the 12-column grid. The caller owns
  * saving and the footer buttons.
  */
-export function PropertyForm({ value, onChange, lookups, error, disabled, autoRegional }: {
+export function PropertyForm({ value, onChange, lookups, error, disabled, autoRegional, media }: {
     value: PropertyFormValues;
     onChange: (v: PropertyFormValues) => void;
     lookups: PropertyLookups;
@@ -88,6 +89,8 @@ export function PropertyForm({ value, onChange, lookups, error, disabled, autoRe
     disabled?: boolean;
     /** When true, choosing a country also fills in its currency and time zone. */
     autoRegional?: boolean;
+    /** Logo & photo block shown after General (only for an existing property). */
+    media?: ReactNode;
 }) {
     const [states, setStates] = useState<Option[]>([]);
     const set = <K extends keyof PropertyFormValues>(key: K, v: PropertyFormValues[K]) => onChange({ ...value, [key]: v });
@@ -117,7 +120,14 @@ export function PropertyForm({ value, onChange, lookups, error, disabled, autoRe
 
     const stars: Option[] = [1, 2, 3, 4, 5].map((n) => ({ value: n, label: t('property.stars', { n }) }));
     const weekdays: Option[] = ['1', '0', '6'].map((d) => ({ value: d, label: t(`property.weekdays.${d}`) }));
-    const toOptions = (list: string[]) => list.map((x) => ({ value: x, label: x }));
+    // Each choice shows what it looks like, e.g. "DD/MM/YYYY — 31/12/2026", "12,34,567.89 (en-IN)".
+    const sampleDay = new Date(2026, 11, 31);
+    const dateOptions = lookups.date_formats.map((x) => ({ value: x, label: `${x} — ${formatPattern(sampleDay, x)}` }));
+    const numberOptions = lookups.number_formats.map((x) => {
+        let sample = x;
+        try { sample = new Intl.NumberFormat(x, { minimumFractionDigits: 2 }).format(1234567.89); } catch { /* unknown locale: show the code */ }
+        return { value: x, label: `${sample} (${x})` };
+    });
 
     return (
         <>
@@ -135,6 +145,8 @@ export function PropertyForm({ value, onChange, lookups, error, disabled, autoRe
                 <Textarea fieldClass="span-12" label={t('property.description')} optional rows={3} value={value.description} disabled={disabled} onChange={(e) => set('description', e.target.value)} error={err('description')} />
             </FormSection>
 
+            {media}
+
             <FormSection title={t('property.sections.location')}>
                 <Select fieldClass="span-4" label={t('property.country')} required value={value.country_iso2} disabled={disabled} options={lookups.countries} onChange={(e) => changeCountry(e.target.value)} error={err('country_iso2')} />
                 <Select fieldClass="span-4" label={t('property.state')} optional value={value.state_id} disabled={disabled || states.length === 0} options={states} placeholder={t('ui.none')} onChange={(e) => set('state_id', e.target.value)} error={err('state_id')} />
@@ -151,10 +163,10 @@ export function PropertyForm({ value, onChange, lookups, error, disabled, autoRe
                 <Select fieldClass="span-4" label={t('property.currency')} required value={value.currency_code} disabled={disabled} options={lookups.currencies} onChange={(e) => set('currency_code', e.target.value)} error={err('currency_code')} />
                 <Select fieldClass="span-4" label={t('property.timezone')} required value={value.timezone} disabled={disabled} options={lookups.timezones} onChange={(e) => set('timezone', e.target.value)} error={err('timezone')} />
                 <Select fieldClass="span-4" label={t('property.week_start')} value={value.week_start} disabled={disabled} options={weekdays} onChange={(e) => set('week_start', e.target.value)} error={err('week_start')} />
-                <Select fieldClass="span-4" label={t('property.date_format')} value={value.date_format} disabled={disabled} options={toOptions(lookups.date_formats)} onChange={(e) => set('date_format', e.target.value)} error={err('date_format')} />
-                <Select fieldClass="span-4" label={t('property.number_format')} value={value.number_format} disabled={disabled} options={toOptions(lookups.number_formats)} onChange={(e) => set('number_format', e.target.value)} error={err('number_format')} />
-                <Input fieldClass="span-2" label={t('property.check_in_time')} type="time" icon="clock" value={value.check_in_time} disabled={disabled} onChange={(e) => set('check_in_time', e.target.value)} error={err('check_in_time')} />
-                <Input fieldClass="span-2" label={t('property.check_out_time')} type="time" icon="clock" value={value.check_out_time} disabled={disabled} onChange={(e) => set('check_out_time', e.target.value)} error={err('check_out_time')} />
+                <Select fieldClass="span-4" label={t('property.date_format')} value={value.date_format} disabled={disabled} options={dateOptions} onChange={(e) => set('date_format', e.target.value)} error={err('date_format')} />
+                <Select fieldClass="span-4" label={t('property.number_format')} value={value.number_format} disabled={disabled} options={numberOptions} onChange={(e) => set('number_format', e.target.value)} error={err('number_format')} />
+                <Input fieldClass="span-2" label={t('property.check_in_time')} type="time" value={value.check_in_time} disabled={disabled} onChange={(e) => set('check_in_time', e.target.value)} error={err('check_in_time')} />
+                <Input fieldClass="span-2" label={t('property.check_out_time')} type="time" value={value.check_out_time} disabled={disabled} onChange={(e) => set('check_out_time', e.target.value)} error={err('check_out_time')} />
             </FormSection>
 
             <FormSection title={t('property.sections.language')}>

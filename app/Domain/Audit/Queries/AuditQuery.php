@@ -74,7 +74,12 @@ class AuditQuery
     {
         $labels = trans('admin.actions');
 
-        return is_array($labels) && isset($labels[$action]) ? (string) $labels[$action] : $action;
+        if (is_array($labels) && isset($labels[$action])) {
+            return (string) $labels[$action];
+        }
+
+        // Readable fallback for actions added later ("room_type.created" → "Room type created").
+        return \Illuminate\Support\Str::ucfirst(str_replace(['.', '_'], ' ', $action));
     }
 
     private function date(string $value): ?CarbonImmutable

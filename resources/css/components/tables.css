@@ -21,17 +21,17 @@ table.table { width: 100%; border-collapse: separate; border-spacing: 0; font-si
 .table .id-link { color: var(--brand-600); font-weight: var(--weight-semibold); }
 .table-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 4px 0; color: var(--ink-2); font-size: var(--text-md); }
 .media-cell { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.media-cell img, .media-cell .thumb { width: 92px; height: 60px; border-radius: var(--radius); object-fit: cover; flex: none; background: linear-gradient(135deg, #d6e2f7, #eef3fb); display: grid; place-items: center; color: var(--brand-600); }
+.media-cell img, .media-cell .thumb { width: 92px; height: 60px; border-radius: var(--radius); object-fit: cover; flex: none; background: linear-gradient(135deg, var(--placeholder-from), var(--placeholder-to)); display: grid; place-items: center; color: var(--brand-600); }
 
 .pagination { display: flex; align-items: center; gap: 8px; }
 .page-btn { min-width: 40px; height: 40px; padding: 0 10px; border-radius: var(--radius); border: 1px solid var(--line-strong); background: var(--surface); cursor: pointer; font-weight: var(--weight-semibold); color: var(--ink); display: inline-grid; place-items: center; }
 .page-btn:hover:not(:disabled) { background: var(--hover); }
-.page-btn.active { background: var(--brand-600); border-color: var(--brand-600); color: #fff; }
+.page-btn.active { background: var(--brand-600); border-color: var(--brand-600); color: var(--on-brand); }
 .page-btn:disabled { opacity: .45; cursor: not-allowed; }
 .per-page { display: flex; align-items: center; gap: 10px; }
 .per-page .control { width: 130px; }
 
-.progress { height: 8px; border-radius: 4px; background: #e8edf5; overflow: hidden; min-width: 80px; }
+.progress { height: 8px; border-radius: 4px; background: var(--progress-track); overflow: hidden; min-width: 80px; }
 .progress > span { display: block; height: 100%; border-radius: 4px; background: var(--green-solid); }
 .progress.amber > span { background: var(--amber-solid); }
 .progress.red > span { background: var(--red-solid); }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Property;
 
+use App\Domain\Access\AccessService;
 use App\Domain\Property\Queries\PropertyListQuery;
 use App\Http\Controllers\Controller;
 use App\Support\Listing;
@@ -13,7 +14,7 @@ use Illuminate\Http\Request;
 class PropertiesController extends Controller
 {
     /** The properties the signed-in user belongs to, with a detail panel (?selected=P1001). */
-    public function index(Request $request, PropertyListQuery $properties): View
+    public function index(Request $request, PropertyListQuery $properties, AccessService $access): View
     {
         $userId = (int) $request->user()->id;
 
@@ -26,6 +27,7 @@ class PropertiesController extends Controller
                 'statuses' => PropertyListQuery::STATUSES,
             ],
             'can_create' => true,
+            'can_copy' => $access->allows($request->user(), 'property.update'),
         ], __('nav.properties'));
     }
 }

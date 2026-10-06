@@ -43,4 +43,5 @@ return [
     'section_plan' => 'Plan',
     'section_pricing' => 'Pricing & Trial',
     'section_limits' => 'Limits',
+    'user_limit' => 'Your plan allows :max users. Upgrade the plan or remove a user first.',
 ];

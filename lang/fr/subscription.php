@@ -43,4 +43,5 @@ return [
     'section_plan' => 'Forfait',
     'section_pricing' => 'Tarif et essai',
     'section_limits' => 'Limites',
+    'user_limit' => 'Votre forfait autorise :max utilisateurs. Passez à un forfait supérieur ou retirez d’abord un utilisateur.',
 ];

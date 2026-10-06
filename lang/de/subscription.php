@@ -43,4 +43,5 @@ return [
     'section_plan' => 'Tarif',
     'section_pricing' => 'Preis & Testphase',
     'section_limits' => 'Limits',
+    'user_limit' => 'Ihr Tarif erlaubt :max Benutzer. Wechseln Sie den Tarif oder entfernen Sie zuerst einen Benutzer.',
 ];

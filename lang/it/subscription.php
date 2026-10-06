@@ -43,4 +43,5 @@ return [
     'section_plan' => 'Piano',
     'section_pricing' => 'Prezzo e prova',
     'section_limits' => 'Limiti',
+    'user_limit' => 'Il tuo piano consente :max utenti. Passa a un piano superiore o rimuovi prima un utente.',
 ];

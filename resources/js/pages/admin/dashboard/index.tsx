@@ -1,7 +1,7 @@
 import { BarLineChart, Donut } from '@/components/charts/Charts';
 import { Badge, Card, EmptyState, Flag, Icon, KpiCard, LinkButton, PageHeader, Select } from '@/components/ui';
 import { createPage } from '@/lib/boot';
-import { date, number, relative } from '@/lib/format';
+import { money, number, relative, shortDate } from '@/lib/format';
 import { navigateWithQuery } from '@/lib/http';
 import { t } from '@/lib/i18n';
 
@@ -14,6 +14,8 @@ interface Props {
     days: number;
     periods: number[];
     properties: { code: string; name: string; location: string; country_code: string | null; type_label: string | null; rooms: number; status: string }[];
+    platform: { trial: number; active_subscriptions: number; grace: number; expired: number; suspended_properties: number; subscription_revenue: { currency: string; amount: string }[]; room_types: number; units: number; reservations: number };
+    registrations: { code: string; name: string; location: string; country_code: string | null; status: string; at: string | null }[];
 }
 
 const palette = ['var(--blue-solid)', 'var(--green-solid)', 'var(--amber-solid)', 'var(--violet-solid)', 'var(--orange-solid)', 'var(--red-solid)', 'var(--slate-fg)'];
@@ -52,7 +54,7 @@ function AdminDashboardPage(p: Props) {
                                     onChange={(e) => navigateWithQuery({ days: e.target.value })} />
                             </div>
                         }>
-                            <BarLineChart labels={p.bookings.map((b) => date(b.date).replace(/\s\d{4}$/, ''))} bars={p.bookings.map((b) => b.bookings)} barMax={Math.max(5, ...p.bookings.map((b) => b.bookings))} barLabel={t('admin.bookings')} />
+                            <BarLineChart labels={p.bookings.map((b) => shortDate(b.date))} bars={p.bookings.map((b) => b.bookings)} barMax={Math.max(5, ...p.bookings.map((b) => b.bookings))} barLabel={t('admin.bookings')} />
                             {s.bookings_month === 0 && <p className="muted text-sm" style={{ textAlign: 'center' }}>{t('admin.no_bookings_yet')}</p>}
                         </Card>
                         <Card title={t('admin.property_distribution')}>
@@ -62,6 +64,31 @@ function AdminDashboardPage(p: Props) {
                             )}
                         </Card>
                     </div>
+
+                    <Card title={t('admin.platform_overview')} actions={<a className="card-link" href="/admin/plans">{t('nav.subscriptions')}</a>}>
+                        <div className="stat-grid">
+                            {([
+                                ['badge-percent', 'tone-sky', 'admin.kpi_trial', p.platform.trial],
+                                ['credit-card', 'tone-green', 'admin.kpi_active_subs', p.platform.active_subscriptions],
+                                ['alert-triangle', 'tone-amber', 'admin.upcoming_expirations', p.system.expiring_subscriptions],
+                                ['clock', 'tone-orange', 'admin.kpi_grace', p.platform.grace],
+                                ['calendar-x', 'tone-red', 'admin.kpi_expired', p.platform.expired],
+                                ['ban', 'tone-slate', 'admin.kpi_suspended', p.platform.suspended_properties],
+                                ['layers', 'tone-violet', 'admin.kpi_room_types', p.platform.room_types],
+                                ['bed-double', 'tone-blue', 'admin.kpi_units', p.platform.units],
+                                ['calendar-check', 'tone-teal', 'admin.kpi_reservations', p.platform.reservations],
+                            ] as const).map(([icon, tone, label, value]) => (
+                                <div key={label} className="mini-stat" title={t(label)}>
+                                    <span className={`kpi-icon ${tone}`} style={{ width: 36, height: 36 }}><Icon name={icon} size={17} /></span>
+                                    <div style={{ minWidth: 0 }}><span className="text-sm strong ellipsis" style={{ display: 'block' }}>{t(label)}</span><b className="num">{number(value)}</b></div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="row-between" style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--line)' }}>
+                            <span className="strong">{t('admin.subscription_revenue')}</span>
+                            <span className="num strong">{p.platform.subscription_revenue.length === 0 ? '—' : p.platform.subscription_revenue.map((r) => money(r.amount, r.currency)).join(' · ')}</span>
+                        </div>
+                    </Card>
 
                     <Card flush title={t('admin.properties_overview')} actions={<a className="card-link" href="/admin/properties">{t('ui.view_all')}</a>}>
                         {p.properties.length === 0 ? <EmptyState icon="building-2" title={t('property.no_properties')} text={t('property.no_properties_hint')} /> : (
@@ -112,6 +139,23 @@ function AdminDashboardPage(p: Props) {
                             <div className="mini-stat"><span className="kpi-icon tone-amber" style={{ width: 40, height: 40 }}><Icon name="clock" size={18} /></span><div><span className="text-sm strong">{t('admin.pending_setup')}</span><b className="num">{number(p.system.onboarding_properties)}</b><span className="text-xs muted">{t('admin.properties_in_setup')}</span></div></div>
                             <div className="mini-stat"><span className={`kpi-icon ${p.system.open_errors > 0 ? 'tone-red' : 'tone-green'}`} style={{ width: 40, height: 40 }}><Icon name={p.system.open_errors > 0 ? 'circle-alert' : 'check-circle'} size={18} /></span><div><span className="text-sm strong">{t('admin.system_health')}</span><b className="num">{number(p.system.open_errors)}</b><span className="text-xs muted">{t('admin.open_errors')}</span></div></div>
                         </div>
+                    </Card>
+
+                    <Card title={t('admin.recent_registrations')} actions={<a className="card-link" href="/admin/properties">{t('ui.view_all')}</a>}>
+                        {p.registrations.length === 0 ? <EmptyState icon="building-2" title={t('property.no_properties')} /> : (
+                            <ul className="list-plain">
+                                {p.registrations.map((r) => (
+                                    <li key={r.code} className="activity">
+                                        <span className="a-icon tone-violet"><Icon name="building-2" size={17} /></span>
+                                        <div className="grow" style={{ minWidth: 0 }}>
+                                            <a className="a-title" href={`/admin/properties?selected=${r.code}`}>{r.name}</a>
+                                            <div className="a-sub row" style={{ gap: 6 }}><Flag code={r.country_code} />{r.code} · {r.location || '—'}</div>
+                                        </div>
+                                        <span className="a-time" title={r.at ?? ''}>{relative(r.at)}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </Card>
 
                     <Card title={t('ui.quick_actions')}>

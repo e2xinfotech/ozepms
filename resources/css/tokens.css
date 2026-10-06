@@ -79,6 +79,28 @@
     --shadow-lg: 0 18px 48px rgba(13, 27, 62, 0.16);
     --ring: 0 0 0 3px rgba(17, 102, 241, 0.18);
 
+    /* Small fixed colours used by components (kept here so no component holds a raw value) */
+    --on-brand: #ffffff;
+    --input-hover: #b9c5d8;
+    --toggle-off: #cbd5e1;
+    --danger-border: #f6c3c0;
+    --danger-border-hover: #ffd8d6;
+    --placeholder-from: #cddcf7;
+    --placeholder-to: #eaf0fa;
+    --progress-track: #e8edf5;
+    --skeleton-from: #eef2f8;
+    --skeleton-to: #f6f8fc;
+    --toast-success: #4ade80;
+    --toast-error: #fca5a5;
+    --tooltip-bg: #111827;
+    --star: #f5b301;
+    --sidebar-tag: #6ea1ff;
+    --auth-hero-from: #0b2a6b;
+    --auth-hero-mid: #0c1f47;
+    --auth-hero-to: #071433;
+    --chart-bar: #bcd5ff;
+    --chart-track: #edf1f7;
+
     /* Sizes */
     --control-h: 40px;
     --control-h-sm: 32px;

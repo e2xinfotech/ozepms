@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert, Button, PageHeader, toast } from '@/components/ui';
 import { PropertyForm, propertyPayload, propertyValues } from '@/components/property/PropertyForm';
+import { PropertyMedia } from '@/components/property/PropertyMedia';
 import type { PropertyDetail, PropertyLookups } from '@/components/property/types';
 import { createPage } from '@/lib/boot';
 import { http, type ApiError } from '@/lib/http';
@@ -40,7 +41,8 @@ function SettingsPage({ property, lookups, can_update }: Props) {
             <PageHeader title={t('property.settings_title')} description={t('property.settings_sub')} />
             {!can_update && <Alert tone="info">{t('property.settings_read_only')}</Alert>}
             {error && Object.keys(error.fields).length > 0 && <Alert tone="danger">{t('errors.validation')}</Alert>}
-            <PropertyForm value={values} onChange={setValues} lookups={lookups} error={error} disabled={!can_update} />
+            <PropertyForm value={values} onChange={setValues} lookups={lookups} error={error} disabled={!can_update}
+                media={<PropertyMedia endpoint={propertyApiUrl('/settings/media')} logo={property.logo} image={property.image} disabled={!can_update} />} />
             {can_update && (
                 <div className="form-footer">
                     {dirty && <span className="muted text-sm">{t('ui.unsaved_changes')}</span>}

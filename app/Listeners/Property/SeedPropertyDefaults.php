@@ -12,6 +12,10 @@ class SeedPropertyDefaults
 
     public function handle(PropertyCreated $event): void
     {
+        // A copied property receives the source property's policies, rate plans and taxes instead.
+        if ($event->copiedFromId !== null) {
+            return;
+        }
         $this->defaults->seed($event->property);
     }
 }

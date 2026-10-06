@@ -32,13 +32,13 @@ export function BarLineChart({ labels, bars, line, barLabel, lineLabel, barMax, 
                 ))}
                 {bars.map((v, i) => {
                     const h = (v / bMax) * ih;
-                    return <rect key={i} x={padL + step * i + (step - bw) / 2} y={padT + ih - h} width={bw} height={Math.max(h, 0)} rx={3} fill="#bcd5ff"><title>{`${labels[i]}: ${fb(v)}`}</title></rect>;
+                    return <rect key={i} x={padL + step * i + (step - bw) / 2} y={padT + ih - h} width={bw} height={Math.max(h, 0)} rx={3} fill="var(--chart-bar)"><title>{`${labels[i]}: ${fb(v)}`}</title></rect>;
                 })}
                 {pts.length > 1 && <polyline points={pts.map((p) => p.join(',')).join(' ')} fill="none" stroke="var(--brand-600)" strokeWidth={2.2} />}
-                {pts.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={4.5} fill="var(--brand-600)" stroke="#fff" strokeWidth={1.5}><title>{`${labels[i]}: ${fl(line![i])}`}</title></circle>)}
+                {pts.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={4.5} fill="var(--brand-600)" stroke="var(--on-brand)" strokeWidth={1.5}><title>{`${labels[i]}: ${fl(line![i])}`}</title></circle>)}
                 {labels.map((l, i) => <text key={l + i} x={padL + step * i + step / 2} y={H - 8} textAnchor="middle">{l}</text>)}
                 <g transform={`translate(${W / 2 - 110}, ${H + 18})`}>
-                    <circle cx={0} cy={-4} r={6} fill="#bcd5ff" /><text x={12} y={0} style={{ fill: 'var(--ink-2)', fontSize: 13 }}>{barLabel}</text>
+                    <circle cx={0} cy={-4} r={6} fill="var(--chart-bar)" /><text x={12} y={0} style={{ fill: 'var(--ink-2)', fontSize: 13 }}>{barLabel}</text>
                     {lineLabel && <><line x1={120} x2={140} y1={-4} y2={-4} stroke="var(--brand-600)" strokeWidth={2.4} /><circle cx={130} cy={-4} r={4.5} fill="var(--brand-600)" /><text x={148} y={0} style={{ fill: 'var(--ink-2)', fontSize: 13 }}>{lineLabel}</text></>}
                 </g>
             </svg>
@@ -53,7 +53,7 @@ export function Donut({ segments, centerValue, centerLabel, size = 170 }: { segm
     return (
         <div className="donut-wrap">
             <svg width={size} height={size} viewBox="0 0 170 170" role="img" aria-label={centerLabel}>
-                <circle cx={85} cy={85} r={r} fill="none" stroke="#edf1f7" strokeWidth={20} />
+                <circle cx={85} cy={85} r={r} fill="none" stroke="var(--chart-track)" strokeWidth={20} />
                 {total > 0 && segments.map((s) => {
                     const len = (s.value / total) * c;
                     const el = <circle key={s.label} cx={85} cy={85} r={r} fill="none" stroke={s.color} strokeWidth={20} strokeDasharray={`${len} ${c - len}`} strokeDashoffset={-offset} transform="rotate(-90 85 85)"><title>{`${s.label}: ${s.value}`}</title></circle>;
@@ -63,7 +63,7 @@ export function Donut({ segments, centerValue, centerLabel, size = 170 }: { segm
                 <text x={85} y={84} textAnchor="middle" className="donut-center" style={{ fontSize: 24 }}>{centerValue}</text>
                 <text x={85} y={106} textAnchor="middle" style={{ fontSize: 13, fill: 'var(--ink-2)' }}>{centerLabel}</text>
             </svg>
-            <ul className="list-plain stack" style={{ gap: 12, flex: 1 }}>
+            <ul className="list-plain stack donut-legend" style={{ gap: 12, flex: 1 }}>
                 {segments.map((s) => (
                     <li key={s.label} className="row-between">
                         <span className="legend-item"><span className="legend-swatch" style={{ background: s.color, borderRadius: '50%' }} />{s.label}</span>

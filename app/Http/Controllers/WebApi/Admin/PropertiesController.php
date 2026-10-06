@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers\WebApi\Admin;
 
+use App\Domain\Property\PropertyCopyService;
+use App\Domain\Property\PropertyMediaService;
 use App\Domain\Property\PropertyService;
 use App\Domain\Subscription\SubscriptionService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AssignSubscriptionRequest;
+use App\Http\Requests\Admin\BulkPropertyStatusRequest;
 use App\Http\Requests\Admin\ChangePropertyStatusRequest;
 use App\Http\Requests\Admin\StorePropertyRequest;
 use App\Http\Requests\Admin\UpdatePropertyRequest;
+use App\Http\Requests\Property\CopyPropertyRequest;
+use App\Http\Requests\Property\UploadPropertyMediaRequest;
+use App\Infrastructure\Database\Tx;
 use App\Http\Resources\PropertyResource;
 use App\Models\Property;
 use App\Models\SubscriptionPlan;
@@ -60,6 +66,47 @@ class PropertiesController extends Controller
         $property = $this->properties->changeStatus($this->find($code), (string) $request->validated('status'), $request->validated('reason'));
 
         return response()->json(['message' => __('property.status_changed'), 'status' => $property->status]);
+    }
+
+    /** Bulk Actions: one status for every selected property, in one transaction. */
+    public function bulkStatus(BulkPropertyStatusRequest $request): JsonResponse
+    {
+        $status = (string) $request->validated('status');
+        $codes = (array) $request->validated('codes');
+
+        $changed = Tx::run(fn () => Property::query()->whereIn('code', $codes)->get()
+            ->filter(fn (Property $p) => $p->status !== $status)
+            ->each(fn (Property $p) => $this->properties->changeStatus($p, $status, $request->validated('reason')))
+            ->count());
+
+        return response()->json(['message' => __('property.bulk_done', ['n' => $changed]), 'changed' => $changed]);
+    }
+
+    /** Copy Property: settings, rate plans, room types and taxes, never reservations or guests. */
+    public function copy(CopyPropertyRequest $request, PropertyCopyService $copier, string $code): JsonResponse
+    {
+        $copy = $copier->copy($this->find($code), $request->validated(), $request->user());
+        $request->session()->flash('success', __('property.copied', ['name' => $copy->name]));
+
+        return response()->json([
+            'message' => __('property.copied', ['name' => $copy->name]),
+            'code' => $copy->code,
+            'redirect' => route('admin.properties', ['selected' => $copy->code]),
+        ], 201);
+    }
+
+    public function uploadMedia(UploadPropertyMediaRequest $request, PropertyMediaService $media, string $code, string $kind): JsonResponse
+    {
+        $property = $media->store($this->find($code), $kind, $request->file('image'));
+
+        return response()->json(['message' => __('ui.saved'), 'property' => (new PropertyResource($property->refresh()))->resolve($request)]);
+    }
+
+    public function removeMedia(Request $request, PropertyMediaService $media, string $code, string $kind): JsonResponse
+    {
+        $property = $media->remove($this->find($code), $kind);
+
+        return response()->json(['message' => __('ui.saved'), 'property' => (new PropertyResource($property->refresh()))->resolve($request)]);
     }
 
     public function subscription(AssignSubscriptionRequest $request, SubscriptionService $subscriptions, string $code): JsonResponse

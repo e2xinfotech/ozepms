@@ -26,6 +26,8 @@ class DashboardController extends Controller
             'days' => $days,
             'periods' => array_values(self::PERIODS),
             'properties' => $stats->propertiesOverview(),
+            'platform' => $stats->platform(),
+            'registrations' => $stats->recentRegistrations(),
         ], __('admin.dashboard_title'));
     }
 }

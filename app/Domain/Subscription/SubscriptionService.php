@@ -70,16 +70,59 @@ class SubscriptionService
         }
 
         $daysLeft = (int) CarbonImmutable::today()->diffInDays($sub->ends_on, false);
-        $readOnly = in_array($sub->status, ['expired', 'suspended', 'cancelled'], true);
+        $status = $this->effectiveStatus($sub);
+        $readOnly = in_array($status, ['expired', 'suspended', 'cancelled'], true);
 
         return [
-            'status' => $sub->status,
+            'status' => $status,
             'plan' => $sub->plan?->name,
             'ends_on' => $sub->ends_on->toDateString(),
             'days_left' => $daysLeft,
             'read_only' => $readOnly,
             'warning' => $readOnly || $sub->status === 'grace' || $daysLeft <= (int) config('ozepms.subscription.expiry_warning_days'),
         ];
+    }
+
+    /**
+     * Status as of today, even if the daily job has not run yet: a trial or paid
+     * period that ended moves to grace (while grace days remain) and then to expired.
+     */
+    public function effectiveStatus(Subscription $sub): string
+    {
+        $today = CarbonImmutable::today();
+        $endsOn = CarbonImmutable::parse($sub->ends_on);
+
+        if (in_array($sub->status, ['trial', 'active'], true) && $endsOn->lt($today)) {
+            $grace = $sub->plan?->grace_days ?? (int) config('ozepms.subscription.default_grace_days');
+
+            return $grace > 0 && $endsOn->addDays($grace)->gte($today) ? 'grace' : 'expired';
+        }
+
+        if ($sub->status === 'grace' && $sub->grace_ends_on && CarbonImmutable::parse($sub->grace_ends_on)->lt($today)) {
+            return 'expired';
+        }
+
+        return $sub->status;
+    }
+
+    /**
+     * Refuses a new team member when the plan's user limit is reached.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function assertCanAddUser(Property $property, string $field = 'email'): void
+    {
+        $max = $property->currentSubscription?->plan?->max_users;
+        if ($max === null) {
+            return;
+        }
+        $used = \App\Models\PropertyUser::query()->withoutGlobalScope('property')
+            ->where('property_id', $property->id)->where('status', 'active')->count();
+        if ($used >= $max) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                $field => __('subscription.user_limit', ['max' => $max]),
+            ]);
+        }
     }
 
     /** Daily job: moves subscriptions through active → grace → expired. */

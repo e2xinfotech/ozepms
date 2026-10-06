@@ -26,16 +26,19 @@ function csrf(): string {
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 async function request<T>(method: Method, url: string, body?: unknown): Promise<T> {
+    // Files go as multipart form data (the browser sets the boundary); everything else as JSON.
+    const isForm = body instanceof FormData;
+    const headers: Record<string, string> = {
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': csrf(),
+    };
+    if (!isForm) headers['Content-Type'] = 'application/json';
     const res = await fetch(url, {
         method,
         credentials: 'same-origin',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrf(),
-        },
-        body: body === undefined ? undefined : JSON.stringify(body),
+        headers,
+        body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     });
 
     if (res.status === 204) return undefined as T;
@@ -67,6 +70,12 @@ export const http = {
     post: <T>(url: string, body?: unknown) => request<T>('POST', url, body ?? {}),
     put: <T>(url: string, body?: unknown) => request<T>('PUT', url, body ?? {}),
     patch: <T>(url: string, body?: unknown) => request<T>('PATCH', url, body ?? {}),
+    /** Uploads one file as `field` (multipart). */
+    upload: <T>(url: string, file: File, field = 'image') => {
+        const form = new FormData();
+        form.append(field, file);
+        return request<T>('POST', url, form);
+    },
     delete: <T>(url: string) => request<T>('DELETE', url),
 };
 

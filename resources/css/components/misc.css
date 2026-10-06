@@ -1,7 +1,7 @@
 .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; padding: 48px 24px; color: var(--muted); }
 .empty .empty-icon { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--brand-50); color: var(--brand-600); margin-bottom: 6px; }
 .empty h3 { color: var(--ink); }
-.skeleton { background: linear-gradient(90deg, #eef2f8 0%, #f6f8fc 50%, #eef2f8 100%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: var(--radius-sm); }
+.skeleton { background: linear-gradient(90deg, var(--skeleton-from) 0%, var(--skeleton-to) 50%, var(--skeleton-from) 100%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: var(--radius-sm); }
 @keyframes shimmer { to { background-position: -200% 0; } }
 .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: var(--text-sm); color: var(--ink-2); }
 .legend-item { display: inline-flex; align-items: center; gap: 8px; }
@@ -21,7 +21,7 @@
 .activity .a-sub { color: var(--muted); font-size: var(--text-xs); }
 .activity .a-time { margin-left: auto; color: var(--muted); font-size: var(--text-xs); white-space: nowrap; }
 .thumb-row { display: flex; gap: 8px; }
-.thumb-row .t { width: 60px; height: 52px; border-radius: var(--radius-sm); background: linear-gradient(135deg, #cddcf7, #eaf0fa); overflow: hidden; display: grid; place-items: center; color: var(--ink-2); font-weight: var(--weight-semibold); }
+.thumb-row .t { width: 60px; height: 52px; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--placeholder-from), var(--placeholder-to)); overflow: hidden; display: grid; place-items: center; color: var(--ink-2); font-weight: var(--weight-semibold); }
 .chart-box { width: 100%; }
 .chart-box svg { display: block; width: 100%; height: auto; overflow: visible; }
 .chart-box text { font-family: var(--font-sans); font-size: 11px; fill: var(--muted); }

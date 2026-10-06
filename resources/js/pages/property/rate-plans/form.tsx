@@ -83,7 +83,9 @@ function RatePlanForm({ rate_plan: rp, options }: Props) {
             ? http.put<{ message: string; rate_plan: RatePlanDetail }>(propertyApiUrl(`/rate-plans/${rp.id}`), body)
             : http.post<{ message: string; rate_plan: RatePlanDetail }>(propertyApiUrl('/rate-plans'), body), (e) => { setError(e); toast.error(e.message); });
         setSaving(false);
-        if (res) window.location.href = propertyUrl(`/rate-plans?selected=${res.rate_plan.id}`);
+        // During first-time setup the next step is the room types.
+        const inSetup = new URLSearchParams(window.location.search).get('onboarding') === '1';
+        if (res) window.location.href = inSetup && !editing ? propertyUrl('/room-types/new?onboarding=1') : propertyUrl(`/rate-plans?selected=${res.rate_plan.id}`);
     };
 
     return (

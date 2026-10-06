@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert, Badge, Button, Card, ConfirmDialog, FormSection, Input, KeyValue, LinkButton, PageHeader, Select, toast } from '@/components/ui';
 import { PropertyForm, propertyPayload, propertyValues } from '@/components/property/PropertyForm';
+import { PropertyMedia } from '@/components/property/PropertyMedia';
 import type { PlanOption, PropertyDetail, PropertyLookups } from '@/components/property/types';
 import { createPage } from '@/lib/boot';
 import { date } from '@/lib/format';
@@ -73,13 +74,15 @@ function EditPropertyPage({ property, lookups, plans, can_manage_subscription }:
                 description={`${property.code} · ${property.location}`}
                 actions={<>
                     <LinkButton icon="arrow-right" href={`/p/${property.code}/dashboard`}>{t('property.open_property')}</LinkButton>
+                    {property.status !== 'suspended' && <Button variant="outline" icon="ban" onClick={() => setStatusTarget('suspended')}>{t('property.suspend')}</Button>}
                     {property.status === 'active'
                         ? <Button variant="danger-soft" icon="pause" onClick={() => setStatusTarget('inactive')}>{t('property.deactivate')}</Button>
                         : <Button variant="outline" icon="check-circle" onClick={() => setStatusTarget('active')}>{t('property.activate')}</Button>}
                 </>} />
 
             {error && Object.keys(error.fields).length > 0 && <Alert tone="danger">{t('errors.validation')}</Alert>}
-            <PropertyForm value={values} onChange={setValues} lookups={lookups} error={error} />
+            <PropertyForm value={values} onChange={setValues} lookups={lookups} error={error}
+                media={<PropertyMedia endpoint={`/web-api/admin/properties/${property.code}/media`} logo={property.logo} image={property.image} />} />
 
             <Card title={t('property.sections.subscription')}>
                 <KeyValue items={[
@@ -107,9 +110,9 @@ function EditPropertyPage({ property, lookups, plans, can_manage_subscription }:
                 <Button variant="primary" icon="save" loading={busy} onClick={save}>{t('ui.save_changes')}</Button>
             </div>
 
-            <ConfirmDialog open={!!statusTarget} danger={statusTarget === 'inactive'}
-                title={statusTarget === 'inactive' ? t('property.deactivate') : t('property.activate')}
-                message={t(statusTarget === 'inactive' ? 'property.deactivate_confirm' : 'property.activate_confirm', { name: property.name })}
+            <ConfirmDialog open={!!statusTarget} danger={statusTarget !== 'active'}
+                title={t(statusTarget === 'inactive' ? 'property.deactivate' : statusTarget === 'suspended' ? 'property.suspend' : 'property.activate')}
+                message={t(statusTarget === 'inactive' ? 'property.deactivate_confirm' : statusTarget === 'suspended' ? 'property.suspend_confirm' : 'property.activate_confirm', { name: property.name })}
                 onConfirm={changeStatus} onClose={() => setStatusTarget(null)} />
         </div>
     );

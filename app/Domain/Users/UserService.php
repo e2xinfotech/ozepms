@@ -57,6 +57,7 @@ class UserService
     public function addToProperty(Property $property, array $data, Role $role, User $by): PropertyUser
     {
         $this->assertRoleUsable($role, $property);
+        app(\App\Domain\Subscription\SubscriptionService::class)->assertCanAddUser($property);
 
         return Tx::run(function () use ($property, $data, $role, $by) {
             $user = $this->findOrInvite($data);

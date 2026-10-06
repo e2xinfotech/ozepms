@@ -52,11 +52,15 @@ export function PropertyStatusTabs({ counts, active, statuses }: { counts: Recor
 }
 
 /** Property table; `extra` adds columns before Status, `menu` builds the row "⋮" menu. */
-export function PropertyTable({ rows, meta, selected, onSelect, extra = [], menu }: {
+export function PropertyTable({ rows, meta, selected, onSelect, extra = [], menu, checked: outerChecked, onCheck }: {
     rows: PropertyRow[]; meta: PageMeta; selected: string | null; onSelect: (row: PropertyRow) => void;
     extra?: Column<PropertyRow>[]; menu: (row: PropertyRow) => MenuEntry[];
+    /** Ticked rows (codes) when the page acts on them (Bulk Actions); otherwise kept locally. */
+    checked?: Set<string>; onCheck?: (codes: Set<string>) => void;
 }) {
-    const [checked, setChecked] = useState<Set<string>>(new Set());
+    const [localChecked, setLocalChecked] = useState<Set<string>>(new Set());
+    const checked = outerChecked ?? localChecked;
+    const setChecked = onCheck ?? setLocalChecked;
     const columns: Column<PropertyRow>[] = [
         {
             key: 'name', header: t('property.property'), sortable: true, width: 280, render: (r) => (

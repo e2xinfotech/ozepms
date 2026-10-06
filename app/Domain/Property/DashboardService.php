@@ -6,8 +6,6 @@ use App\Models\Property;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * Figures for the property dashboard. It only reads the operational tables of
@@ -91,22 +89,13 @@ class DashboardService
     }
 
     /**
-     * Onboarding steps with links to the modules that exist in this installation.
+     * Onboarding steps (see OnboardingService).
      *
-     * @return array<int, array{key: string, done: bool, url: ?string}>
+     * @return array<int, array{key: string, done: bool, url: ?string, required: bool}>
      */
     public function checklist(Property $property): array
     {
-        $count = fn (string $table) => $this->table($table, $property)->whereNull('deleted_at')->count();
-        $link = fn (string $route) => Route::has($route) ? route($route, $property->code) : null;
-
-        return [
-            ['key' => 'step_property', 'done' => true, 'url' => $link('property.settings')],
-            ['key' => 'step_rate_plan', 'done' => $count('rate_plans') > 0, 'url' => $link('property.rate-plans')],
-            ['key' => 'step_room_types', 'done' => $count('room_types') > 0 && $count('physical_units') > 0, 'url' => $link('property.room-types')],
-            ['key' => 'step_rates', 'done' => Schema::hasTable('ari_daily') && $this->table('ari_daily', $property)->exists(), 'url' => $link('property.calendar')],
-            ['key' => 'step_users', 'done' => DB::table('property_users')->where('property_id', $property->id)->count() > 1, 'url' => $link('property.users')],
-        ];
+        return app(OnboardingService::class)->steps($property);
     }
 
     private function chart(Property $property, CarbonImmutable $from, CarbonImmutable $to, int $totalRooms): array

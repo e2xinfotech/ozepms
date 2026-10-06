@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { BarLineChart, Donut } from '@/components/charts/Charts';
-import { Badge, Card, DateRange, EmptyState, Icon, KpiCard, PageHeader, Progress, Segmented } from '@/components/ui';
-import { date, money, number, percent } from '@/lib/format';
+import { Badge, Card, DateRange, EmptyState, Icon, KpiCard, LinkButton, PageHeader, Progress, Segmented } from '@/components/ui';
+import { money, number, percent, shortDate } from '@/lib/format';
 import { navigateWithQuery } from '@/lib/http';
 import { t } from '@/lib/i18n';
 import { createPage } from '@/lib/boot';
@@ -17,12 +17,12 @@ interface Dashboard {
     arrivals: StayRow[];
     departures: StayRow[];
     housekeeping: { clean: number; dirty: number; inspected: number };
-    checklist: { key: string; done: boolean; url: string | null }[];
+    checklist: { key: string; done: boolean; url: string | null; required: boolean }[];
 }
 
 type Metric = 'occupancy' | 'revenue' | 'adr' | 'revpar';
 
-const shortDate = (d: string) => date(d).replace(/\s\d{4}$/, '');
+
 
 function StayTable({ rows, empty }: { rows: StayRow[]; empty: string }) {
     if (rows.length === 0) return <EmptyState icon="calendar-check" title={empty} />;
@@ -48,10 +48,11 @@ function StayTable({ rows, empty }: { rows: StayRow[]; empty: string }) {
 }
 
 /** Property dashboard: today's figures, occupancy & revenue, room and housekeeping status. */
-function DashboardPage({ dashboard: d, max_range_days }: { dashboard: Dashboard; max_range_days: number }) {
+function DashboardPage({ dashboard: d, max_range_days, onboarding }: { dashboard: Dashboard; max_range_days: number; onboarding: { in_setup: boolean; next_url: string | null } }) {
     const [metric, setMetric] = useState<Metric>('occupancy');
     const cur = d.currency;
-    const pending = d.checklist.filter((c) => !c.done);
+    // Steps whose module is not installed yet (no link) do not keep the setup card open.
+    const pending = d.checklist.filter((c) => !c.done && c.url);
     const hkTotal = d.housekeeping.clean + d.housekeeping.dirty + d.housekeeping.inspected;
     const labels = d.chart.map((c) => shortDate(c.date));
     const occ = d.chart.map((c) => c.occupancy);
@@ -75,12 +76,18 @@ function DashboardPage({ dashboard: d, max_range_days }: { dashboard: Dashboard;
                 actions={<DateRange from={d.from} to={d.to} maxDays={max_range_days} onApply={(from, to) => navigateWithQuery({ from, to })} />} />
 
             {pending.length > 0 && (
-                <Card title={t('property.onboarding.title_short')} actions={<span className="muted text-sm">{t('property.onboarding.progress', { done: d.checklist.length - pending.length, total: d.checklist.length })}</span>}>
+                <Card title={t('property.onboarding.title_short')} actions={
+                    <span className="row" style={{ gap: 12 }}>
+                        <span className="muted text-sm">{t('property.onboarding.progress', { done: d.checklist.filter((c) => c.done).length, total: d.checklist.length })}</span>
+                        {onboarding.next_url && <LinkButton size="sm" variant="primary" icon="arrow-right" href={onboarding.next_url}>{t('property.onboarding.continue')}</LinkButton>}
+                    </span>
+                }>
+                    {onboarding.in_setup && <p className="muted text-sm" style={{ marginBottom: 12 }}>{t('property.onboarding.required_hint')}</p>}
                     <div className="checklist">
                         {d.checklist.map((c, i) => (
                             <div key={c.key} className={`checklist-item${c.done ? ' done' : ''}`}>
                                 <span className="ci-no">{c.done ? <Icon name="check" size={16} /> : i + 1}</span>
-                                <span className="grow strong">{t(`property.onboarding.${c.key}`)}</span>
+                                <span className="grow strong">{t(`property.onboarding.${c.key}`)}{c.required && !c.done && <span className="muted text-sm"> · {t('property.onboarding.required')}</span>}</span>
                                 {!c.done && c.url && <a className="card-link" href={c.url}>{t('property.onboarding.start')}</a>}
                                 {!c.done && !c.url && <span className="muted text-sm">{t('nav.soon')}</span>}
                             </div>
@@ -129,9 +136,9 @@ function DashboardPage({ dashboard: d, max_range_days }: { dashboard: Dashboard;
                     </Card>
                     <Card title={t('property.dashboard.today_summary')}>
                         <div className="summary-tiles">
-                            <div className="summary-tile"><span className="st-value"><Icon name="bed-double" size={20} />{d.summary.arrivals}</span><span className="st-label">{t('property.dashboard.arrivals_short')}</span></div>
-                            <div className="summary-tile"><span className="st-value"><Icon name="briefcase" size={20} />{d.summary.departures}</span><span className="st-label">{t('property.dashboard.departures_short')}</span></div>
-                            <div className="summary-tile"><span className="st-value"><Icon name="spray-can" size={20} />{d.summary.housekeeping}</span><span className="st-label">{t('property.dashboard.housekeeping_short')}</span></div>
+                            <div className="summary-tile"><span className="st-value"><Icon name="bed-double" size={20} />{d.summary.arrivals}</span><span className="st-label" title={t('property.dashboard.arrivals_short')}>{t('property.dashboard.arrivals_short')}</span></div>
+                            <div className="summary-tile"><span className="st-value"><Icon name="briefcase" size={20} />{d.summary.departures}</span><span className="st-label" title={t('property.dashboard.departures_short')}>{t('property.dashboard.departures_short')}</span></div>
+                            <div className="summary-tile"><span className="st-value"><Icon name="spray-can" size={20} />{d.summary.housekeeping}</span><span className="st-label" title={t('property.dashboard.housekeeping_short')}>{t('property.dashboard.housekeeping_short')}</span></div>
                             <div className={`summary-tile${d.summary.issues > 0 ? ' alert-tile' : ''}`}><span className="st-value"><Icon name="alert-triangle" size={20} />{d.summary.issues}</span><span className="st-label">{t('property.dashboard.issues')}</span></div>
                         </div>
                     </Card>

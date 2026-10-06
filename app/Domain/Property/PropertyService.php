@@ -92,9 +92,9 @@ class PropertyService
      *
      * @param  array<string, mixed>  $data  validated property fields
      */
-    public function create(array $data, User $owner, ?SubscriptionPlan $plan, User $createdBy): Property
+    public function create(array $data, User $owner, ?SubscriptionPlan $plan, User $createdBy, ?int $copiedFromId = null): Property
     {
-        return Tx::run(function () use ($data, $owner, $plan, $createdBy) {
+        return Tx::run(function () use ($data, $owner, $plan, $createdBy, $copiedFromId) {
             $property = new Property($data);
             $property->slug = $this->uniqueSlug($data['name']);
             $property->status = $data['status'] ?? 'onboarding';
@@ -131,7 +131,7 @@ class PropertyService
                 $this->subscriptions->startTrial($property, $plan, $createdBy);
             }
 
-            \App\Domain\Property\Events\PropertyCreated::dispatch($property);
+            \App\Domain\Property\Events\PropertyCreated::dispatch($property, $copiedFromId);
 
             $this->audit->log('property.created', $property, ['after' => $property->only([
                 'code', 'name', 'property_type_id', 'country_iso2', 'currency_code', 'timezone', 'status',

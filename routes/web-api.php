@@ -36,6 +36,9 @@ Route::middleware('auth')->group(function () {
         Route::prefix('p/{property}')->middleware(['property', 'subscription'])->name('property.')->group(function () {
             Route::get('/properties/{code}', [WebApi\Property\PropertyController::class, 'show'])->middleware('can.do:property.view')->name('properties.show');
             Route::put('/settings', [WebApi\Property\PropertyController::class, 'update'])->middleware('can.do:property.update')->name('settings.update');
+            Route::post('/settings/media/{kind}', [WebApi\Property\PropertyController::class, 'uploadMedia'])->whereIn('kind', ['logo', 'cover'])->middleware('can.do:property.update')->name('settings.media.store');
+            Route::delete('/settings/media/{kind}', [WebApi\Property\PropertyController::class, 'removeMedia'])->whereIn('kind', ['logo', 'cover'])->middleware('can.do:property.update')->name('settings.media.destroy');
+            Route::post('/copy', [WebApi\Property\PropertyController::class, 'copy'])->middleware(['can.do:property.update', 'throttle:20,1'])->name('copy');
 
             Route::middleware('can.do:users.manage')->group(function () {
                 Route::get('/users/{user}', [WebApi\Property\UsersController::class, 'show'])->name('users.show');
@@ -61,7 +64,11 @@ Route::middleware('auth')->group(function () {
                 Route::get('/properties/{code}', [WebApi\Admin\PropertiesController::class, 'show'])->name('properties.show');
                 Route::post('/properties', [WebApi\Admin\PropertiesController::class, 'store'])->name('properties.store');
                 Route::put('/properties/{code}', [WebApi\Admin\PropertiesController::class, 'update'])->name('properties.update');
+                Route::post('/properties/bulk-status', [WebApi\Admin\PropertiesController::class, 'bulkStatus'])->name('properties.bulk-status');
                 Route::post('/properties/{code}/status', [WebApi\Admin\PropertiesController::class, 'status'])->name('properties.status');
+                Route::post('/properties/{code}/media/{kind}', [WebApi\Admin\PropertiesController::class, 'uploadMedia'])->whereIn('kind', ['logo', 'cover'])->name('properties.media.store');
+                Route::delete('/properties/{code}/media/{kind}', [WebApi\Admin\PropertiesController::class, 'removeMedia'])->whereIn('kind', ['logo', 'cover'])->name('properties.media.destroy');
+                Route::post('/properties/{code}/copy', [WebApi\Admin\PropertiesController::class, 'copy'])->name('properties.copy');
             });
             Route::post('/properties/{code}/subscription', [WebApi\Admin\PropertiesController::class, 'subscription'])
                 ->middleware('can.do:platform.subscriptions.manage')->name('properties.subscription');

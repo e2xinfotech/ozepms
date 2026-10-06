@@ -27,11 +27,58 @@ class PlatformStatsService
             'properties_inactive' => (int) (($byStatus['inactive'] ?? 0) + ($byStatus['suspended'] ?? 0)),
             'properties_onboarding' => (int) ($byStatus['onboarding'] ?? 0),
             'countries' => Property::query()->distinct()->count('country_iso2'),
-            'rooms' => $this->countIfTable('physical_units'),
+            'rooms' => $this->countIfTable('physical_units', fn ($q) => $q->whereNull('deleted_at')->where('is_active', true)),
             'users' => User::query()->where('status', 'active')->count(),
             'bookings_month' => $this->countIfTable('reservations', fn ($q) => $q->where('created_at', '>=', now()->startOfMonth())),
             'revenue_month' => null,
         ];
+    }
+
+    /**
+     * Subscription and inventory figures of the whole platform (spec: trial, suspended and
+     * expired properties, active and expiring subscriptions, subscription revenue, room types,
+     * PMS rooms and reservations).
+     */
+    public function platform(): array
+    {
+        $today = now()->toDateString();
+        // Current subscription of each property = latest non-cancelled one.
+        $current = Subscription::query()->whereNot('status', 'cancelled')
+            ->whereIn('id', Subscription::query()->whereNot('status', 'cancelled')
+                ->selectRaw('max(id)')->groupBy('property_id'))
+            ->with('plan:id,grace_days')
+            ->get(['id', 'property_id', 'plan_id', 'status', 'ends_on', 'grace_ends_on', 'price', 'currency_code']);
+
+        $status = fn (Subscription $s) => app(\App\Domain\Subscription\SubscriptionService::class)->effectiveStatus($s);
+        $byStatus = $current->countBy($status);
+
+        // Revenue of the paid subscriptions running today, per currency.
+        $revenue = $current->filter(fn (Subscription $s) => $status($s) === 'active' && $s->ends_on->toDateString() >= $today)
+            ->groupBy('currency_code')
+            ->map(fn ($group, $currency) => ['currency' => $currency, 'amount' => $group->reduce(fn ($sum, $s) => bcadd($sum, (string) $s->price, 2), '0.00')])
+            ->values()->all();
+
+        return [
+            'trial' => (int) ($byStatus['trial'] ?? 0),
+            'active_subscriptions' => (int) ($byStatus['active'] ?? 0),
+            'grace' => (int) ($byStatus['grace'] ?? 0),
+            'expired' => (int) ($byStatus['expired'] ?? 0),
+            'suspended_properties' => Property::query()->where('status', 'suspended')->count(),
+            'subscription_revenue' => $revenue,
+            'room_types' => $this->countIfTable('room_types', fn ($q) => $q->whereNull('deleted_at')),
+            'units' => $this->countIfTable('physical_units', fn ($q) => $q->whereNull('deleted_at')->where('is_active', true)),
+            'reservations' => $this->countIfTable('reservations'),
+        ];
+    }
+
+    /** Latest registered properties. */
+    public function recentRegistrations(int $limit = 5): array
+    {
+        return Property::query()->with('country:iso2,name')->latest('id')->limit($limit)->get()
+            ->map(fn (Property $p) => [
+                'code' => $p->code, 'name' => $p->name, 'location' => $p->locationLabel(),
+                'country_code' => $p->country_iso2, 'status' => $p->status, 'at' => $p->created_at?->toIso8601String(),
+            ])->all();
     }
 
     public function distributionByType(): array

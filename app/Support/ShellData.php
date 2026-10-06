@@ -68,6 +68,10 @@ final class ShellData
                 'image' => $property->cover_image_path ? Storage::url($property->cover_image_path) : null,
                 'currency' => $property->currency_code,
                 'timezone' => $property->timezone,
+                // Regional settings of the property, applied by resources/js/lib/format.ts.
+                'date_format' => $property->date_format,
+                'number_format' => $property->number_format,
+                'week_start' => (int) $property->week_start,
                 'subscription' => $this->subscriptions->state($property),
             ] : null,
             'properties' => $this->switcher($user->id),
