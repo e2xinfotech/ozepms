@@ -129,7 +129,7 @@ return [
     'release_block' => 'Freigeben',
     'blocks' => 'Sperren',
     'no_blocks' => 'Keine aktuellen oder geplanten Sperren.',
-    'no_amenities' => 'Für diesen Zimmertyp ist keine Ausstattung ausgewählt.',
+    'no_amenities' => 'Für dieses Zimmer ist keine Ausstattung ausgewählt.',
     'no_images' => 'Noch keine Bilder. Fügen Sie sie beim Zimmertyp hinzu.',
     'no_notes' => 'Keine Notizen.',
     'no_history' => 'Noch keine Änderungen erfasst.',
@@ -211,4 +211,6 @@ return [
         'no_policy' => 'Legen Sie zuerst unter Ratenpläne eine Stornobedingung an.', 'no_permission' => 'Bitten Sie einen Manager, einen Ratenplan anzulegen.',
     ],
     'setup' => ['title' => 'Einrichtung, Schritt 3 von 3:', 'text' => 'Legen Sie Ihre Zimmertypen und deren PMS-Zimmer an. Nach dem Speichern kann die Unterkunft Reservierungen annehmen.'],
+    'room_amenities_hint' => 'Übernimmt die Ausstattung des Zimmertyps. Haken setzen oder entfernen, um festzulegen, was dieses Zimmer bietet.',
+    'bulk_amenities_hint' => 'Neue Zimmer erhalten die Ausstattung des Zimmertyps. Ein einzelnes Zimmer können Sie später mit Bearbeiten ändern.',
 ];

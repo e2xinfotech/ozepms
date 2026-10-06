@@ -92,7 +92,7 @@ export function RoomPanel({ id, version, canUpdate, canHousekeeping, onClose, on
                     </div>
                 </div>}
                 {tab === 'amenities' && (room.amenities.length === 0 ? <p className="muted">{t('rooms.no_amenities')}</p> : (
-                    <div className="amenity-chips">{room.amenities.map((a) => <span key={a.code} className="chip"><Icon name={a.icon ?? 'check'} size={15} />{a.label}</span>)}</div>
+                    <div className="amenity-chips">{room.amenities.map((a) => <span key={a.code} className="chip" title={a.source === 'room' ? t('amenities.room_only') : t('amenities.from_room_type')}><Icon name={a.icon ?? 'check'} size={15} />{a.label}{a.source === 'room' && <span className="amenity-extra">{t('amenities.room_only')}</span>}</span>)}</div>
                 ))}
                 {tab === 'images' && (room.images.length === 0 ? <p className="muted">{t('rooms.no_images')}</p> : (
                     <div className="image-grid">{room.images.map((i) => <div key={i.id} className="image-tile"><img src={i.url} alt={i.alt ?? ''} /></div>)}</div>

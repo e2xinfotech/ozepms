@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 
 class RoomsController extends Controller
 {
+    private const FACILITY_CATEGORIES = ['property', 'service'];
+
     use ChecksPermissions;
 
     public function index(Request $request, PhysicalUnitQuery $query, FormOptions $options): View
@@ -24,6 +26,10 @@ class RoomsController extends Controller
                 'floors' => $options->floors(),
                 'block_types' => $options->blockTypes(),
                 'usage' => $options->usage(),
+                // A single room only takes in-room amenities; property-wide facilities are set on the Amenities page.
+                'amenities' => array_values(array_filter($options->amenities(), fn ($a) => ! in_array($a['category'], self::FACILITY_CATEGORIES, true))),
+                'amenity_categories' => array_values(array_filter($options->amenityCategories(), fn ($c) => ! in_array($c['value'], self::FACILITY_CATEGORIES, true))),
+                'room_type_amenities' => $options->roomTypeAmenities(),
             ],
             'can' => $this->can(['create' => 'rooms.create', 'update' => 'rooms.update', 'housekeeping' => 'housekeeping.update']),
         ], __('nav.rooms'));

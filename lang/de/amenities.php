@@ -46,4 +46,8 @@ return [
         'duplicate' => 'Eine Ausstattung namens „:name“ gibt es bereits.',
         'global_read_only' => 'Standardausstattung kann nicht geändert werden.',
     ],
+    'add_missing' => 'Fehlende Ausstattung hinzufügen',
+    'add_hint' => 'Wird in der zentralen Ausstattungsliste gespeichert und ist für alle Zimmertypen und Zimmer verfügbar.',
+    'room_only' => 'Nur dieses Zimmer',
+    'from_room_type' => 'Im Zimmertyp enthalten',
 ];

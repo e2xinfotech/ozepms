@@ -7,6 +7,7 @@ import { propertyApiUrl } from '@/lib/page';
 import { toast } from '@/components/ui';
 import { t } from '@/lib/i18n';
 import { useQueryState } from '@/lib/use';
+import type { AmenityOption } from '../_accommodation/AmenityPicker';
 import { AddRoomsModal, BlockRoomModal, EditRoomModal } from './_components/RoomDialogs';
 import { RoomPanel } from './_components/RoomPanel';
 import type { RoomDetail, RoomRow } from './_components/types';
@@ -16,7 +17,7 @@ const TABS = ['all', 'available', 'occupied', 'out_of_service', 'out_of_order', 
 interface Props {
     list: { rows: RoomRow[]; meta: PageMeta; counts: Record<string, number>; today: string };
     filters: { q?: string; room_type?: string; status?: string; floor?: string; tab?: string; selected?: string };
-    options: { room_types: Option[]; floors: Option[]; block_types: Option[] };
+    options: { room_types: Option[]; floors: Option[]; block_types: Option[]; amenities: AmenityOption[]; amenity_categories: Option[]; room_type_amenities: Record<string, string[]> };
     can: { create: boolean; update: boolean; housekeeping: boolean };
 }
 
@@ -78,6 +79,7 @@ function RoomsPage({ list, filters, options, can }: Props) {
 
     const hasFilters = !!(filters.q || filters.room_type || filters.status || filters.floor);
     const roomTypes = options.room_types.map((o) => ({ value: o.value, label: o.label }));
+    const amenity = { amenities: options.amenities, categories: options.amenity_categories, roomTypeAmenities: options.room_type_amenities, canAdd: can.update };
 
     return (
         <div className={selected ? 'content with-panel' : 'content'}>
@@ -110,8 +112,8 @@ function RoomsPage({ list, filters, options, can }: Props) {
 
             {selected && <RoomPanel id={selected} version={version} canUpdate={can.update} canHousekeeping={can.housekeeping || can.update}
                 onClose={() => setSelected(null)} onEdit={setEditing} onBlock={setBlocking} onChanged={refreshRow} />}
-            {adding && <AddRoomsModal roomTypes={roomTypes} initialType={filters.room_type ?? ''} onClose={() => setAdding(false)} onSaved={(id) => reloadWith(id)} />}
-            {editing && <EditRoomModal room={editing} roomTypes={roomTypes} onClose={() => setEditing(null)} onSaved={() => reloadWith(editing.id)} />}
+            {adding && <AddRoomsModal roomTypes={roomTypes} initialType={filters.room_type ?? ''} onClose={() => setAdding(false)} onSaved={(id) => reloadWith(id)} amenity={amenity} />}
+            {editing && <EditRoomModal room={editing} roomTypes={roomTypes} onClose={() => setEditing(null)} onSaved={() => reloadWith(editing.id)} amenity={amenity} />}
             {blocking && <BlockRoomModal room={blocking} blockTypes={options.block_types} today={list.today}
                 onClose={() => setBlocking(null)} onSaved={() => { setBlocking(null); setVersion((v) => v + 1); reloadWith(blocking.id); }} />}
         </div>

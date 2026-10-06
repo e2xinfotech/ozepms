@@ -46,4 +46,8 @@ return [
         'duplicate' => 'An amenity called ":name" already exists.',
         'global_read_only' => 'Standard amenities cannot be changed.',
     ],
+    'add_missing' => 'Add Missing Amenity',
+    'add_hint' => 'Saved to the central amenity list and available on every room type and room.',
+    'room_only' => 'This room only',
+    'from_room_type' => 'Included with the room type',
 ];

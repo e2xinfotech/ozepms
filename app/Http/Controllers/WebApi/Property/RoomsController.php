@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\WebApi\Property;
 
+use App\Domain\Accommodation\UnitAmenityService;
 use App\Domain\Accommodation\PhysicalUnitService;
 use App\Domain\Accommodation\Queries\PhysicalUnitQuery;
 use App\Domain\Accommodation\UnitBlockService;
@@ -36,7 +37,14 @@ class RoomsController extends Controller
     public function store(StoreRoomRequest $request): JsonResponse
     {
         $roomType = $this->roomTypeField($request->validated('room_type_id'), 'room_type_id');
-        $created = $this->units->addUnits($roomType, [$request->safe()->only(['name', 'floor', 'building'])], 'name');
+        $created = \App\Infrastructure\Database\Tx::run(function () use ($request, $roomType) {
+            $created = $this->units->addUnits($roomType, [$request->safe()->only(['name', 'floor', 'building'])], 'name');
+            if ($request->has('amenities')) {
+                app(UnitAmenityService::class)->sync($created->first()->refresh(), $request->validated('amenities') ?? []);
+            }
+
+            return $created;
+        });
 
         return response()->json([
             'message' => __('rooms.messages.room_created'),
@@ -58,11 +66,16 @@ class RoomsController extends Controller
     public function update(UpdateRoomRequest $request, mixed $property, string $room): JsonResponse
     {
         $unit = $this->unitOr404($room);
-        $data = $request->safe()->except('room_type_id');
+        $data = $request->safe()->except(['room_type_id', 'amenities']);
         if ($request->has('room_type_id')) {
             $data['room_type'] = $this->roomTypeField($request->validated('room_type_id'), 'room_type_id');
         }
-        $this->units->update($unit, $data);
+        \App\Infrastructure\Database\Tx::run(function () use ($request, $unit, $data) {
+            $unit = $this->units->update($unit, $data);
+            if ($request->has('amenities')) {
+                app(UnitAmenityService::class)->sync($unit->refresh(), $request->validated('amenities') ?? []);
+            }
+        });
 
         return response()->json(['message' => __('rooms.messages.room_updated'), 'room' => $this->resource($request, $room)]);
     }

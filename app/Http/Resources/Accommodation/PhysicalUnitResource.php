@@ -43,7 +43,7 @@ class PhysicalUnitResource extends JsonResource
                 'id' => $b->id, 'type' => $b->block_type, 'start_date' => $b->start_date->toDateString(),
                 'end_date' => $b->end_date->toDateString(), 'reason' => $b->reason,
             ])->values()->all(),
-            'amenities' => $roomType ? $roomType->amenities->map(fn ($a) => ['code' => $a->code, 'label' => $a->label(), 'icon' => $a->icon])->values()->all() : [],
+            'amenities' => app(\App\Domain\Accommodation\UnitAmenityService::class)->effective($u),
             'images' => $roomType ? $roomType->images->map(fn ($i) => ['id' => $i->id, 'url' => $i->url(), 'alt' => $i->alt_text])->values()->all() : [],
             'history' => app(HistoryQuery::class)->for($u),
         ];

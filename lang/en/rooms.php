@@ -129,7 +129,7 @@ return [
     'release_block' => 'Release',
     'blocks' => 'Blocks',
     'no_blocks' => 'No current or upcoming blocks.',
-    'no_amenities' => 'No amenities selected for this room type.',
+    'no_amenities' => 'No amenities selected for this room.',
     'no_images' => 'No images yet. Add them on the room type.',
     'no_notes' => 'No notes.',
     'no_history' => 'No changes recorded yet.',
@@ -211,4 +211,6 @@ return [
         'no_policy' => 'Add a cancellation policy on the Rate Plans page first.', 'no_permission' => 'Ask a manager to create a rate plan.',
     ],
     'setup' => ['title' => 'Setup, step 3 of 3:', 'text' => 'add your room types and their PMS rooms. The property is ready for reservations once this is saved.'],
+    'room_amenities_hint' => 'Starts with the room type\'s amenities. Tick or untick to set what this room has.',
+    'bulk_amenities_hint' => 'New rooms get the room type\'s amenities. You can change a single room\'s amenities later with Edit.',
 ];

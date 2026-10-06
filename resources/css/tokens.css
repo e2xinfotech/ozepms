@@ -67,6 +67,10 @@
     --cal-weekend: #fff5f5;
     --cal-weekend-text: #d63c3c;
 
+    /* Sign-in screen overlay */
+    --auth-hero-shade: rgba(7, 20, 51, 0.92);
+    --auth-hero-shade-soft: rgba(7, 20, 51, 0.55);
+
     /* Shape & depth */
     --radius-sm: 6px;
     --radius: 8px;

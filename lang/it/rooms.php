@@ -129,7 +129,7 @@ return [
     'release_block' => 'Sblocca',
     'blocks' => 'Blocchi',
     'no_blocks' => 'Nessun blocco in corso o previsto.',
-    'no_amenities' => 'Nessun servizio selezionato per questa tipologia.',
+    'no_amenities' => 'Nessun servizio selezionato per questa camera.',
     'no_images' => 'Nessuna immagine. Aggiungile sulla tipologia.',
     'no_notes' => 'Nessuna nota.',
     'no_history' => 'Nessuna modifica registrata.',
@@ -211,4 +211,6 @@ return [
         'no_policy' => 'Aggiungi prima una politica di cancellazione nella pagina Tariffe.', 'no_permission' => 'Chiedi a un responsabile di creare una tariffa.',
     ],
     'setup' => ['title' => 'Configurazione, passo 3 di 3:', 'text' => 'aggiungi le tipologie di camera e le relative camere PMS. La struttura può ricevere prenotazioni appena salvi.'],
+    'room_amenities_hint' => 'Parte dai servizi della tipologia. Seleziona o deseleziona per indicare cosa offre questa camera.',
+    'bulk_amenities_hint' => 'Le nuove camere ricevono i servizi della tipologia. Puoi modificare una singola camera in seguito con Modifica.',
 ];

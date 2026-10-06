@@ -46,4 +46,8 @@ return [
         'duplicate' => 'Esiste già un servizio chiamato «:name».',
         'global_read_only' => 'I servizi standard non possono essere modificati.',
     ],
+    'add_missing' => 'Aggiungi servizio mancante',
+    'add_hint' => 'Salvato nell\'elenco centrale dei servizi e disponibile per tutte le tipologie e camere.',
+    'room_only' => 'Solo questa camera',
+    'from_room_type' => 'Incluso nella tipologia di camera',
 ];

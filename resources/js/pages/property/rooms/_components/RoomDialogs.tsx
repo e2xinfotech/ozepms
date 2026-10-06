@@ -4,17 +4,28 @@ import { http, type ApiError } from '@/lib/http';
 import { t } from '@/lib/i18n';
 import { propertyApiUrl } from '@/lib/page';
 import { act, fieldError } from '../../_accommodation/shared';
+import { AmenityPicker, type AmenityOption } from '../../_accommodation/AmenityPicker';
 import type { RoomDetail } from './types';
 
+/** Amenity data shared by the add and edit dialogs. */
+export interface AmenityProps {
+    amenities: AmenityOption[];
+    categories: Option[];
+    roomTypeAmenities: Record<string, string[]>;
+    canAdd: boolean;
+}
+
 /** Add one room or several rooms at once (range, prefix + sequence, quantity). */
-export function AddRoomsModal({ roomTypes, initialType, onClose, onSaved }: {
-    roomTypes: Option[]; initialType: string; onClose: () => void; onSaved: (id?: string) => void;
+export function AddRoomsModal({ roomTypes, initialType, onClose, onSaved, amenity }: {
+    roomTypes: Option[]; initialType: string; onClose: () => void; onSaved: (id?: string) => void; amenity: AmenityProps;
 }) {
     const [mode, setMode] = useState<'single' | 'range' | 'sequence' | 'quantity'>('single');
     const [form, setForm] = useState({ room_type_id: initialType || String(roomTypes[0]?.value ?? ''), name: '', floor: '', building: '', range: '', prefix: '', start: '1', count: '5', quantity: '5' });
     const [error, setError] = useState<ApiError | null>(null);
     const [busy, setBusy] = useState(false);
     const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
+    const typeAmenities = (id: string) => new Set(amenity.roomTypeAmenities[id] ?? []);
+    const [selected, setSelected] = useState<Set<string>>(() => typeAmenities(form.room_type_id));
 
     const save = async () => {
         setBusy(true);
@@ -22,6 +33,7 @@ export function AddRoomsModal({ roomTypes, initialType, onClose, onSaved }: {
         const res = mode === 'single'
             ? await act(() => http.post<{ message: string; room: RoomDetail }>(propertyApiUrl('/rooms'), {
                 room_type_id: form.room_type_id, name: form.name, floor: form.floor || null, building: form.building || null,
+                amenities: [...selected],
             }), setError)
             : await act(() => http.post<{ message: string }>(propertyApiUrl('/rooms/bulk'), {
                 room_type_id: form.room_type_id, mode, range: form.range || null, prefix: form.prefix || null, start: form.start || null,
@@ -48,7 +60,7 @@ export function AddRoomsModal({ roomTypes, initialType, onClose, onSaved }: {
                 {generic && <Alert tone="danger">{Object.values(error!.fields)[0]?.[0]}</Alert>}
                 <div className="form-grid">
                     <Select fieldClass="span-6" label={t('rooms.fields.room_type')} required value={form.room_type_id} options={roomTypes}
-                        onChange={(e) => set('room_type_id', e.target.value)} error={fieldError(error, 'room_type_id')} />
+                        onChange={(e) => { set('room_type_id', e.target.value); setSelected(typeAmenities(e.target.value)); }} error={fieldError(error, 'room_type_id')} />
                     <Input fieldClass="span-3" label={t('rooms.fields.floor')} optional value={form.floor} maxLength={10} onChange={(e) => set('floor', e.target.value)} error={fieldError(error, 'floor')} />
                     {mode === 'single' && <>
                         <Input fieldClass="span-3" label={t('rooms.fields.building')} optional value={form.building} maxLength={40} onChange={(e) => set('building', e.target.value)} />
@@ -65,14 +77,26 @@ export function AddRoomsModal({ roomTypes, initialType, onClose, onSaved }: {
                         onChange={(e) => set('quantity', e.target.value)} error={fieldError(error, 'quantity')} />}
                 </div>
                 {(fieldError(error, 'units') || fieldError(error, 'mode')) && <Alert tone="danger">{fieldError(error, 'units') ?? fieldError(error, 'mode')}</Alert>}
+                {mode === 'single' && (
+                    <div className="field">
+                        <span className="field-label">{t('rooms.sections.amenities')}</span>
+                        <span className="field-hint">{t('rooms.room_amenities_hint')}</span>
+                        <AmenityPicker options={amenity.amenities} categories={amenity.categories} selected={selected} onChange={setSelected}
+                            canAdd={amenity.canAdd} inherited={typeAmenities(form.room_type_id)} />
+                        {fieldError(error, 'amenities') && <div className="field-error">{fieldError(error, 'amenities')}</div>}
+                    </div>
+                )}
+                {mode !== 'single' && <p className="field-hint">{t('rooms.bulk_amenities_hint')}</p>}
             </div>
         </Modal>
     );
 }
 
 /** Edit name, floor, room type, notes and active state. */
-export function EditRoomModal({ room, roomTypes, onClose, onSaved }: { room: RoomDetail; roomTypes: Option[]; onClose: () => void; onSaved: () => void }) {
+export function EditRoomModal({ room, roomTypes, onClose, onSaved, amenity }: { room: RoomDetail; roomTypes: Option[]; onClose: () => void; onSaved: () => void; amenity: AmenityProps }) {
     const [form, setForm] = useState({ name: room.name, floor: room.floor ?? '', building: room.building ?? '', notes: room.notes ?? '', room_type_id: room.room_type.id, is_active: room.is_active });
+    const [selected, setSelected] = useState<Set<string>>(() => new Set(room.amenities.map((a) => a.code)));
+    const inherited = new Set(amenity.roomTypeAmenities[form.room_type_id] ?? []);
     const [error, setError] = useState<ApiError | null>(null);
     const [busy, setBusy] = useState(false);
 
@@ -80,14 +104,14 @@ export function EditRoomModal({ room, roomTypes, onClose, onSaved }: { room: Roo
         setBusy(true);
         setError(null);
         const res = await act(() => http.put<{ message: string }>(propertyApiUrl(`/rooms/${room.id}`), {
-            ...form, floor: form.floor || null, building: form.building || null, notes: form.notes || null,
+            ...form, floor: form.floor || null, building: form.building || null, notes: form.notes || null, amenities: [...selected],
         }), setError);
         setBusy(false);
         if (res) onSaved();
     };
 
     return (
-        <Modal open title={`${t('rooms.edit_room')} ${room.name}`} onClose={onClose} footer={<>
+        <Modal open size="lg" title={`${t('rooms.edit_room')} ${room.name}`} onClose={onClose} footer={<>
             <Button onClick={onClose}>{t('ui.cancel')}</Button>
             <Button variant="primary" icon="save" loading={busy} onClick={save}>{t('ui.save_changes')}</Button>
         </>}>
@@ -101,6 +125,13 @@ export function EditRoomModal({ room, roomTypes, onClose, onSaved }: { room: Roo
                     <span className="field-label">{t('rooms.fields.status')}</span>
                     <Toggle checked={form.is_active} onChange={(v) => setForm({ ...form, is_active: v })} label={t(`ui.status.${form.is_active ? 'active' : 'inactive'}`)} />
                     {fieldError(error, 'is_active') && <div className="field-error">{fieldError(error, 'is_active')}</div>}
+                </div>
+                <div className="field span-12">
+                    <span className="field-label">{t('rooms.sections.amenities')}</span>
+                    <span className="field-hint">{t('rooms.room_amenities_hint')}</span>
+                    <AmenityPicker options={amenity.amenities} categories={amenity.categories} selected={selected} onChange={setSelected}
+                        canAdd={amenity.canAdd} inherited={inherited} />
+                    {fieldError(error, 'amenities') && <div className="field-error">{fieldError(error, 'amenities')}</div>}
                 </div>
             </div>
         </Modal>

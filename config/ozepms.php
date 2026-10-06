@@ -14,7 +14,7 @@ return [
         'company' => 'E2X Infotech Pvt Ltd.',
         'support_email' => env('OZ_SUPPORT_EMAIL', 'support@e2xinfotech.in'),
         // Photo behind the sign-in screen (path under public/, e.g. /images/auth-hero.jpg); empty = brand gradient only.
-        'auth_image' => env('OZ_AUTH_IMAGE'),
+        'auth_image' => env('OZ_AUTH_IMAGE') ?: '/images/auth-hero.svg',
     ],
 
     'locales' => [

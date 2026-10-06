@@ -1,4 +1,4 @@
-# OzePMS --- Full Product Scope, Database Architecture & Claude Development Prompt
+# OzePMS --- Full Product Scope, Database Architecture & Development Brief
 
 ## MASTER INSTRUCTION
 
@@ -2210,7 +2210,7 @@ Show:
 
 ------------------------------------------------------------------------
 
-# 67. CLAUDE WORKING RULES
+# 67. DEVELOPMENT TEAM WORKING RULES
 
 When working on this project:
 
@@ -2290,7 +2290,7 @@ Test before moving from one phase to another.
 
 ------------------------------------------------------------------------
 
-# 68. FIRST MESSAGE TO CLAUDE
+# 68. FIRST DELIVERABLE FROM THE DEVELOPMENT TEAM
 
 After reading this specification, do NOT write the application yet.
 

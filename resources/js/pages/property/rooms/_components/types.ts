@@ -20,7 +20,7 @@ export interface RoomDetail extends RoomRow {
     next_cleaning_at: string | null;
     in_maintenance: boolean;
     blocks: { id: number; type: string; start_date: string; end_date: string; reason: string | null }[];
-    amenities: { code: string; label: string; icon: string | null }[];
+    amenities: { code: string; label: string; icon: string | null; source: 'room_type' | 'room' }[];
     images: { id: number; url: string; alt: string | null }[];
     history: { action: string; label: string; user: string | null; at: string | null }[];
 }

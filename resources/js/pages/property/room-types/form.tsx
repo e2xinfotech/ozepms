@@ -1,10 +1,11 @@
-import { useMemo, useState, type ChangeEvent } from 'react';
+import { useState, type ChangeEvent } from 'react';
 import { Alert, Button, Checkbox, ConfirmDialog, EmptyState, FormSection, Icon, Input, LinkButton, PageHeader, Segmented, Select, Textarea, Toggle, toast, type Option } from '@/components/ui';
 import { createPage } from '@/lib/boot';
 import { http, type ApiError } from '@/lib/http';
 import { t } from '@/lib/i18n';
 import { propertyApiUrl, propertyUrl } from '@/lib/page';
 import { act, errorsUnder, fieldError, MoneyInput, OccupancyEditor, price, type OccupancyRule } from '../_accommodation/shared';
+import { AmenityPicker } from '../_accommodation/AmenityPicker';
 import { QuickRatePlanModal, type CreatedRatePlan, type PolicyChoice } from './_components/QuickRatePlanModal';
 
 interface Unit { id: string | null; name: string; floor: string | null; is_active: boolean }
@@ -30,7 +31,7 @@ interface Props {
         rate_plans: RatePlanOption[]; age_bands: Option[]; meal_plans: Option[]; policies: PolicyChoice[];
         usage: { units: number | null; used_units: number; room_types: number | null; used_room_types: number };
     };
-    can: { create_rate_plan: boolean };
+    can: { create_rate_plan: boolean; add_amenity: boolean };
 }
 
 interface ProductRow {
@@ -78,10 +79,6 @@ function RoomTypeForm({ room_type: rt, options, can }: Props) {
     const [removeImage, setRemoveImage] = useState<number | null>(null);
     const [error, setError] = useState<ApiError | null>(null);
     const [saving, setSaving] = useState(false);
-
-    const groupedAmenities = useMemo(() => options.amenity_categories
-        .map((c) => ({ ...c, items: options.amenities.filter((a) => a.category === c.value) }))
-        .filter((g) => g.items.length > 0), [options]);
 
     const setProduct = (i: number, patch: Partial<ProductRow>) => setProducts((list) => list.map((p, j) => (j === i ? { ...p, ...patch } : p)));
     const usage = options.usage;
@@ -242,17 +239,8 @@ function RoomTypeForm({ room_type: rt, options, can }: Props) {
                 <FormSection title={t('rooms.sections.amenities')} description={t('rooms.sections.amenities_desc')}
                     actions={<LinkButton size="sm" variant="ghost" icon="settings" href={propertyUrl('/amenities')}>{t('rooms.manage_amenities')}</LinkButton>}>
                     <div className="span-12">
-                        {groupedAmenities.map((g) => (
-                            <div key={g.value} className="amenity-group">
-                                <h4>{g.label}</h4>
-                                <div className="amenity-grid">
-                                    {g.items.map((a) => (
-                                        <Checkbox key={a.value} checked={amenities.has(a.value)} label={a.label}
-                                            onChange={() => setAmenities((s) => { const n = new Set(s); if (n.has(a.value)) n.delete(a.value); else n.add(a.value); return n; })} />
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
+                        <AmenityPicker options={options.amenities} categories={options.amenity_categories} selected={amenities}
+                            onChange={setAmenities} canAdd={can.add_amenity} />
                         {err('amenities') && <div className="field-error">{err('amenities')}</div>}
                     </div>
                 </FormSection>

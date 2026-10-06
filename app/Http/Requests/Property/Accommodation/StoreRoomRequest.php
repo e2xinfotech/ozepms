@@ -14,6 +14,8 @@ class StoreRoomRequest extends FormRequest
             'name' => ['required', 'string', 'max:30'],
             'floor' => ['nullable', 'string', 'max:10'],
             'building' => ['nullable', 'string', 'max:40'],
+            'amenities' => ['sometimes', 'array', 'max:200'],
+            'amenities.*' => ['string', 'max:40'],
         ];
     }
 }

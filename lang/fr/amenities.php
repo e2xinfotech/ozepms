@@ -46,4 +46,8 @@ return [
         'duplicate' => 'Un équipement nommé « :name » existe déjà.',
         'global_read_only' => 'Les équipements standard ne peuvent pas être modifiés.',
     ],
+    'add_missing' => 'Ajouter un équipement manquant',
+    'add_hint' => 'Enregistré dans la liste centrale des équipements et disponible pour tous les types de chambre et chambres.',
+    'room_only' => 'Cette chambre uniquement',
+    'from_room_type' => 'Inclus avec le type de chambre',
 ];

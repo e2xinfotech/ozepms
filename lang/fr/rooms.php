@@ -129,7 +129,7 @@ return [
     'release_block' => 'Libérer',
     'blocks' => 'Blocages',
     'no_blocks' => 'Aucun blocage en cours ou à venir.',
-    'no_amenities' => 'Aucun équipement sélectionné pour ce type de chambre.',
+    'no_amenities' => 'Aucun équipement sélectionné pour cette chambre.',
     'no_images' => 'Aucune photo. Ajoutez-les sur le type de chambre.',
     'no_notes' => 'Aucune note.',
     'no_history' => 'Aucune modification enregistrée.',
@@ -211,4 +211,6 @@ return [
         'no_policy' => "Ajoutez d'abord une politique d'annulation dans Plans tarifaires.", 'no_permission' => 'Demandez à un responsable de créer un plan tarifaire.',
     ],
     'setup' => ['title' => 'Configuration, étape 3 sur 3 :', 'text' => "ajoutez vos types de chambres et leurs chambres PMS. L'établissement peut recevoir des réservations dès l'enregistrement."],
+    'room_amenities_hint' => 'Reprend les équipements du type de chambre. Cochez ou décochez pour définir ce que propose cette chambre.',
+    'bulk_amenities_hint' => 'Les nouvelles chambres reçoivent les équipements du type de chambre. Vous pourrez modifier une chambre plus tard avec Modifier.',
 ];

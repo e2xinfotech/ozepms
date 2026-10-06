@@ -66,6 +66,19 @@ class FormOptions
             ])->all();
     }
 
+    /** Amenity codes of each room type, keyed by room type public id (new rooms start from these). */
+    public function roomTypeAmenities(): array
+    {
+        return \Illuminate\Support\Facades\DB::table('room_types')
+            ->join('room_type_amenities', 'room_type_amenities.room_type_id', '=', 'room_types.id')
+            ->join('amenities', 'amenities.id', '=', 'room_type_amenities.amenity_id')
+            ->where('room_types.property_id', $this->context->id())
+            ->get(['room_types.public_id', 'amenities.code'])
+            ->groupBy('public_id')
+            ->map(fn ($rows) => $rows->pluck('code')->values()->all())
+            ->all();
+    }
+
     public function ratePlans(bool $activeOnly = false): array
     {
         return RatePlan::query()->with('mealPlan')->when($activeOnly, fn ($q) => $q->where('is_active', true))
