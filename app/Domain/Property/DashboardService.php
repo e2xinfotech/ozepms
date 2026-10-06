@@ -141,7 +141,7 @@ class DashboardService
             ->leftJoin('booking_sources', 'booking_sources.id', '=', 'reservations.source_id')
             ->limit(self::LIST_LIMIT)
             ->get(['reservations.public_id', 'reservations.booking_ref', 'reservations.guest_name', 'reservations.nights',
-                'reservations.adults', 'reservations.children', 'reservations.status', 'booking_sources.name as source'])
+                'reservations.adults', 'reservations.children', 'reservations.status', 'booking_sources.name as source', 'booking_sources.code as source_code'])
             ->map(fn ($r) => [
                 'id' => $r->public_id,
                 'ref' => $r->booking_ref,
@@ -150,6 +150,7 @@ class DashboardService
                 'guests' => (int) $r->adults + (int) $r->children,
                 'status' => $r->status,
                 'source' => $r->source,
+                'source_code' => $r->source_code,
             ])->all();
     }
 

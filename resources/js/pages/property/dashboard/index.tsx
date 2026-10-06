@@ -3,11 +3,12 @@ import { BarLineChart, Donut } from '@/components/charts/Charts';
 import { Badge, Card, DateRange, EmptyState, Icon, KpiCard, LinkButton, PageHeader, Progress, Segmented } from '@/components/ui';
 import { money, number, percent, shortDate } from '@/lib/format';
 import { navigateWithQuery } from '@/lib/http';
-import { t } from '@/lib/i18n';
+import { t, tOr } from '@/lib/i18n';
 import { createPage } from '@/lib/boot';
+import { propertyUrl } from '@/lib/page';
 
 interface ChartDay { date: string; occupancy: number; revenue: string; adr: string; revpar: string }
-interface StayRow { id: string; ref: string; guest: string; nights: number; guests: number; status: string; source: string | null }
+interface StayRow { id: string; ref: string; guest: string; nights: number; guests: number; status: string; source: string | null; source_code?: string | null }
 interface Dashboard {
     today: string; from: string; to: string; currency: string;
     kpis: { total_rooms: number; occupied: number; occupancy: number; arrivals: number; departures: number; revenue: string };
@@ -33,12 +34,12 @@ function StayTable({ rows, empty }: { rows: StayRow[]; empty: string }) {
                 <tbody>
                     {rows.map((r) => (
                         <tr key={r.id}>
-                            <td className="id-link num">{r.ref}</td>
+                            <td className="num"><a className="id-link" href={propertyUrl(`/reservations/${r.id}`)}>{r.ref}</a></td>
                             <td className="cell-main">{r.guest}</td>
                             <td className="num">{r.nights}</td>
                             <td className="num">{r.guests}</td>
-                            <td>{r.source ?? '—'}</td>
-                            <td><Badge size="sm" status={r.status} /></td>
+                            <td>{r.source ? tOr(`reservations.sources.${r.source_code ?? ''}`, r.source) : '—'}</td>
+                            <td><Badge size="sm" status={r.status}>{t(`reservations.status.${r.status}`)}</Badge></td>
                         </tr>
                     ))}
                 </tbody>
@@ -146,10 +147,10 @@ function DashboardPage({ dashboard: d, max_range_days, onboarding }: { dashboard
             </div>
 
             <div className="dash-grid-3">
-                <Card flush title={`${t('property.dashboard.arrivals_today')} (${d.summary.arrivals})`}>
+                <Card flush title={`${t('property.dashboard.arrivals_today')} (${d.summary.arrivals})`} actions={<a className="card-link" href={propertyUrl('/front-desk')}>{t('ui.view_all')}</a>}>
                     <StayTable rows={d.arrivals} empty={t('property.dashboard.no_arrivals')} />
                 </Card>
-                <Card flush title={`${t('property.dashboard.departures_today')} (${d.summary.departures})`}>
+                <Card flush title={`${t('property.dashboard.departures_today')} (${d.summary.departures})`} actions={<a className="card-link" href={propertyUrl('/front-desk?tab=departures')}>{t('ui.view_all')}</a>}>
                     <StayTable rows={d.departures} empty={t('property.dashboard.no_departures')} />
                 </Card>
                 <Card title={t('property.dashboard.housekeeping')}>

@@ -1,3 +1,4 @@
+import { GlobalSearch } from './GlobalSearch';
 import { Avatar, Dropdown, Icon } from '@/components/ui';
 import { http } from '@/lib/http';
 import { t } from '@/lib/i18n';
@@ -59,10 +60,11 @@ export function Topbar({ shell, onMenu }: { shell: ShellData; onMenu: () => void
                 </a>
             )}
 
-            {(property || shell.is_platform) && <div className="topbar-search">
+            {property && <GlobalSearch placeholder={t('nav.search_property')} />}
+            {!property && shell.is_platform && <div className="topbar-search">
                 <div className="control">
                     <Icon name="search" size={18} className="control-icon" />
-                    <input type="search" placeholder={property ? t('nav.search_property') : t('nav.search_platform')} aria-label={t('ui.search')} />
+                    <input type="search" placeholder={t('nav.search_platform')} aria-label={t('ui.search')} />
                 </div>
             </div>}
 

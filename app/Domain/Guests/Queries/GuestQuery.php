@@ -108,7 +108,7 @@ class GuestQuery
             'company_name' => $guest->company_name, 'company_tax_no' => $guest->company_tax_no,
             'id_issuing' => $guest->id_issuing_iso2, 'id_expiry' => $guest->id_expiry?->toDateString(),
             'marketing_consent' => (bool) $guest->marketing_consent, 'notes_text' => $guest->notes, 'preferences' => $guest->preferences,
-            'stays' => $stays->map(function ($s) use ($firstRooms) {
+            'stay_history' => $stays->map(function ($s) use ($firstRooms) {
                 $room = $firstRooms->get($s->id)?->first();
 
                 return [
