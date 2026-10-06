@@ -13,6 +13,7 @@ export function AppLayout({ shell, children }: { shell: ShellData; children: Rea
     return (
         <div className="app">
             <Sidebar shell={shell} open={menuOpen} />
+            {menuOpen && <div className="sidebar-backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true" />}
             <div className="main">
                 <Topbar shell={shell} onMenu={() => setMenuOpen((o) => !o)} />
                 {shell.support_mode && (

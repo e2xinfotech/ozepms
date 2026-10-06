@@ -56,3 +56,4 @@ table.table { width: 100%; border-collapse: separate; border-spacing: 0; font-si
 .table.tight th:first-child, .table.tight td:first-child { padding-left: 0; }
 .table.tight th:last-child, .table.tight td:last-child { padding-right: 0; }
 .table.tight .cell-clip { display: inline-block; max-width: 90px; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
+@media (max-width: 600px) { .table-foot { flex-wrap: wrap; } }

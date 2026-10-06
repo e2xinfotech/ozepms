@@ -99,10 +99,22 @@
     .auth { grid-template-columns: 1fr; }
     .auth-hero { display: none; }
 }
+.menu-toggle { display: none !important; }
+.sidebar-backdrop { display: none; }
 @media (max-width: 860px) {
     .app { grid-template-columns: 1fr; }
     .sidebar { display: none; }
     .sidebar.open { display: flex; position: fixed; z-index: 60; width: var(--sidebar-width); }
+    .sidebar-backdrop { display: block; position: fixed; inset: 0; z-index: 55; background: rgba(15, 23, 42, .45); }
     .topbar-search { display: none; }
+    .menu-toggle { display: inline-flex !important; }
+}
+/* Phones: compact top bar (property name only, avatar only). */
+@media (max-width: 600px) {
+    .topbar { gap: 8px; padding: 0 12px; }
+    .topbar-actions { gap: 2px; margin-left: auto; }
+    .topbar .prop-thumb, .topbar .prop-meta, .user-chip > span:not(.avatar), .user-chip > svg { display: none; }
+    .topbar .prop-switch { min-width: 0; }
+    .topbar .prop-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 36vw; display: block; font-size: 16px; }
 }
 .topbar > .prop-switch + .topbar-actions { margin-left: auto; }

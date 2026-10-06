@@ -23,6 +23,7 @@
 .with-panel .kpi-chips .kpi.compact { padding: 8px 10px; }
 .with-panel .kpi-chips .kpi.compact .kpi-icon { display: none; }
 @media (max-width: 1100px) { .kpi-chips { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .kpi-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .side-panel .panel-tabs .tabs { flex-wrap: nowrap; }
 .side-panel .panel-tabs .tab { padding: 0 6px; font-size: var(--text-sm); white-space: nowrap; }
 .filter-bar .field.filter-buttons { flex: 0 0 auto; max-width: none; }

@@ -140,6 +140,7 @@ Never return internal ids; resources expose `public_id` as `id`.
 | **Phase 4 — reservations & billing** | migrations `2026_10_04_*`; models `BookingSource, Guest, Reservation, ReservationRoom, ReservationRoomNight, UnitNight, ReservationGuest, ReservationStatusHistory, Service, Folio, FolioLine, FolioLineTax, Payment, PaymentGatewayEvent, Invoice`; `app/Domain/{Reservations,Guests,Billing}`; pages `property/{reservations,guests,front-desk}`; global search endpoint; `lang/*/{reservations,guests,billing}.php` | Phase 1–3 services (`AvailabilityService::search()`, `PricingService::quote()`, `TaxService::calculate()`, `InventoryService::reserve()/release()`) |
 | **Phase 5 — offers** | migrations `2026_10_05_*`; models `Offer, OfferScope, OfferCondition, OfferApplication`; `app/Domain/Offers` (OfferService, OfferAdminService, OfferContext, OfferResult, Queries/*); listener `Listeners/Offers/ReleaseOfferRedemptions`; pages `property/offers/*`; `lang/*/offers.php`; `OfferDemoSeeder` | Pricing interfaces; `StayPricer` applies offers; `ReservationService` freezes them (offer_applications) |
 | **Phase 6 — booking engine & API** | `routes/booking.php`, `routes/api.php`; `app/Domain/BookingEngine` (BookingEngineService, BookingPresenter); `app/Domain/Api/ApiKeyService`; `Http/Controllers/Booking/*`, `Http/Controllers/Api/V1/*`, `WebApi/Property/{BookingEngineSettingsController, ApiKeysController}`; middleware `AuthenticateApiKey`; `Http/Requests/Booking/*`; model `ApiKey`; command `booking:expire-holds`; pages `booking/*` (layout `booking`); `components/booking/*`, `components/property/{BookingEngineCard, ApiKeysCard}`; `css/modules/booking.css`; `lang/*/booking.php`; docs `07-api.md` | Uses `AvailabilityService`, `StayPricer`, `OfferService`, `ReservationService`, `PaymentService` unchanged in role; never duplicates their rules |
+| **Phase 7 — reports** | migration `2026_10_07_000002` (`stats_daily_mix`); `app/Domain/Reports` (ReportRollupService, ReportService, ReportFilter, ReportCatalog, ReportPresenter, Report, Queries/{StayReports, BookingReports, LedgerReports}); listener `Listeners/Reports/RefreshReportStats`; command `reports:refresh`; middleware `plan.feature` (`RequirePlanFeature`); `Http/Requests/Reports/ReportRequest`; controllers `Web/Property/ReportsController`, `WebApi/Property/ReportsController`; routes `property/reports.php`, `property-api/reports.php`; pages `property/reports/{index, show}`; `components/reports/*`; `css/modules/reports.css`; `lang/*/reports.php` | Reads rollups and the ledger only; never writes booking or billing tables |
 
 Cross-module contracts (method signatures agreed up front — implement exactly these):
 
@@ -168,6 +169,11 @@ public function release(array $offerIds): void;  // cancelled booking
 // Phase 6 — App\Domain\BookingEngine\BookingEngineService (public booking engine and /api/v1)
 public function search(Property $property, array $query): array;  // rooms + rate plans that pass every rule (availability, restrictions, min/max stay, occupancy), with offers, tax lines, policy lines
 public function book(Property $property, array $data): array;     // ['reservation', 'payment', 'due'] via ReservationService::create (channel booking_engine)
+
+// Phase 7 — App\Domain\Reports
+// ReportRollupService::refresh(int $propertyId, CarbonImmutable $from, CarbonImmutable $toExclusive): void  — rebuild rollups (call after bulk data changes)
+// ReportService::run(string $key, ReportFilter $f): array  — {summary, chart, tables}; ReportService::csv($key, $f): Generator of CSV rows
+// Adding a report: entry in ReportCatalog::REPORTS + method in a Queries class + match arm in ReportService + lang reports.{key}.*
 ```
 
 Shared value objects and events already exist (do not rename): `App\Domain\Pricing\Quote`,

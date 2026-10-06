@@ -234,3 +234,13 @@ Rules kept by `ReservationService`: `inventory_daily.sold` = number of active `r
 * Settings: `property_settings` key `booking_engine` (`enabled`, `intro`, `terms`).
 * Search results are cached per property, keyed by `properties.ari_version` and the latest `offers.updated_at`, so any calendar or offer change invalidates them at once.
 * `api_keys` (migration `2026_10_06_000001`): `public_id`, `property_id`, `name`, `prefix` CHAR(12) UNIQUE (lookup), `key_hash` CHAR(64) (SHA-256 of the whole key — the key itself is never stored), `abilities` JSON, `last_used_at`, `last_used_ip`, `expires_at`, `revoked_at`, `created_by`. Max 20 active keys per property; `last_used_at` is written at most once a minute.
+
+## Phase 7 additions (reports)
+
+* Reports never aggregate the booking tables on screen: they read two rollups, rebuilt per property and date range by `App\Domain\Reports\ReportRollupService` (one transaction, `INSERT … SELECT`, ranges split into 120-day chunks).
+  * `stats_daily` (approved schema): property × night × room type — `units_total`, `units_ooo` (from `inventory_daily`), `rooms_sold`, `room_revenue` (active nights, net of discounts, before tax), `arrivals` / `departures` / `cancellations` / `no_shows` (rooms by arrival or departure date).
+  * `stats_daily_mix` (migration `2026_10_07_000002`): property × night × room type × rate plan × booking source — `rooms_sold`, `guests`, `room_revenue`, `discount`, `tax`; indexes by rate plan and by source for the rate plan / source reports.
+* Kept current by the listener `Listeners/Reports/RefreshReportStats` after every booking event (create, modify — old and new dates —, cancel, no-show, check-in / out) and room block, and by the nightly `reports:refresh` (03:10: last 7 days + selling horizon; `--all` rebuilds every date). Demo seeding rebuilds everything.
+* Definitions: rooms available = rooms − out of order; occupancy = sold ÷ available; ADR = room revenue ÷ sold; RevPAR = room revenue ÷ available.
+* Booking-date reports (reservations, cancellations, no-shows, booking counts, pickup "as of N days ago") read `reservations` through `ix_res_created`, `ix_res_status`, `ix_res_source`, always bounded by property and ≤ `config('ozepms.reports.max_days')` (400), 50 rows a page, CSV ≤ 20 000 rows.
+* Money actually charged and collected reads the ledger: `folio_lines` by business date (`ix_fl_revenue`; a voided charge counts on its date and its reversal on the void date, as in the folio), `folio_line_taxes` for the tax report, `payments` by `received_at` (`ix_pay_property_time`).

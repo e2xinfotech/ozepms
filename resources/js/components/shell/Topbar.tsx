@@ -27,7 +27,7 @@ export function Topbar({ shell, onMenu }: { shell: ShellData; onMenu: () => void
 
     return (
         <header className="topbar">
-            <button className="topbar-btn" style={{ display: 'none' }} onClick={onMenu} aria-label={t('nav.menu')}><Icon name="menu" size={20} /></button>
+            <button className="topbar-btn menu-toggle" onClick={onMenu} aria-label={t('nav.menu')}><Icon name="menu" size={20} /></button>
 
             {property ? (
                 <Dropdown align="left" width={320} trigger={(toggle) => (

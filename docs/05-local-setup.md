@@ -147,6 +147,7 @@ The scheduler runs subscription status changes, log clean-up, the nightly invent
 ```bash
 php artisan schedule:work          # runs the scheduler every minute in the foreground
 php artisan queue:work --tries=3   # processes queued jobs (e-mails, notifications)
+php artisan reports:refresh --all  # rebuild report figures once after importing data (bookings keep them current)
 ```
 
 During development e-mails are written to the log (`MAIL_MAILER=log`); see `storage/logs/`.
