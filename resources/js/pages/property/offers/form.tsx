@@ -102,18 +102,18 @@ function OfferFormPage({ offer: o, options }: Props) {
                 </FormSection>
 
                 <FormSection title={t('offers.form.sections.discount')}>
-                    <Select fieldClass="span-3" label={t('offers.fields.discount_type')} required value={data.discount_type}
+                    <Select fieldClass={free ? 'span-4' : 'span-3'} label={t('offers.fields.discount_type')} required value={data.discount_type}
                         options={DISCOUNT_TYPES.map((v) => ({ value: v, label: t(`offers.discount_types.${v}`) }))} onChange={(e) => set('discount_type', e.target.value)} error={err('discount_type')} />
-                    {free && <Input fieldClass="span-2" type="number" min={2} max={365} label={t('offers.form.block_nights')} required value={data.min_nights}
+                    {free && <Input fieldClass="span-4" type="number" min={2} max={365} label={t('offers.form.block_nights')} required value={data.min_nights}
                         onChange={(e) => set('min_nights', e.target.value)} error={err('min_nights')} />}
-                    <Input fieldClass={free ? 'span-2' : 'span-3'} type="number" min={0} step={free ? 1 : 0.01} required className="num"
+                    <Input fieldClass={free ? 'span-4' : 'span-3'} type="number" min={0} step={free ? 1 : 0.01} required className="num"
                         label={free ? t('offers.form.value_free') : data.discount_type === 'percent' ? t('offers.form.value_percent') : t('offers.form.value_amount', { currency: cur })}
                         suffix={data.discount_type === 'percent' ? '%' : free ? undefined : cur} value={data.discount_value}
                         onChange={(e) => set('discount_value', e.target.value)} error={err('discount_value')} />
-                    <Input fieldClass={free ? 'span-2' : 'span-3'} type="number" min={1} label={t('offers.fields.max_redemptions')} optional value={data.max_redemptions}
+                    <Input fieldClass={free ? 'span-6' : 'span-3'} type="number" min={1} label={t('offers.fields.max_redemptions')} optional value={data.max_redemptions}
                         onChange={(e) => set('max_redemptions', e.target.value)} error={err('max_redemptions')}
                         hint={editing && o.redemptions > 0 ? t('offers.conditions.redemptions', { used: o.redemptions, max: data.max_redemptions || '∞' }) : undefined} />
-                    <Input fieldClass="span-3" type="number" min={0} step="0.01" label={t('offers.fields.min_amount')} optional suffix={cur} value={data.min_amount}
+                    <Input fieldClass={free ? 'span-6' : 'span-3'} type="number" min={0} step="0.01" label={t('offers.fields.min_amount')} optional suffix={cur} value={data.min_amount}
                         onChange={(e) => set('min_amount', e.target.value)} error={err('min_amount')} />
                     {free && block >= 2 && freeCount >= 1 && freeCount < block && <div className="span-12 info-box text-sm">
                         <Icon name="info" size={16} /> {t('offers.form.free_example', { stay: block, pay: block - freeCount })}

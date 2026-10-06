@@ -6,7 +6,7 @@
 .offer-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .offer-stats > div { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
 .offer-stats span { color: var(--muted); font-size: var(--text-xs); }
-.offer-stats strong { font-size: var(--text-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.offer-stats strong { font-size: var(--text-sm); overflow-wrap: anywhere; line-height: 1.3; }
 .offer-highlights { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); }
 .check-list { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow: auto; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); }
 .day-toggles { display: flex; flex-wrap: wrap; gap: 6px; }
