@@ -122,8 +122,8 @@ export function RatePlanPanel({ id, canUpdate, canCreate, onClose }: { id: strin
             <div className="sp-section">
                 <h3>{t('ui.quick_actions')}</h3>
                 <div className="action-grid">
-                    {/* Daily rates are edited on the calendar; the action appears once that page exists. */}
-                    {calendarUrl && <LinkButton variant="outline" icon="trending-up" href={calendarUrl} title={t('rates.daily_rates_hint')}>{t('rates.quick.set_rates')}</LinkButton>}
+                    {/* Daily rates are edited on the calendar, opened filtered to this rate plan. */}
+                    {calendarUrl && <LinkButton variant="outline" icon="trending-up" href={`${calendarUrl}?rate_plan=${plan.id}`} title={t('rates.daily_rates_hint')}>{t('rates.quick.set_rates')}</LinkButton>}
                     {canCreate && <Button variant="outline" icon="copy" loading={busy} onClick={copy}>{t('rates.quick.copy')}</Button>}
                     {canUpdate && (plan.is_active
                         ? <Button variant="danger-soft" icon="pause" loading={busy} onClick={toggle} disabled={plan.is_default} title={plan.is_default ? t('rates.errors.default_cannot_deactivate') : undefined}>{t('rates.quick.deactivate')}</Button>
