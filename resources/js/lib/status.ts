@@ -10,7 +10,7 @@ const tones: Record<string, Tone> = {
     // property
     onboarding: 'amber', suspended: 'red', setup: 'amber',
     // subscription
-    trial: 'blue', grace: 'amber', expired: 'red', cancelled: 'slate', none: 'red',
+    trial: 'blue', grace: 'amber', expired: 'red', cancelled: 'slate', none: 'red', scheduled: 'blue',
     // reservation
     inquiry: 'slate', hold: 'amber', pending: 'amber', confirmed: 'green', checked_in: 'blue', in_house: 'blue',
     checked_out: 'slate', no_show: 'red', upcoming: 'green', group: 'violet', today_checkout: 'red',

@@ -195,6 +195,7 @@ return [
     ],
 
     'history' => [
+        'offer_created' => 'Promotion créée', 'offer_updated' => 'Promotion modifiée', 'offer_activated' => 'Promotion activée', 'offer_deactivated' => 'Promotion désactivée', 'offer_deleted' => 'Promotion supprimée', 'offer_image_changed' => 'Image de la promotion modifiée',
         'room_type_created' => 'Type de chambre créé', 'room_type_updated' => 'Type de chambre modifié',
         'physical_unit_bulk_created' => 'Chambres créées', 'physical_unit_updated' => 'Chambre modifiée',
         'physical_unit_housekeeping_changed' => 'Statut ménage modifié', 'unit_block_created' => 'Chambre bloquée',

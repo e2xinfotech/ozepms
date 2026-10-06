@@ -24,6 +24,7 @@ return [
     'more_actions' => 'Altre azioni',
     'more_filters' => 'Altri filtri',
     'all' => 'Tutti',
+    'remove' => 'Rimuovi',
     'yes' => 'Sì',
     'no' => 'No',
     'none' => 'Nessuno',

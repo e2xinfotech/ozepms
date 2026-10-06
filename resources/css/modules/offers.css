@@ -1,0 +1,19 @@
+/* Offers & promotions (pages/property/offers). */
+.offer-head { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 16px; align-items: start; }
+.offer-image { width: 160px; height: 120px; border-radius: var(--radius-md); overflow: hidden; display: grid; place-items: center; text-align: center;
+    background: linear-gradient(135deg, var(--placeholder-from), var(--placeholder-to)); color: var(--brand-600); flex: none; }
+.offer-image img { width: 100%; height: 100%; object-fit: cover; }
+.offer-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.offer-stats > div { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
+.offer-stats span { color: var(--muted); font-size: var(--text-xs); }
+.offer-stats strong { font-size: var(--text-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.offer-highlights { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); }
+.check-list { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow: auto; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); }
+.day-toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+.day-toggle { height: 36px; min-width: 52px; padding: 0 12px; border-radius: var(--radius-pill); border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); font-weight: var(--weight-medium); cursor: pointer; }
+.day-toggle.on { background: var(--brand-600); border-color: var(--brand-600); color: var(--on-brand); }
+.day-toggle:focus-visible { outline: 2px solid var(--brand-600); outline-offset: 2px; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip button { display: inline-grid; place-items: center; border: 0; background: transparent; color: inherit; cursor: pointer; padding: 0; }
+@media (max-width: 1600px) { .with-panel .offer-head { grid-template-columns: 1fr; } .with-panel .offer-image { width: 100%; height: 150px; } }
+.with-panel .offer-edit .btn-label { display: none; }

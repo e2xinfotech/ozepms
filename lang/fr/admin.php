@@ -42,6 +42,7 @@ return [
     'resolved' => 'Marqué comme résolu.',
     'no_errors' => 'Aucune erreur enregistrée. Tout fonctionne correctement.',
     'actions' => [
+        'offer.created' => 'Promotion créée', 'offer.updated' => 'Promotion modifiée', 'offer.activated' => 'Promotion activée', 'offer.deactivated' => 'Promotion désactivée', 'offer.deleted' => 'Promotion supprimée', 'offer.image_changed' => 'Image de la promotion modifiée',
         'auth.login' => 'Connexion utilisateur', 'auth.logout' => 'Déconnexion utilisateur', 'auth.locked' => 'Compte verrouillé',
         'property.created' => 'Nouvel établissement ajouté', 'property.updated' => 'Établissement mis à jour', 'property.status_changed' => 'Statut de l\'établissement modifié',
         'subscription.trial' => 'Essai démarré', 'subscription.active' => 'Abonnement activé', 'subscription.expired' => 'Abonnement expiré',

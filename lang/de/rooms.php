@@ -195,6 +195,7 @@ return [
     ],
 
     'history' => [
+        'offer_created' => 'Aktion erstellt', 'offer_updated' => 'Aktion geändert', 'offer_activated' => 'Aktion aktiviert', 'offer_deactivated' => 'Aktion deaktiviert', 'offer_deleted' => 'Aktion gelöscht', 'offer_image_changed' => 'Bild der Aktion geändert',
         'room_type_created' => 'Zimmertyp angelegt', 'room_type_updated' => 'Zimmertyp geändert',
         'physical_unit_bulk_created' => 'Zimmer angelegt', 'physical_unit_updated' => 'Zimmer geändert',
         'physical_unit_housekeeping_changed' => 'Reinigungsstatus geändert', 'unit_block_created' => 'Zimmer gesperrt',

@@ -72,6 +72,9 @@ class DemoSeeder extends Seeder
         if (class_exists(BillingDemoSeeder::class)) {
             $this->call(BillingDemoSeeder::class);
         }
+        if (class_exists(OfferDemoSeeder::class)) {
+            $this->call(OfferDemoSeeder::class);
+        }
     }
 
     /** @return array<int, string> codes of the properties created by this run */

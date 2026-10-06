@@ -42,6 +42,7 @@ return [
     'resolved' => 'Als behoben markiert.',
     'no_errors' => 'Keine Fehler erfasst. Alles läuft reibungslos.',
     'actions' => [
+        'offer.created' => 'Aktion erstellt', 'offer.updated' => 'Aktion geändert', 'offer.activated' => 'Aktion aktiviert', 'offer.deactivated' => 'Aktion deaktiviert', 'offer.deleted' => 'Aktion gelöscht', 'offer.image_changed' => 'Bild der Aktion geändert',
         'auth.login' => 'Benutzeranmeldung', 'auth.logout' => 'Benutzerabmeldung', 'auth.locked' => 'Konto gesperrt',
         'property.created' => 'Neue Unterkunft hinzugefügt', 'property.updated' => 'Unterkunft aktualisiert', 'property.status_changed' => 'Status der Unterkunft geändert',
         'subscription.trial' => 'Testphase gestartet', 'subscription.active' => 'Abonnement aktiviert', 'subscription.expired' => 'Abonnement abgelaufen',
