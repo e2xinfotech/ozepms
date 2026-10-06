@@ -28,7 +28,7 @@ return [
         'reservations' => ['reservations.view', 'reservations.create', 'reservations.update', 'reservations.cancel'],
         'front_desk'   => ['checkin.perform', 'checkout.perform', 'checkout.override_balance', 'housekeeping.update'],
         'guests'       => ['guests.view', 'guests.update'],
-        'billing'      => ['folio.view', 'folio.post', 'payments.manage', 'invoices.manage'],
+        'billing'      => ['folio.view', 'folio.post', 'payments.manage', 'invoices.manage', 'services.manage', 'billing.override'],
         'offers'       => ['offers.manage'],
         'taxes'        => ['taxes.manage'],
         'channels'     => ['channels.manage'],
@@ -59,7 +59,7 @@ return [
             ]],
             'accounts' => ['name' => 'Accounts', 'color' => 'rose', 'permissions' => [
                 'property.view', 'reservations.view', 'guests.view', 'folio.view', 'folio.post',
-                'payments.manage', 'invoices.manage', 'taxes.manage', 'reports.view',
+                'payments.manage', 'invoices.manage', 'services.manage', 'billing.override', 'taxes.manage', 'reports.view',
             ]],
             'revenue_manager' => ['name' => 'Revenue Manager', 'color' => 'purple', 'permissions' => [
                 'property.view', 'rooms.view', 'rate_plans.view', 'rate_plans.create', 'rate_plans.update',

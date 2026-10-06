@@ -4,10 +4,13 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToProperty;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * Table: folios. Owned by Phase 4 (see docs/04-development-guide.md).
- * Relationships and behaviour are added by the owning module.
+ * The bill of a reservation: charge lines (room nights, services, discounts, fees) and the
+ * payments against it. Written only through App\Domain\Billing\FolioService.
+ * charges_total / tax_total / payments_total are running totals of the lines and payments.
  */
 class Folio extends Model
 {
@@ -17,13 +20,40 @@ class Folio extends Model
 
     protected $guarded = ['id'];
 
+    protected $hidden = ['id'];
+
     protected function casts(): array
     {
         return [
             'charges_total' => 'decimal:2',
             'tax_total' => 'decimal:2',
             'payments_total' => 'decimal:2',
-            'closed_at' => 'date',
+            'closed_at' => 'datetime',
         ];
+    }
+
+    public function reservation(): BelongsTo
+    {
+        return $this->belongsTo(Reservation::class);
+    }
+
+    public function lines(): HasMany
+    {
+        return $this->hasMany(FolioLine::class)->orderBy('business_date')->orderBy('id');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class)->orderBy('id');
+    }
+
+    public function billToGuest(): BelongsTo
+    {
+        return $this->belongsTo(Guest::class, 'bill_to_guest_id');
     }
 }

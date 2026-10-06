@@ -24,7 +24,7 @@ return [
         'checkin.perform' => 'Check guests in', 'checkout.perform' => 'Check guests out', 'checkout.override_balance' => 'Check out with an open balance', 'housekeeping.update' => 'Update housekeeping',
         'guests.view' => 'View guests', 'guests.update' => 'Edit guests',
         'folio.view' => 'View folios', 'folio.post' => 'Post charges', 'payments.manage' => 'Record payments & refunds',
-        'invoices.manage' => 'Issue invoices',
+        'invoices.manage' => 'Issue invoices', 'services.manage' => 'Manage services & extras', 'billing.override' => 'Override billing checks (void room charges, open balance)',
         'offers.manage' => 'Manage offers', 'taxes.manage' => 'Manage taxes & fees', 'channels.manage' => 'Manage channels',
         'reports.view' => 'View reports', 'users.manage' => 'Manage users & roles',
     ],

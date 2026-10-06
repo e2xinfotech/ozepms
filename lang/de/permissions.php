@@ -24,7 +24,7 @@ return [
         'checkin.perform' => 'Gäste einchecken', 'checkout.perform' => 'Gäste auschecken', 'checkout.override_balance' => 'Auschecken mit offenem Saldo', 'housekeeping.update' => 'Housekeeping aktualisieren',
         'guests.view' => 'Gäste ansehen', 'guests.update' => 'Gäste bearbeiten',
         'folio.view' => 'Folios ansehen', 'folio.post' => 'Kosten buchen', 'payments.manage' => 'Zahlungen & Erstattungen erfassen',
-        'invoices.manage' => 'Rechnungen ausstellen',
+        'invoices.manage' => 'Rechnungen ausstellen', 'services.manage' => 'Leistungen & Extras verwalten', 'billing.override' => 'Abrechnungsprüfungen übergehen (Übernachtungen stornieren, offener Saldo)',
         'offers.manage' => 'Angebote verwalten', 'taxes.manage' => 'Steuern & Gebühren verwalten', 'channels.manage' => 'Kanäle verwalten',
         'reports.view' => 'Berichte ansehen', 'users.manage' => 'Benutzer & Rollen verwalten',
     ],

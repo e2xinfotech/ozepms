@@ -24,7 +24,7 @@ return [
         'checkin.perform' => 'Effettuare il check-in', 'checkout.perform' => 'Effettuare il check-out', 'checkout.override_balance' => 'Check-out con saldo aperto', 'housekeeping.update' => 'Aggiornare le pulizie',
         'guests.view' => 'Visualizzare gli ospiti', 'guests.update' => 'Modificare gli ospiti',
         'folio.view' => 'Visualizzare i conti', 'folio.post' => 'Addebitare costi', 'payments.manage' => 'Registrare pagamenti e rimborsi',
-        'invoices.manage' => 'Emettere fatture',
+        'invoices.manage' => 'Emettere fatture', 'services.manage' => 'Gestire servizi ed extra', 'billing.override' => 'Ignorare i controlli di fatturazione (stornare notti, saldo aperto)',
         'offers.manage' => 'Gestire le offerte', 'taxes.manage' => 'Gestire tasse e costi', 'channels.manage' => 'Gestire i canali',
         'reports.view' => 'Visualizzare i report', 'users.manage' => 'Gestire utenti e ruoli',
     ],

@@ -115,6 +115,40 @@ return [
         'archive_batch' => 5000,
     ],
 
+    'billing' => [
+        // Folio numbers: prefix + per-property sequence (F-000123).
+        'folio_prefix' => 'F-',
+        // GST invoice numbers (max 16 characters, unique per property and financial year, gap-free):
+        // {code}/{fy}/{seq}: P1001/2627/00123. Credit notes use their own series: P1001/C2627/0012.
+        'invoice_seq_digits' => 5,
+        'credit_note_seq_digits' => 4,
+        // First month of the financial year (India: April).
+        'financial_year_start_month' => (int) env('OZ_FY_START_MONTH', 4),
+        // SAC / HSN code printed for room nights (India: 9963 accommodation services).
+        'accommodation_sac' => '9963',
+        // Rounds invoice totals to whole currency units with a round-off line (off: payments match the folio exactly).
+        'invoice_round_off' => (bool) env('OZ_INVOICE_ROUND_OFF', false),
+        // Issue the tax invoice automatically when the last room checks out.
+        'invoice_on_checkout' => true,
+        // Tax category used for cancellation / no-show fees; null = fee posted without tax.
+        'cancellation_fee_tax_category' => env('OZ_CANCELLATION_FEE_TAX_CATEGORY') ?: null,
+        // Night audit: default local time (property timezone) after which the previous business
+        // day is closed; per property in property_settings key "night_audit_time".
+        'night_audit_time' => env('OZ_NIGHT_AUDIT_TIME', '02:00'),
+        // Mark confirmed / pending arrivals of the audited day that never checked in as no-show.
+        'auto_no_show' => (bool) env('OZ_AUTO_NO_SHOW', true),
+        // Most business days one audit run catches up (a property that was offline for long).
+        'night_audit_max_days' => 7,
+        'razorpay' => [
+            // Online payments are available only when all three values are set.
+            'key_id' => env('RAZORPAY_KEY_ID'),
+            'key_secret' => env('RAZORPAY_KEY_SECRET'),
+            'webhook_secret' => env('RAZORPAY_WEBHOOK_SECRET'),
+            'base_url' => env('RAZORPAY_BASE_URL', 'https://api.razorpay.com/v1'),
+            'timeout' => 15,
+        ],
+    ],
+
     'uploads' => [
         'max_image_kb' => 4096,
         'image_mimes' => ['jpg', 'jpeg', 'png', 'webp'],

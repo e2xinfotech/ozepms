@@ -5,8 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Table: payment_gateway_events. Owned by Phase 4 (see docs/04-development-guide.md).
- * Relationships and behaviour are added by the owning module.
+ * Every webhook call received from a payment gateway, valid or not (platform-level table,
+ * no tenant scope: the property is only known after the payload is read).
+ * (gateway, event_id) is unique, so a replayed event is stored and processed once.
  */
 class PaymentGatewayEvent extends Model
 {
@@ -21,7 +22,7 @@ class PaymentGatewayEvent extends Model
         return [
             'signature_valid' => 'boolean',
             'payload' => 'array',
-            'processed_at' => 'date',
+            'processed_at' => 'datetime',
         ];
     }
 }

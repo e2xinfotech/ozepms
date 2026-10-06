@@ -120,7 +120,7 @@ class PropertyCopyService
 
         $this->rows('tax_rules', $from, $to, [], publicId: true);
         $this->children('tax_rule_scopes', 'tax_rule_id', 'tax_rules', ['room_type_id' => 'room_types', 'rate_plan_id' => 'rate_plans']);
-        $this->rows('services', $from, $to);
+        $this->rows('services', $from, $to, publicId: true);
 
         $this->translations($from, $to);
 

@@ -24,7 +24,7 @@ return [
         'checkin.perform' => 'Enregistrer les arrivées', 'checkout.perform' => 'Enregistrer les départs', 'checkout.override_balance' => 'Enregistrer un départ avec un solde ouvert', 'housekeeping.update' => 'Mettre à jour le ménage',
         'guests.view' => 'Voir les clients', 'guests.update' => 'Modifier les clients',
         'folio.view' => 'Voir les folios', 'folio.post' => 'Imputer des frais', 'payments.manage' => 'Enregistrer paiements et remboursements',
-        'invoices.manage' => 'Émettre des factures',
+        'invoices.manage' => 'Émettre des factures', 'services.manage' => 'Gérer les services et extras', 'billing.override' => 'Passer outre les contrôles de facturation (annuler des nuitées, solde ouvert)',
         'offers.manage' => 'Gérer les offres', 'taxes.manage' => 'Gérer taxes et frais', 'channels.manage' => 'Gérer les canaux',
         'reports.view' => 'Voir les rapports', 'users.manage' => 'Gérer utilisateurs et rôles',
     ],
