@@ -74,8 +74,16 @@ class ReservationsController extends Controller
     public function quote(QuoteReservationRequest $request, StayPricer $pricer): JsonResponse
     {
         $property = $this->context->property();
-        $rooms = $this->roomSpecs($request->validated('rooms') ?? []);
+        // Editing: rooms of the reservation keep the prices of their unchanged nights (as on save).
+        $reservation = $request->validated('reservation_id') ? $this->reservationOr404((string) $request->validated('reservation_id')) : null;
+        $rooms = $this->roomSpecs($request->validated('rooms') ?? [], $reservation);
         foreach ($rooms as $i => &$r) {
+            if ($r['id'] !== null && $r['rate'] === null) {
+                $old = \App\Models\ReservationRoom::query()->find($r['id']);
+                if ($old && (int) $old->product_id === (int) $r['product']->id && (int) $old->adults === $r['adults'] && (int) $old->children === $r['children'] && (int) $old->infants === $r['infants']) {
+                    $r['keep'] = $this->service->keptPrices($old);
+                }
+            }
             $r['check_in'] = CarbonImmutable::parse($r['check_in']);
             $r['check_out'] = CarbonImmutable::parse($r['check_out']);
             $r['child_ages'] = $r['child_ages'] ?? [...array_fill(0, (int) ($r['children'] ?? 0), 8), ...array_fill(0, (int) ($r['infants'] ?? 0), 0)];

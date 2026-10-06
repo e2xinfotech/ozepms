@@ -200,3 +200,18 @@ master tables), then the `inventory_daily`, `ari_daily` and `ari_daily_occupancy
 (`ix_inv_property_date`, `ix_ari_property_date`, `ix_ario_property_date`) and the age bands. The daily queries take
 1–3 ms; the rest of the time is pricing and restriction checks in PHP for 40 products, which grows with the number
 of nights. With opcache and JIT enabled the p95 figures are 25 / 36 / 61 / 89 ms.
+
+## Phase 4 additions (reservations)
+
+Migration `2026_10_04_000002_add_front_office_columns`:
+
+| Change | Why / index |
+|---|---|
+| `guests.guest_no` (per-property number, `uq_guests_no`), `title`, `guest_type`, `tags` (JSON), `preferences`; `ix_guests_created` | Guest list "G-000001", filters, created-date range |
+| `reservations.arrival_time`, `departure_time`, `purpose`, `market`, `travel_agent`, `company_name`, `channel_ref`, `updated_by`; `ix_res_rooms (property_id, room_count, check_in)`, `ix_res_checkin_date (property_id, check_in, check_out)` | Stay details on the form; "Group" tab; stay-date range filter |
+| `reservation_rooms.public_id` (`uq_rr_public`) | Pages address a room (assign, check in) without internal ids |
+| `notes` (`ix_notes_subject`) | Append-only notes on reservations and guests |
+| `guest_documents` (`ix_gdoc_guest`, `ix_gdoc_res`) | Metadata of uploaded ID scans; files on the private disk |
+| System rows in `booking_sources` | direct, walk_in, phone, email, booking_engine, ota, travel_agent, corporate |
+
+Rules kept by `ReservationService`: `inventory_daily.sold` = number of active `reservation_room_nights` (drafts, cancelled and no-show rooms have inactive nights); `unit_nights` PK prevents double assignment of a PMS room; booking references `R-<year><seq>` and guest numbers come from `property_counters` (row locked until commit); `reservations.idempotency_key` (unique per property) makes a repeated create return the first booking.

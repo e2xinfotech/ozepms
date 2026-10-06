@@ -53,7 +53,7 @@ function FrontDeskPage({ list, filters, can }: Props) {
         },
         { key: 'check_in', header: t('reservations.columns.check_in'), render: (r) => <span className="nowrap"><StayDate value={r.check_in} late={r.late_arrival} /></span> },
         { key: 'check_out', header: t('reservations.columns.check_out'), render: (r) => <span className="nowrap"><StayDate value={r.check_out} late={r.late_departure} /></span> },
-        { key: 'nights', header: t('reservations.columns.nights'), align: 'right', render: (r) => r.nights },
+        { key: 'nights', header: t('reservations.columns.nights'), align: 'right', className: 'col-wide', render: (r) => r.nights },
         { key: 'guests', header: t('reservations.columns.guests'), align: 'right', render: (r) => <GuestCount adults={r.adults} children={r.children} infants={r.infants} /> },
         { key: 'balance', header: t('reservations.columns.balance'), align: 'right', render: (r) => <Money value={r.balance} currency={r.currency} /> },
         { key: 'status', header: t('reservations.columns.status'), render: (r) => <StatusBadge size="sm" status={r.status} /> },
@@ -89,8 +89,10 @@ function FrontDeskPage({ list, filters, can }: Props) {
             <PillTabs active={tab} onChange={(k) => navigateWithQuery({ tab: k === 'arrivals' ? null : k })}
                 items={(['arrivals', 'in_house', 'departures'] as Tab[]).map((k) => ({ key: k, label: t(`reservations.front_desk.tabs.${k}`), count: list.counts[k] }))} />
 
-            <DataTable columns={columns} rows={list.rows} rowKey={(r) => r.id}
-                empty={<EmptyState icon="concierge-bell" title={t(`reservations.front_desk.empty.${tab}`)} />} />
+            <div className="res-table">
+                <DataTable columns={columns} rows={list.rows} rowKey={(r) => r.id}
+                    empty={<EmptyState icon="concierge-bell" title={t(`reservations.front_desk.empty.${tab}`)} />} />
+            </div>
             <Pagination meta={list.meta} label={t('reservations.reservation_plural')} />
 
             {active && <ReservationDialogs reservation={active.r} kind={active.kind} roomId={active.room}

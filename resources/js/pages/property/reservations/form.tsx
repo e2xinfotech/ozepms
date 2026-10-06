@@ -132,7 +132,7 @@ function ReservationForm({ reservation: res, guest: presetGuest, options, defaul
         const valid = rooms.filter((r) => r.room_type_id && r.rate_plan_id && r.check_out > r.check_in);
         if (valid.length === 0 || valid.length !== rooms.length) { setQuote(null); return; }
         let alive = true;
-        http.post<Quote>(propertyApiUrl('/reservations/quote'), { rooms: rooms.map(roomPayload) })
+        http.post<Quote>(propertyApiUrl('/reservations/quote'), { rooms: rooms.map(roomPayload), reservation_id: res?.id ?? null })
             .then((q) => { if (alive) { setQuote(q); setQuoteError(null); } })
             .catch((e: ApiError) => { if (alive) { setQuote(null); setQuoteError(Object.values(e.fields)[0]?.[0] ?? t('reservations.form.quote_failed')); } });
         return () => { alive = false; };
@@ -308,7 +308,7 @@ function ReservationForm({ reservation: res, guest: presetGuest, options, defaul
                                 <dt>{t('reservations.fields.check_in')}</dt><dd>{date(stay.check_in)} <span className="muted">{stay.arrival_time}</span></dd>
                                 <dt>{t('reservations.fields.check_out')}</dt><dd>{date(stay.check_out)} <span className="muted">{stay.departure_time}</span></dd>
                                 <dt>{t('reservations.fields.nights')}</dt><dd className="num">{nights}</dd>
-                                <dt>{t('reservations.columns.room_no')}</dt><dd className="num">{rooms.length}</dd>
+                                <dt>{t('reservations.panel_tabs.rooms')}</dt><dd className="num">{rooms.length}</dd>
                                 <dt>{t('reservations.fields.guests')}</dt><dd>{t('reservations.adults_children', { adults: sumGuests.adults, children: sumGuests.children })}</dd>
                                 {firstRow && <><dt>{t('reservations.fields.room_type')}</dt><dd>{roomType(firstRow.room_type_id)?.label ?? '—'}{rooms.length > 1 ? ` ${t('reservations.multiple_rooms', { count: rooms.length - 1 })}` : ''}</dd>
                                     <dt>{t('reservations.fields.rate_plan')}</dt><dd>{options.rate_plans.find((p) => p.value === firstRow.rate_plan_id)?.label ?? '—'}</dd></>}

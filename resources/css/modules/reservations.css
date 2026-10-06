@@ -138,3 +138,9 @@
 .side-panel .table.compact th:nth-child(4) { width: 26%; }
 .side-panel .table.compact th:nth-child(5) { width: 24%; }
 .side-panel .table.compact td { overflow: hidden; text-overflow: ellipsis; }
+/* Reservation list at laptop width: denser cells so every column fits without scrolling */
+@media (max-width: 1600px) {
+    .res-table .table th, .res-table .table td { padding-left: 8px; padding-right: 8px; font-size: var(--text-sm); }
+    .res-table .guest-cell .avatar { display: none; }
+}
+@media (max-width: 1500px) { .res-table .table .col-wide { display: none; } }

@@ -49,8 +49,8 @@ function ReservationsPage({ list, filters, options, can }: Props) {
         { key: 'nights', header: t('reservations.columns.nights'), sortable: true, align: 'right', render: (r) => r.nights },
         { key: 'guests', header: t('reservations.columns.guests'), align: 'right', render: (r) => <GuestCount adults={r.adults} children={r.children} infants={r.infants} /> },
         { key: 'total', header: t('reservations.columns.total'), sortable: true, align: 'right', render: (r) => <Money value={r.total} currency={r.currency} /> },
-        { key: 'status', header: t('reservations.columns.status'), sortable: true, render: (r) => <StatusBadge size="sm" status={r.room_count > 1 && r.status === 'confirmed' ? 'confirmed' : r.status} /> },
-        { key: 'source', header: t('reservations.columns.source'), className: 'hide-with-panel', render: (r) => sourceLabel(r) },
+        { key: 'status', header: t('reservations.columns.status'), sortable: true, render: (r) => <StatusBadge size="sm" status={r.status} /> },
+        { key: 'source', header: t('reservations.columns.source'), className: 'hide-with-panel col-wide', render: (r) => sourceLabel(r) },
         {
             key: 'actions', header: t('reservations.columns.actions'), className: 'col-actions', render: (r) => (
                 <RowMenu items={[

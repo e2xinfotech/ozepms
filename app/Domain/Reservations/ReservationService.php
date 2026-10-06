@@ -213,9 +213,7 @@ class ReservationService
                 }
                 // Keep the prices of nights that stay the same (same product and guests, no manual rate).
                 if ($old !== null && $sameProduct && $sameGuests && $spec['rate'] === null) {
-                    $spec['keep'] = $old->nights->where('is_active', true)->mapWithKeys(fn ($n) => [
-                        $n->stay_date->toDateString() => ['price' => Money::add((string) $n->base_price, (string) $n->occupancy_adjust), 'base_price' => (string) $n->base_price, 'occupancy_adjust' => (string) $n->occupancy_adjust],
-                    ])->all();
+                    $spec['keep'] = $this->keptPrices($old);
                 }
                 $spec['old'] = $old;
             }
@@ -613,6 +611,20 @@ class ReservationService
                 ->whereNull('unit_blocks.released_at')->whereIn('unit_blocks.block_type', InventoryService::BLOCKING_TYPES)
                 ->where('unit_blocks.start_date', '<', $to->toDateString())->where('unit_blocks.end_date', '>', $from->toDateString()))
             ->orderBy('sort_order')->orderBy('name')->get();
+    }
+
+    /**
+     * Night prices of an existing room that stay valid when only its dates change.
+     *
+     * @return array<string, array{price: string, base_price: string, occupancy_adjust: string}>
+     */
+    public function keptPrices(ReservationRoom $room): array
+    {
+        $nights = $room->relationLoaded('nights') ? $room->nights : $room->nights()->get();
+
+        return $nights->where('is_active', true)->mapWithKeys(fn ($n) => [
+            $n->stay_date->toDateString() => ['price' => Money::add((string) $n->base_price, (string) $n->occupancy_adjust), 'base_price' => (string) $n->base_price, 'occupancy_adjust' => (string) $n->occupancy_adjust],
+        ])->all();
     }
 
     public function today(Property $property): CarbonImmutable

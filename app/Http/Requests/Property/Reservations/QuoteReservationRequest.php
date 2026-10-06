@@ -7,6 +7,7 @@ class QuoteReservationRequest extends SaveReservationRequest
 {
     public function rules(): array
     {
-        return array_filter(parent::rules(), fn ($key) => str_starts_with($key, 'rooms'), ARRAY_FILTER_USE_KEY);
+        return array_filter(parent::rules(), fn ($key) => str_starts_with($key, 'rooms'), ARRAY_FILTER_USE_KEY)
+            + ['reservation_id' => ['nullable', 'string', 'size:26']];
     }
 }
