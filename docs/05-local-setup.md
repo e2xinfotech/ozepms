@@ -95,6 +95,19 @@ php artisan storage:link
 The owner and the Super Admin must set up two-step verification at first sign-in
 (turn this off locally with `OZ_REQUIRE_2FA_OWNERS=false` / `OZ_REQUIRE_2FA_PLATFORM=false` if needed).
 
+**Sign-in (one login page for everybody): `http://ozepms.test/login`**
+
+| Who | E-mail | Password | Lands on |
+|---|---|---|---|
+| Super Admin | `OZ_ADMIN_EMAIL` (default `admin@e2xinfotech.in`) | `OZ_ADMIN_PASSWORD` from `.env`; if empty, a password is generated and printed once by `migrate --seed` | `/admin` |
+| Property owner (demo) | `owner@demo.ozepms.test` | `OZ_DEMO_PASSWORD` (default `Demo@12345`) | `/properties` → P1001 / P1002 |
+| Hotel manager (demo) | `manager@demo.ozepms.test` | same | `/p/P1001/dashboard` |
+| Front desk (demo) | `frontdesk@demo.ozepms.test` | same | `/p/P1001/dashboard` (fewer menus) |
+
+Lost or unknown password: `php artisan user:reset-password admin@e2xinfotech.in` (prints a new one once) or
+`php artisan user:reset-password admin@e2xinfotech.in --password='Your#Strong2026'`.
+Public booking engine (no login): `http://ozepms.test/book/P1001`.
+
 ## 4. Serve the site at `http://ozepms.test`
 
 ### Option A — Laravel Herd (simplest)

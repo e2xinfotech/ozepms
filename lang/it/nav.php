@@ -29,7 +29,7 @@ return [
     'switch_property' => 'Cambia struttura',
     'all_properties' => 'Tutte le mie strutture',
     'search_property' => 'Cerca prenotazione, ospite, camera…',
-    'search_platform' => 'Cerca strutture, utenti, prenotazioni…',
+    'search_platform' => 'Cerca strutture per nome o codice…',
     'language' => 'Lingua',
     'notifications' => 'Notifiche',
     'no_notifications' => 'Nessuna nuova notifica.',

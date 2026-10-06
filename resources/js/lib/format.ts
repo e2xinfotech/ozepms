@@ -55,6 +55,19 @@ export function money(amount: number | string | null | undefined, currency: stri
     }
 }
 
+/** Money for narrow KPI tiles: whole units, and a short form (e.g. 2.2L / 224K / 1.5M) from 100,000 up. */
+export function moneyShort(amount: number | string | null | undefined, currency: string): string {
+    if (amount === null || amount === undefined || amount === '') return '—';
+    const value = typeof amount === 'string' ? Number(amount) : amount;
+    try {
+        const big = Math.abs(value) >= 100000;
+        const formatted = new Intl.NumberFormat(numberLocale(), big ? { notation: 'compact', maximumFractionDigits: 1 } : { maximumFractionDigits: 0 }).format(value);
+        return `${currency} ${formatted}`;
+    } catch {
+        return money(amount, currency);
+    }
+}
+
 export function number(value: number | null | undefined, digits = 0): string {
     if (value === null || value === undefined) return '—';
     return new Intl.NumberFormat(numberLocale(), { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(value);

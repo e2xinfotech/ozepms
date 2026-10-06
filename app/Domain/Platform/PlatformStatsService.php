@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Figures for the Super Admin dashboard. Booking and revenue figures come from
- * modules delivered in later phases; until those tables exist they report zero.
+ * Figures for the Super Admin dashboard (properties, rooms, users, bookings, room revenue,
+ * subscriptions). Counts of modules whose tables do not exist report zero.
  */
 class PlatformStatsService
 {
@@ -30,8 +30,31 @@ class PlatformStatsService
             'rooms' => $this->countIfTable('physical_units', fn ($q) => $q->whereNull('deleted_at')->where('is_active', true)),
             'users' => User::query()->where('status', 'active')->count(),
             'bookings_month' => $this->countIfTable('reservations', fn ($q) => $q->where('created_at', '>=', now()->startOfMonth())),
-            'revenue_month' => null,
+            'revenue_month' => $this->roomRevenueThisMonth(),
         ];
+    }
+
+    /**
+     * Room revenue of all properties for stay nights in the current month (net of discounts,
+     * before tax), one total per currency because properties bill in their own currency.
+     *
+     * @return list<array{currency: string, amount: string}>
+     */
+    private function roomRevenueThisMonth(): array
+    {
+        if (! Schema::hasTable('reservation_room_nights')) {
+            return [];
+        }
+
+        return DB::table('reservation_room_nights as n')
+            ->join('properties as p', 'p.id', '=', 'n.property_id')
+            ->where('n.is_active', true)
+            ->whereBetween('n.stay_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
+            ->groupBy('p.currency_code')->orderBy('p.currency_code')
+            ->selectRaw('p.currency_code as currency, SUM(n.net_price) as amount')
+            ->get()
+            ->map(fn ($r) => ['currency' => $r->currency, 'amount' => number_format((float) $r->amount, 2, '.', '')])
+            ->all();
     }
 
     /**

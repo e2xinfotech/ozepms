@@ -51,7 +51,7 @@ return [
         'subscription.grace' => 'Abonnement in Kulanzzeit', 'subscription.suspended' => 'Abonnement gesperrt',
         'user.created' => 'Benutzer angelegt', 'user.updated' => 'Benutzer aktualisiert', 'user.status_changed' => 'Benutzerstatus geändert',
         'user.password_link_sent' => 'Passwort-Link gesendet', 'user.two_factor_enabled' => 'Zwei-Faktor-Authentifizierung aktiviert', 'user.two_factor_disabled' => 'Zwei-Faktor-Authentifizierung deaktiviert',
-        'user.password_changed' => 'Passwort geändert', 'user.platform_roles_changed' => 'Plattformrollen geändert',
+        'user.password_changed' => 'Passwort geändert', 'user.password_reset_console' => 'Passwort über die Server-Konsole zurückgesetzt', 'user.platform_roles_changed' => 'Plattformrollen geändert',
         'property_user.added' => 'Benutzer zur Unterkunft hinzugefügt', 'property_user.role_changed' => 'Benutzerrolle geändert',
         'property_user.removed' => 'Benutzer aus Unterkunft entfernt', 'property_user.status_changed' => 'Benutzerzugriff geändert',
         'role.created' => 'Rolle angelegt', 'role.updated' => 'Rolle aktualisiert', 'role.deleted' => 'Rolle gelöscht',

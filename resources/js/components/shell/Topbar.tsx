@@ -62,10 +62,10 @@ export function Topbar({ shell, onMenu }: { shell: ShellData; onMenu: () => void
 
             {property && <GlobalSearch placeholder={t('nav.search_property')} />}
             {!property && shell.is_platform && <div className="topbar-search">
-                <div className="control">
+                <form className="control" role="search" action="/admin/properties" method="get">
                     <Icon name="search" size={18} className="control-icon" />
-                    <input type="search" placeholder={t('nav.search_platform')} aria-label={t('ui.search')} />
-                </div>
+                    <input type="search" name="q" maxLength={100} placeholder={t('nav.search_platform')} aria-label={t('ui.search')} />
+                </form>
             </div>}
 
             <div className="topbar-actions">

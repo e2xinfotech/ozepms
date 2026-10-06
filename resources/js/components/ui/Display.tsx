@@ -22,17 +22,17 @@ export function Flag({ code, large }: { code?: string | null; large?: boolean })
     return <span className={clsx('fi', `fi-${code.toLowerCase()}`, large && 'flag-lg')} aria-hidden />;
 }
 
-export function KpiCard({ icon, tone = 'blue', label, value, sub, change, compact, active, onClick }: {
-    icon: string; tone?: Tone; label: ReactNode; value: ReactNode; sub?: ReactNode; change?: number | null;
+export function KpiCard({ icon, tone = 'blue', label, value, sub, change, compact, active, onClick, title, fit }: {
+    icon: string; tone?: Tone; label: ReactNode; value: ReactNode; sub?: ReactNode; change?: number | null; title?: string; fit?: boolean;
     compact?: boolean; active?: boolean; onClick?: () => void;
 }) {
     const Tag = onClick ? 'button' : 'div';
     return (
-        <Tag className={clsx('kpi', compact && 'compact', onClick && 'button', active && 'active')} onClick={onClick} type={onClick ? 'button' : undefined}>
+        <Tag className={clsx('kpi', compact && 'compact', onClick && 'button', active && 'active', fit && 'kpi-fit')} onClick={onClick} type={onClick ? 'button' : undefined}>
             <span className={clsx('kpi-icon', `tone-${tone}`)}><Icon name={icon} size={compact ? 18 : 26} /></span>
             <span className="grow">
                 {!compact && <span className="kpi-label" style={{ display: 'block' }} title={typeof label === 'string' ? label : undefined}>{label}</span>}
-                <span className="kpi-value num">
+                <span className="kpi-value num" title={title}>
                     {value}
                     {change !== undefined && change !== null && <Change value={change} />}
                 </span>

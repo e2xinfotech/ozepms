@@ -23,7 +23,7 @@ class PlatformStatsServiceTest extends TestCase
         $this->assertSame(1, $s['properties_onboarding']);
         $this->assertSame(0, $s['rooms']);
         $this->assertSame(0, $s['bookings_month']);
-        $this->assertNull($s['revenue_month']);
+        $this->assertSame([], $s['revenue_month']);
     }
 
     public function test_booking_performance_has_one_point_per_day(): void

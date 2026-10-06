@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { BarLineChart, Donut } from '@/components/charts/Charts';
 import { Badge, Card, DateRange, EmptyState, Icon, KpiCard, LinkButton, PageHeader, Progress, Segmented } from '@/components/ui';
-import { money, number, percent, shortDate } from '@/lib/format';
+import { money, moneyShort, number, percent, shortDate } from '@/lib/format';
 import { navigateWithQuery } from '@/lib/http';
 import { t, tOr } from '@/lib/i18n';
 import { createPage } from '@/lib/boot';
@@ -102,7 +102,7 @@ function DashboardPage({ dashboard: d, max_range_days, onboarding }: { dashboard
                 <KpiCard icon="check-circle" tone="green" label={t('property.dashboard.occupied')} value={number(d.kpis.occupied)} sub={t('property.dashboard.occupancy_pct', { p: number(d.kpis.occupancy, 1) })} />
                 <KpiCard icon="user" tone="violet" label={t('property.dashboard.arrivals')} value={number(d.kpis.arrivals)} sub={t('property.dashboard.new_checkins')} />
                 <KpiCard icon="briefcase" tone="orange" label={t('property.dashboard.departures')} value={number(d.kpis.departures)} sub={t('property.dashboard.checkouts')} />
-                <KpiCard icon="circle-dollar-sign" tone="red" label={t('property.dashboard.revenue')} value={money(d.kpis.revenue, cur)} sub={t('property.dashboard.selected_range')} />
+                <KpiCard icon="circle-dollar-sign" tone="red" label={t('property.dashboard.revenue')} fit value={moneyShort(d.kpis.revenue, cur)} title={money(d.kpis.revenue, cur)} sub={t('property.dashboard.selected_range')} />
             </div>
 
             <div className="dash-grid">

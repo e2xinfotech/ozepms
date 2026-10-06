@@ -29,7 +29,7 @@ return [
     'switch_property' => 'Unterkunft wechseln',
     'all_properties' => 'Alle meine Unterkünfte',
     'search_property' => 'Buchung, Gast, Zimmer suchen…',
-    'search_platform' => 'Unterkünfte, Benutzer, Buchungen suchen…',
+    'search_platform' => 'Unterkünfte nach Name oder Code suchen…',
     'language' => 'Sprache',
     'notifications' => 'Benachrichtigungen',
     'no_notifications' => 'Keine neuen Benachrichtigungen.',

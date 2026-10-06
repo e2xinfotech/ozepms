@@ -51,7 +51,7 @@ return [
         'subscription.grace' => 'Subscription in grace period', 'subscription.suspended' => 'Subscription suspended',
         'user.created' => 'User created', 'user.updated' => 'User updated', 'user.status_changed' => 'User status changed',
         'user.password_link_sent' => 'Password link sent', 'user.two_factor_enabled' => '2FA enabled', 'user.two_factor_disabled' => '2FA disabled',
-        'user.password_changed' => 'Password changed', 'user.platform_roles_changed' => 'Platform roles changed',
+        'user.password_changed' => 'Password changed', 'user.password_reset_console' => 'Password reset from the server console', 'user.platform_roles_changed' => 'Platform roles changed',
         'property_user.added' => 'User added to property', 'property_user.role_changed' => 'User role changed',
         'property_user.removed' => 'User removed from property', 'property_user.status_changed' => 'User access changed',
         'role.created' => 'Role created', 'role.updated' => 'Role updated', 'role.deleted' => 'Role deleted',

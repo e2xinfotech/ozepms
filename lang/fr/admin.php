@@ -51,7 +51,7 @@ return [
         'subscription.grace' => 'Abonnement en période de grâce', 'subscription.suspended' => 'Abonnement suspendu',
         'user.created' => 'Utilisateur créé', 'user.updated' => 'Utilisateur mis à jour', 'user.status_changed' => 'Statut de l\'utilisateur modifié',
         'user.password_link_sent' => 'Lien de mot de passe envoyé', 'user.two_factor_enabled' => 'Double authentification activée', 'user.two_factor_disabled' => 'Double authentification désactivée',
-        'user.password_changed' => 'Mot de passe modifié', 'user.platform_roles_changed' => 'Rôles de plateforme modifiés',
+        'user.password_changed' => 'Mot de passe modifié', 'user.password_reset_console' => 'Mot de passe réinitialisé depuis la console du serveur', 'user.platform_roles_changed' => 'Rôles de plateforme modifiés',
         'property_user.added' => 'Utilisateur ajouté à l\'établissement', 'property_user.role_changed' => 'Rôle de l\'utilisateur modifié',
         'property_user.removed' => 'Utilisateur retiré de l\'établissement', 'property_user.status_changed' => 'Accès de l\'utilisateur modifié',
         'role.created' => 'Rôle créé', 'role.updated' => 'Rôle mis à jour', 'role.deleted' => 'Rôle supprimé',

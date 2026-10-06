@@ -1,12 +1,12 @@
 import { BarLineChart, Donut } from '@/components/charts/Charts';
 import { Badge, Card, EmptyState, Flag, Icon, KpiCard, LinkButton, PageHeader, Select } from '@/components/ui';
 import { createPage } from '@/lib/boot';
-import { money, number, relative, shortDate } from '@/lib/format';
+import { money, moneyShort, number, relative, shortDate } from '@/lib/format';
 import { navigateWithQuery } from '@/lib/http';
 import { t } from '@/lib/i18n';
 
 interface Props {
-    summary: { properties: number; properties_active: number; properties_inactive: number; properties_onboarding: number; countries: number; rooms: number; users: number; bookings_month: number; revenue_month: string | null };
+    summary: { properties: number; properties_active: number; properties_inactive: number; properties_onboarding: number; countries: number; rooms: number; users: number; bookings_month: number; revenue_month: { currency: string; amount: string }[] };
     distribution: { type: string; label: string; total: number }[];
     activity: { action: string; label: string; user: string | null; property: string | null; at: string | null }[];
     system: { open_errors: number; errors_24h: number; expiring_subscriptions: number; onboarding_properties: number; connected_channels: number };
@@ -42,7 +42,7 @@ function AdminDashboardPage(p: Props) {
                 <KpiCard icon="bed-double" tone="sky" label={t('admin.kpi.rooms')} value={number(s.rooms)} sub={t('admin.kpi.all_properties')} />
                 <KpiCard icon="users" tone="violet" label={t('admin.kpi.users')} value={number(s.users)} sub={t('admin.kpi.active_users')} />
                 <KpiCard icon="calendar-check" tone="green" label={t('admin.kpi.bookings')} value={number(s.bookings_month)} sub={t('admin.kpi.this_month')} />
-                <KpiCard icon="circle-dollar-sign" tone="red" label={t('admin.kpi.revenue')} value={s.revenue_month ?? '—'} sub={t('admin.kpi.this_month_all')} />
+                <KpiCard icon="circle-dollar-sign" tone="red" label={t('admin.kpi.revenue')} fit value={s.revenue_month.length === 0 ? '—' : s.revenue_month.length === 1 ? moneyShort(s.revenue_month[0].amount, s.revenue_month[0].currency) : <span className="kpi-lines">{s.revenue_month.map((r) => <span key={r.currency}>{moneyShort(r.amount, r.currency)}</span>)}</span>} title={s.revenue_month.map((r) => money(r.amount, r.currency)).join(' · ') || undefined} sub={t('admin.kpi.this_month_all')} />
             </div>
 
             <div className="dash-grid">

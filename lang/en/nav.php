@@ -29,7 +29,7 @@ return [
     'switch_property' => 'Switch property',
     'all_properties' => 'All my properties',
     'search_property' => 'Search booking, guest, room…',
-    'search_platform' => 'Search properties, users, bookings…',
+    'search_platform' => 'Search properties by name or code…',
     'language' => 'Language',
     'notifications' => 'Notifications',
     'no_notifications' => 'You are all caught up.',
