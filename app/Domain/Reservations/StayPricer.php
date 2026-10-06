@@ -3,6 +3,9 @@
 namespace App\Domain\Reservations;
 
 use App\Domain\Inventory\StayDates;
+use App\Domain\Offers\OfferContext;
+use App\Domain\Offers\OfferResult;
+use App\Domain\Offers\OfferService;
 use App\Domain\Pricing\Exceptions\NoRateException;
 use App\Domain\Pricing\PricingService;
 use App\Domain\Tax\TaxService;
@@ -21,30 +24,67 @@ use Illuminate\Validation\ValidationException;
  *   price for every night), 'keep' => array<date, price> (nights whose price is kept, modify)].
  *
  * Result per room: ['nights' => [date => [base_price, occupancy_adjust, discount, price, net_price,
- *   tax_amount]], 'room_total' (taxable), 'tax_total', 'grand_total', 'components' => [code => amount]].
+ *   tax_amount]], 'room_total' (taxable), 'discount_total' (offers), 'tax_total', 'grand_total', 'components' => [code => amount]].
  * Amounts are decimal strings rounded to the currency.
+ *
+ * With an OfferContext, offers (OfferService) lower the night prices before tax. Rooms with a manual
+ * price get no offer; kept nights (modify) keep their price and discount and are never re-discounted,
+ * unless the room spec has 'reoffer' (the promo code was changed): then their offers are worked out again.
  */
 class StayPricer
 {
     public function __construct(
         private readonly PricingService $pricing,
         private readonly TaxService $taxes,
+        private readonly OfferService $offers,
     ) {}
 
     /**
      * @param  array<int|string, array<string, mixed>>  $rooms  keyed like the request (rooms.N)
      * @return array<int|string, array<string, mixed>>
      */
-    public function price(Property $property, array $rooms): array
+    public function price(Property $property, array $rooms, ?OfferContext $context = null, ?OfferResult &$applied = null): array
     {
         $currency = (string) $property->currency_code;
         $places = Money::minorUnits($currency);
         $lines = [];
         $index = [];
         $result = [];
+        $nightsOf = [];
+        foreach ($rooms as $key => $spec) {
+            $nightsOf[$key] = $this->nightPrices($spec, (string) $key, $places);
+        }
+
+        $applied = OfferResult::none();
+        if ($context !== null) {
+            $offerRooms = [];
+            foreach ($rooms as $key => $spec) {
+                if (($spec['rate'] ?? null) !== null || $nightsOf[$key] === []) {
+                    continue;
+                }
+                $offerRooms[$key] = [
+                    'room_type_id' => (int) $spec['product']->room_type_id, 'rate_plan_id' => (int) $spec['product']->rate_plan_id,
+                    'check_in' => $spec['check_in'], 'check_out' => $spec['check_out'], 'adults' => (int) $spec['adults'],
+                    // Offers work on the price before any discount; kept nights are fixed.
+                    'nights' => array_map(fn ($n) => Money::add($n['price'], $n['discount']), $nightsOf[$key]),
+                    'fixed' => ! empty($spec['reoffer']) ? [] : array_keys($spec['keep'] ?? []),
+                ];
+            }
+            $applied = $this->offers->evaluate($property, $context, $offerRooms);
+            foreach ($applied->rooms as $key => $room) {
+                foreach ($room['nights'] as $date => $discount) {
+                    if (Money::isPositive($discount) && (! empty($rooms[$key]['reoffer']) || ! isset($rooms[$key]['keep'][$date]))) {
+                        $n = &$nightsOf[$key][$date];
+                        $n['discount'] = Money::round($discount, $places);
+                        $n['price'] = Money::round(Money::sub(Money::add($n['base_price'], $n['occupancy_adjust']), $discount), $places);
+                        unset($n);
+                    }
+                }
+            }
+        }
 
         foreach ($rooms as $key => $spec) {
-            $nights = $this->nightPrices($spec, (string) $key, $places);
+            $nights = $nightsOf[$key];
             $persons = (int) $spec['adults'] + count($spec['child_ages'] ?? []);
             $result[$key] = ['nights' => $nights];
             foreach ($nights as $date => $n) {
@@ -71,6 +111,7 @@ class StayPricer
             $net = Money::sum(array_column($room['nights'], 'net_price'));
             $tax = Money::sum(array_column($room['nights'], 'tax_amount'));
             $result[$key]['room_total'] = Money::round($net, $places);
+            $result[$key]['discount_total'] = Money::round(Money::sum(array_column($room['nights'], 'discount')), $places);
             $result[$key]['tax_total'] = Money::round($tax, $places);
             $result[$key]['grand_total'] = Money::round(Money::add($net, $tax), $places);
             $result[$key]['components'] ??= [];
@@ -133,7 +174,7 @@ class StayPricer
                 $out[$date] = [
                     'base_price' => Money::round((string) ($k['base_price'] ?? $price), $places),
                     'occupancy_adjust' => Money::round((string) ($k['occupancy_adjust'] ?? '0'), $places),
-                    'discount' => '0.00', 'price' => $price,
+                    'discount' => Money::round((string) ($k['discount'] ?? '0'), $places), 'price' => $price,
                 ];
 
                 continue;

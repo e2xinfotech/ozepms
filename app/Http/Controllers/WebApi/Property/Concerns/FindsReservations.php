@@ -93,6 +93,10 @@ trait FindsReservations
         if (isset($v['rooms'])) {
             $data['rooms'] = $this->roomSpecs($v['rooms'], $reservation);
         }
+        if (array_key_exists('promo_code', $v)) {
+            $code = strtoupper(trim((string) $v['promo_code']));
+            $data['promo_code'] = $code === '' ? null : $code;
+        }
         if (! empty($v['guest_id'])) {
             $data['guest_model'] = Guest::query()->where('public_id', $v['guest_id'])->first()
                 ?? throw ValidationException::withMessages(['guest_id' => __('reservations.errors.guest_not_found')]);

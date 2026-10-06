@@ -151,6 +151,7 @@ function ReservationShow({ reservation, tab: initialTab }: Props) {
                             <div className="ps-row"><span>{t('reservations.form.room_charges', { count: r.nights })}</span><Money value={r.totals.room_total} currency={cur} /></div>
                             <div className="ps-row"><span>{t('reservations.form.extra_charges')}</span><Money value={r.totals.extras_total} currency={cur} /></div>
                             <div className="ps-row"><span>{t('reservations.form.discount')}</span><Money value={r.totals.discount_total} currency={cur} /></div>
+                            {r.offers.map((o, i) => <div key={o.id ?? i} className="ps-row sub"><span>{o.name}{o.promo_code ? ` (${o.promo_code})` : ''}</span><Money value={o.amount} currency={cur} /></div>)}
                             <div className="ps-row strong"><span>{t('reservations.form.subtotal')}</span><Money value={r.totals.subtotal} currency={cur} strong /></div>
                             <div className="ps-row"><span>{t('reservations.form.taxes_rate', { rate: Number(r.totals.tax_rate) })}</span><Money value={r.totals.tax_total} currency={cur} /></div>
                             <div className="ps-row total"><span>{t('reservations.form.total')}</span><Money value={r.totals.grand_total} currency={cur} strong /></div>

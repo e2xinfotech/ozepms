@@ -66,14 +66,14 @@ class DemoSeeder extends Seeder
         if (class_exists(InventoryDemoSeeder::class)) {
             $this->call(InventoryDemoSeeder::class);
         }
+        if (class_exists(OfferDemoSeeder::class)) {
+            $this->call(OfferDemoSeeder::class);
+        }
         if (class_exists(ReservationDemoSeeder::class)) {
             $this->call(ReservationDemoSeeder::class);
         }
         if (class_exists(BillingDemoSeeder::class)) {
             $this->call(BillingDemoSeeder::class);
-        }
-        if (class_exists(OfferDemoSeeder::class)) {
-            $this->call(OfferDemoSeeder::class);
         }
     }
 

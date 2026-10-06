@@ -34,7 +34,12 @@ interface SearchRow {
     meal_plan: string | null; policy: { name: string | null; refundable: boolean }; available: number; sellable: boolean;
     reasons: { code: string; label: string }[]; total: string | null; average: string | null;
 }
-interface Quote { currency: string; rooms: { room_total: string; tax_total: string; grand_total: string; rate: string | null; nights: number }[]; room_total: string; tax_total: string; grand_total: string }
+interface Quote {
+    currency: string; rooms: { room_total: string; discount_total: string; tax_total: string; grand_total: string; rate: string | null; nights: number }[];
+    room_total: string; discount_total: string; tax_total: string; grand_total: string;
+    offers: { id: string; name: string; promo_code: string | null; amount: string }[];
+    promo: { code: string; status: 'applied' | 'unknown' | 'not_eligible'; message: string } | null;
+}
 
 const addDays = (d: string, n: number) => {
     const x = new Date(`${d}T00:00:00`);
@@ -73,6 +78,11 @@ function ReservationForm({ reservation: res, guest: presetGuest, options, defaul
     const [searching, setSearching] = useState(false);
     const [quote, setQuote] = useState<Quote | null>(null);
     const [quoteError, setQuoteError] = useState<string | null>(null);
+    // Promo code: typed in the box, sent once "Apply" is pressed. Editing keeps the booked code unless it is changed.
+    const [promoInput, setPromoInput] = useState(res?.promo_code ?? '');
+    const [promo, setPromo] = useState<string | null>(res?.promo_code ?? null);
+    const [promoTouched, setPromoTouched] = useState(false);
+    const applyPromo = (code: string | null) => { setPromo(code && code.trim() ? code.trim().toUpperCase() : null); setPromoTouched(true); setDirty(true); };
     const [error, setError] = useState<ApiError | null>(null);
     const [saving, setSaving] = useState<'' | 'draft' | 'confirm'>('');
     const [review, setReview] = useState(false);
@@ -127,12 +137,16 @@ function ReservationForm({ reservation: res, guest: presetGuest, options, defaul
     };
 
     // Live price summary (server-side pricing and taxes), debounced.
-    const quoteKey = useDebounced(JSON.stringify(rooms.map((r) => [r.room_type_id, r.rate_plan_id, r.check_in, r.check_out, r.adults, r.children, r.infants, r.rate])), 400);
+    const quoteKey = useDebounced(JSON.stringify([rooms.map((r) => [r.room_type_id, r.rate_plan_id, r.check_in, r.check_out, r.adults, r.children, r.infants, r.rate]), promo, promoTouched, stay.source, guest.nationality_iso2]), 400);
     useEffect(() => {
         const valid = rooms.filter((r) => r.room_type_id && r.rate_plan_id && r.check_out > r.check_in);
         if (valid.length === 0 || valid.length !== rooms.length) { setQuote(null); return; }
         let alive = true;
-        http.post<Quote>(propertyApiUrl('/reservations/quote'), { rooms: rooms.map(roomPayload), reservation_id: res?.id ?? null })
+        http.post<Quote>(propertyApiUrl('/reservations/quote'), {
+            rooms: rooms.map(roomPayload),
+        ...(editing && !promoTouched ? {} : { promo_code: promo }), reservation_id: res?.id ?? null, source: stay.source || null, guest_country: guest.nationality_iso2 || null,
+            ...(editing && !promoTouched ? {} : { promo_code: promo }),
+        })
             .then((q) => { if (alive) { setQuote(q); setQuoteError(null); } })
             .catch((e: ApiError) => { if (alive) { setQuote(null); setQuoteError(Object.values(e.fields)[0]?.[0] ?? t('reservations.form.quote_failed')); } });
         return () => { alive = false; };
@@ -319,9 +333,18 @@ function ReservationForm({ reservation: res, guest: presetGuest, options, defaul
                         <div className="card-head"><h3>{t('reservations.form.price_summary')}</h3><span className="badge tone-slate">{cur}</span></div>
                         <div className="card-body">
                             <div className="price-summary">
-                                <div className="ps-row"><span>{t('reservations.form.room_charges', { count: nights })}</span><span className="num">{money(quote?.room_total ?? '0', cur)}</span></div>
+                                <form className="promo-box" onSubmit={(e) => { e.preventDefault(); applyPromo(promoInput); }}>
+                                    <Input fieldClass="grow" label={t('offers.fields.promo_code')} optional value={promoInput} maxLength={30} placeholder="SUMMER"
+                                        onChange={(e) => setPromoInput(e.target.value.toUpperCase())} error={err('promo_code')} />
+                                    {promo && promoInput === promo
+                                        ? <Button variant="ghost" icon="x" onClick={() => { setPromoInput(''); applyPromo(null); }}>{t('ui.remove')}</Button>
+                                        : <Button variant="outline" type="submit" disabled={!promoInput.trim()}>{t('reservations.form.apply_promo')}</Button>}
+                                </form>
+                                {quote?.promo && <div className={quote.promo.status === 'applied' ? 'promo-msg ok' : 'promo-msg bad'}>{quote.promo.message}</div>}
+                                <div className="ps-row"><span>{t('reservations.form.room_charges', { count: nights })}</span><span className="num">{money(quote ? Number(quote.room_total) + Number(quote.discount_total) : '0', cur)}</span></div>
                                 <div className="ps-row"><span>{t('reservations.form.extra_charges')}</span><span className="num">{money('0', cur)}</span></div>
-                                <div className="ps-row"><span>{t('reservations.form.discount')}</span><span className="num">{money('0', cur)}</span></div>
+                                <div className="ps-row"><span>{t('reservations.form.discount')}</span><span className="num">{quote && Number(quote.discount_total) > 0 ? `− ${money(quote.discount_total, cur)}` : money('0', cur)}</span></div>
+                                {(quote?.offers ?? []).map((o) => <div key={o.id} className="ps-row sub"><span>{o.name}{o.promo_code ? ` (${o.promo_code})` : ''}</span><span className="num">− {money(o.amount, cur)}</span></div>)}
                                 <div className="ps-row strong"><span>{t('reservations.form.subtotal')}</span><span className="num">{money(quote?.room_total ?? '0', cur)}</span></div>
                                 <div className="ps-row"><span>{t('reservations.form.taxes')}</span><span className="num">{money(quote?.tax_total ?? '0', cur)}</span></div>
                                 <div className="ps-row total"><span>{t('reservations.form.total')}</span><span className="num strong">{money(quote?.grand_total ?? '0', cur)}</span></div>

@@ -211,6 +211,7 @@ return [
         'room_charges' => 'Pernottamento (:count notti)',
         'extra_charges' => 'Addebiti extra',
         'discount' => 'Sconto',
+        'apply_promo' => 'Applica',
         'subtotal' => 'Subtotale',
         'taxes' => 'Tasse e oneri',
         'taxes_rate' => 'Tasse e oneri (:rate%)',

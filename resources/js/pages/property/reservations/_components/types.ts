@@ -74,7 +74,9 @@ export interface ReservationDetail extends Omit<ReservationRow, 'rooms'> {
     rooms: ReservationRoomDetail[];
     purpose: string | null; market: string | null; travel_agent: string | null; company_name: string | null; channel_ref: string | null;
     special_requests: string | null; internal_notes: string | null;
-    totals: { room_total: string; extras_total: string; discount_total: string; subtotal: string; tax_total: string; tax_rate: string; grand_total: string; paid: string; balance: string; checkout_balance?: string; billing_ready: boolean };
+    offers: { id: string | null; name: string; promo_code: string | null; amount: string }[];
+    promo_code: string | null;
+    totals: { room_total: string; extras_total: string; discount_total: string; offer_discount?: string; subtotal: string; tax_total: string; tax_rate: string; grand_total: string; paid: string; balance: string; checkout_balance?: string; billing_ready: boolean };
     cancellation: { fee: string | null; reason: string | null; at: string | null; fee_now: string | null };
     guest_profile: GuestProfile | null;
     companions: { id: string; name: string; nationality: string | null }[];

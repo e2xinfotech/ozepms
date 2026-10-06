@@ -89,7 +89,16 @@ class ReservationsController extends Controller
             $r['child_ages'] = $r['child_ages'] ?? [...array_fill(0, (int) ($r['children'] ?? 0), 8), ...array_fill(0, (int) ($r['infants'] ?? 0), 0)];
         }
         unset($r);
-        $priced = $pricer->price($property, $rooms);
+        $v = $request->validated();
+        $ctx = ['guest' => ['nationality_iso2' => $v['guest_country'] ?? null]];
+        if (array_key_exists('promo_code', $v)) {
+            $ctx['promo_code'] = strtoupper(trim((string) $v['promo_code'])) ?: null;
+        }
+        if (! empty($v['source'])) {
+            $ctx['source_id'] = DB::table('booking_sources')->where('code', $v['source'])->value('id');
+        }
+        $offers = null;
+        $priced = $pricer->price($property, $rooms, $this->service->offerContext($property, $ctx, $reservation), $offers);
         $sum = fn (string $k) => Money::round(Money::sum(array_column($priced, $k)));
         $components = [];
         foreach ($priced as $p) {
@@ -97,12 +106,16 @@ class ReservationsController extends Controller
                 $components[$code] = Money::round(Money::add($components[$code] ?? '0', $amount));
             }
         }
+        $promo = $offers->promo;
 
         return response()->json([
             'currency' => $property->currency_code,
-            'rooms' => array_map(fn ($p) => ['room_total' => $p['room_total'], 'tax_total' => $p['tax_total'], 'grand_total' => $p['grand_total'],
+            'rooms' => array_map(fn ($p) => ['room_total' => $p['room_total'], 'discount_total' => $p['discount_total'], 'tax_total' => $p['tax_total'], 'grand_total' => $p['grand_total'],
                 'rate' => array_values($p['nights'])[0]['price'] ?? null, 'nights' => count($p['nights'])], $priced),
-            'room_total' => $sum('room_total'), 'tax_total' => $sum('tax_total'), 'grand_total' => $sum('grand_total'), 'taxes' => $components,
+            'room_total' => $sum('room_total'), 'discount_total' => $sum('discount_total'), 'tax_total' => $sum('tax_total'), 'grand_total' => $sum('grand_total'), 'taxes' => $components,
+            'offers' => array_map(fn ($o) => ['id' => $o['id'], 'name' => $o['name'], 'promo_code' => $o['promo_code'], 'amount' => $o['amount']], $offers->applied),
+            'promo' => $promo === null ? null : ['code' => $promo['code'], 'status' => $promo['status'],
+                'message' => $promo['status'] === 'applied' ? __('offers.applied.promo_applied', ['code' => $promo['code']]) : __($promo['reason'] ?? 'offers.reasons.unknown_code')],
         ]);
     }
 

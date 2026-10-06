@@ -119,6 +119,7 @@ return [
         'room_charges' => 'Room Charges (:count Nights)',
         'extra_charges' => 'Extra Charges',
         'discount' => 'Discount',
+        'apply_promo' => 'Apply',
         'subtotal' => 'Subtotal',
         'taxes' => 'Taxes & Fees',
         'taxes_rate' => 'Taxes & Fees (:rate%)',

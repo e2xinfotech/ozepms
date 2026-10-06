@@ -169,6 +169,22 @@ class ReservationPresenter
 
         $billing = $this->billing($r, $today);
         $state = $this->actions($r, $today, $user);
+        // Offers frozen on the booking (offer_applications) — shown as discount lines.
+        $offerRows = DB::table('offer_applications')->where('reservation_id', $r->id)->get(['reservation_room_id', 'discount_amount', 'snapshot']);
+        $liveRooms = $r->rooms->whereNotIn('status', ['cancelled', 'no_show'])->pluck('id')->all();
+        $offers = [];
+        $promoCode = null;
+        foreach ($offerRows as $app) {
+            if (! in_array((int) $app->reservation_room_id, $liveRooms, true)) {
+                continue;
+            }
+            $snap = json_decode((string) $app->snapshot, true) ?: [];
+            $k = (string) ($snap['id'] ?? $snap['offer_id'] ?? '');
+            $offers[$k] ??= ['id' => $snap['id'] ?? null, 'name' => $snap['name'] ?? '—', 'promo_code' => $snap['promo_code'] ?? null, 'amount' => '0'];
+            $offers[$k]['amount'] = Money::round(Money::add($offers[$k]['amount'], (string) $app->discount_amount));
+            $promoCode ??= $snap['entered_code'] ?? null;
+        }
+        $offerDiscount = Money::round(Money::sum(array_column($offers, 'amount')));
 
         return array_merge($row, [
             'rooms' => $rooms,
@@ -177,8 +193,12 @@ class ReservationPresenter
             'departure_time' => $r->departure_time ? substr((string) $r->departure_time, 0, 5) : null,
             'purpose' => $r->purpose, 'market' => $r->market, 'travel_agent' => $r->travel_agent, 'company_name' => $r->company_name,
             'channel_ref' => $r->channel_ref, 'special_requests' => $r->special_requests, 'internal_notes' => $r->internal_notes,
+            'offers' => array_values($offers),
+            'promo_code' => $promoCode,
             'totals' => [
-                'room_total' => (string) $r->room_total, 'extras_total' => (string) $r->extras_total, 'discount_total' => (string) $r->discount_total,
+                // Room charges before offers; "discount" = offers + folio discounts (the subtotal is unchanged).
+                'room_total' => Money::round(Money::add((string) $r->room_total, $offerDiscount)), 'extras_total' => (string) $r->extras_total,
+                'discount_total' => Money::round(Money::add((string) $r->discount_total, $offerDiscount)), 'offer_discount' => $offerDiscount,
                 'subtotal' => Money::round(Money::add((string) $r->room_total, (string) $r->extras_total, Money::negate((string) $r->discount_total))),
                 'tax_total' => (string) $r->tax_total, 'tax_rate' => $taxRate, 'grand_total' => (string) $r->grand_total,
                 'paid' => $billing['paid'], 'balance' => $billing['balance'], 'checkout_balance' => $billing['checkout_balance'], 'billing_ready' => $billing['ready'],

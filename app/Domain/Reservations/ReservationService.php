@@ -9,6 +9,9 @@ use App\Domain\Guests\GuestService;
 use App\Domain\Inventory\Exceptions\NotAvailableException;
 use App\Domain\Inventory\InventoryService;
 use App\Domain\Inventory\StayDates;
+use App\Domain\Offers\OfferContext;
+use App\Domain\Offers\OfferResult;
+use App\Domain\Offers\OfferService;
 use App\Domain\Reservations\Events\ReservationCancelled;
 use App\Domain\Reservations\Events\ReservationCheckedIn;
 use App\Domain\Reservations\Events\ReservationCheckedOut;
@@ -64,6 +67,7 @@ class ReservationService
     public function __construct(
         private readonly AvailabilityService $availability,
         private readonly StayPricer $pricer,
+        private readonly OfferService $offerService,
         private readonly InventoryDelta $delta,
         private readonly GuestService $guests,
         private readonly ReferenceNumbers $numbers,
@@ -102,10 +106,13 @@ class ReservationService
             }
         }
         $this->assertSellable($property, $rooms, array_keys(array_filter($rooms, fn ($r) => $r['check_in']->greaterThanOrEqualTo($today))));
-        $priced = $this->pricer->price($property, $rooms);
+        $context = $allowPast ? null : $this->offerContext($property, $data, null);
+        $offers = null;
+        $priced = $this->pricer->price($property, $rooms, $context, $offers);
+        $this->assertPromo($offers);
 
         try {
-            $reservation = Tx::run(function () use ($property, $data, $by, $status, $rooms, $priced, $key) {
+            $reservation = Tx::run(function () use ($property, $data, $by, $status, $rooms, $priced, $key, $offers, $context) {
                 $holds = $status !== 'inquiry';
                 if ($holds) {
                     $this->reserveInventory([], $this->inventoryMap($rooms), $rooms);
@@ -130,12 +137,17 @@ class ReservationService
                 $reservation->save();
 
                 $sort = 0;
+                $roomIds = [];
                 foreach ($rooms as $rk => $spec) {
                     $room = $this->newRoom($reservation, $spec, $priced[$rk], $sort++, $status === 'inquiry' ? 'pending' : $status);
+                    $roomIds[$rk] = $room->id;
                     $this->writeNights($room, $priced[$rk]['nights'], $holds);
                     if ($spec['unit'] !== null) {
                         $this->writeUnitNights($room, $spec['unit'], $room->check_in, $room->check_out, "rooms.$rk.unit_id");
                     }
+                }
+                if ($offers !== null) {
+                    $this->offerService->redeem($this->writeOffers($reservation, $roomIds, $offers, $context));
                 }
 
                 $this->linkGuests($reservation, $guest, $data['companions'] ?? [], $property, $by);
@@ -224,10 +236,24 @@ class ReservationService
             $this->assertSellable($property, $rooms, $check);
         }
 
-        $priced = $rooms === [] ? [] : $this->pricer->price($property, $rooms);
+        $offers = null;
+        $context = $rooms === [] ? null : $this->offerContext($property, $data, $reservation);
+        // A changed promo code re-works the offers of the kept nights too (their old discounts go).
+        $reoffer = $context !== null && array_key_exists('promo_code', $data) && $context->promo() !== $this->bookedPromo($reservation);
+        if ($reoffer) {
+            foreach ($rooms as &$spec) {
+                if (! empty($spec['keep'])) {
+                    $spec['keep'] = array_map(fn ($k) => ['price' => Money::add($k['base_price'], $k['occupancy_adjust']), 'discount' => '0'] + $k, $spec['keep']);
+                    $spec['reoffer'] = true;
+                }
+            }
+            unset($spec);
+        }
+        $priced = $rooms === [] ? [] : $this->pricer->price($property, $rooms, $context, $offers);
+        $this->assertPromo($offers);
         $holds = $reservation->holdsInventory();
 
-        $result = Tx::run(function () use ($reservation, $data, $by, $rooms, $priced, $existing, $holds, $property, &$changes) {
+        $result = Tx::run(function () use ($reservation, $data, $by, $rooms, $priced, $existing, $holds, $property, $offers, $context, &$changes) {
             $locked = Reservation::query()->whereKey($reservation->id)->lockForUpdate()->first();
             if ($locked === null || $locked->updated_at?->ne($reservation->updated_at)) {
                 throw ValidationException::withMessages(['reservation' => __('reservations.errors.changed_meanwhile')]);
@@ -256,10 +282,13 @@ class ReservationService
                 }
 
                 $sort = 0;
+                $roomIds = [];
                 foreach ($rooms as $key => $spec) {
                     $old = $spec['old'];
+                    $roomIds[$key] = $old?->id;
                     if ($old === null) {
                         $room = $this->newRoom($reservation, $spec, $priced[$key], $sort, $reservation->status === 'checked_in' ? 'confirmed' : ($reservation->status === 'inquiry' ? 'pending' : $reservation->status));
+                        $roomIds[$key] = $room->id;
                         $this->writeNights($room, $priced[$key]['nights'], $holds);
                         if ($spec['unit'] !== null) {
                             $this->writeUnitNights($room, $spec['unit'], $room->check_in, $room->check_out, "rooms.$key.unit_id");
@@ -269,6 +298,9 @@ class ReservationService
                         $this->updateRoom($old, $spec, $priced[$key], $sort, $holds, (string) $key, $changes);
                     }
                     $sort++;
+                }
+                if ($offers !== null) {
+                    $this->replaceOffers($reservation, $rooms, $roomIds, $removed->pluck('id')->all(), $offers, $context);
                 }
             }
 
@@ -622,15 +654,130 @@ class ReservationService
     /**
      * Night prices of an existing room that stay valid when only its dates change.
      *
-     * @return array<string, array{price: string, base_price: string, occupancy_adjust: string}>
+     * @return array<string, array{price: string, base_price: string, occupancy_adjust: string, discount: string}>
      */
     public function keptPrices(ReservationRoom $room): array
     {
         $nights = $room->relationLoaded('nights') ? $room->nights : $room->nights()->get();
 
         return $nights->where('is_active', true)->mapWithKeys(fn ($n) => [
-            $n->stay_date->toDateString() => ['price' => Money::add((string) $n->base_price, (string) $n->occupancy_adjust), 'base_price' => (string) $n->base_price, 'occupancy_adjust' => (string) $n->occupancy_adjust],
+            $n->stay_date->toDateString() => [
+                'price' => Money::sub(Money::add((string) $n->base_price, (string) $n->occupancy_adjust), (string) $n->discount),
+                'base_price' => (string) $n->base_price, 'occupancy_adjust' => (string) $n->occupancy_adjust, 'discount' => (string) $n->discount,
+            ],
         ])->all();
+    }
+
+    // ---------------------------------------------------------------- offers
+
+    /**
+     * Offer context of a booking: booked today (a modification keeps the original booking date),
+     * on the front desk unless told otherwise, with the entered promo code (a modification keeps
+     * the code it was booked with unless 'promo_code' is sent), booking source and guest country.
+     */
+    public function offerContext(Property $property, array $data, ?Reservation $reservation): OfferContext
+    {
+        $tz = $property->timezone ?: config('app.timezone');
+        $bookedOn = $reservation?->created_at ? CarbonImmutable::parse($reservation->created_at)->setTimezone($tz)->startOfDay() : $this->today($property);
+        $promo = array_key_exists('promo_code', $data) ? $data['promo_code'] : ($reservation ? $this->bookedPromo($reservation) : null);
+        $sourceId = $data['source_id'] ?? $reservation?->source_id;
+        $source = $sourceId ? DB::table('booking_sources')->where('id', $sourceId)->value('code') : 'direct';
+        $guest = $data['guest_model'] ?? ($reservation?->primary_guest_id ? Guest::query()->find($reservation->primary_guest_id) : null);
+        $country = $data['guest']['nationality_iso2'] ?? $data['guest']['country_iso2'] ?? $guest?->nationality_iso2 ?? $guest?->country_iso2 ?? null;
+
+        return new OfferContext($bookedOn, (string) ($data['channel'] ?? 'pms'), $promo, $source ? (string) $source : null, $country ? (string) $country : null);
+    }
+
+    /** The promo code a reservation was booked with (from its frozen offer applications). */
+    public function bookedPromo(Reservation $reservation): ?string
+    {
+        foreach (DB::table('offer_applications')->where('reservation_id', $reservation->id)->pluck('snapshot') as $snap) {
+            $code = json_decode((string) $snap, true)['entered_code'] ?? null;
+            if ($code) {
+                return (string) $code;
+            }
+        }
+
+        return null;
+    }
+
+    /** An entered promo code that does not apply is a field error with the reason. */
+    private function assertPromo(?OfferResult $offers): void
+    {
+        $promo = $offers?->promo;
+        if ($promo !== null && $promo['status'] !== 'applied') {
+            throw ValidationException::withMessages(['promo_code' => __($promo['reason'] ?? 'offers.reasons.unknown_code')]);
+        }
+    }
+
+    /**
+     * Freezes the applied offers on the booking (offer_applications, one row per room and offer,
+     * snapshot = offer terms + nightly amounts). $carried: [room id][offer id][date => amount] of
+     * kept nights (modify). Returns the ids of the offers now on the booking.
+     *
+     * @param  array<int|string, int>  $roomIds  room key => reservation_rooms.id
+     * @return list<int>
+     */
+    private function writeOffers(Reservation $reservation, array $roomIds, OfferResult $offers, ?OfferContext $context, array $carried = []): array
+    {
+        $terms = collect($offers->applied)->keyBy('offer_id');
+        $rows = [];
+        foreach ($roomIds as $key => $roomId) {
+            $perOffer = $carried[$roomId] ?? [];
+            foreach ($offers->roomOffers($key) as $offerId => $o) {
+                $perOffer[$offerId] = array_merge($perOffer[$offerId] ?? [], $o['nightly']);
+            }
+            foreach ($perOffer as $offerId => $nightly) {
+                if ($nightly === []) {
+                    continue;
+                }
+                ksort($nightly);
+                $snapshot = ($terms[$offerId] ?? $carried['_terms'][$offerId] ?? ['offer_id' => $offerId]);
+                unset($snapshot['amount']);
+                $snapshot['nightly'] = $nightly;
+                $snapshot['entered_code'] = $context?->promo() !== null && strtoupper((string) ($snapshot['promo_code'] ?? '')) === $context->promo() ? $context->promo() : null;
+                $rows[] = [
+                    'property_id' => $reservation->property_id, 'offer_id' => $offerId, 'reservation_id' => $reservation->id,
+                    'reservation_room_id' => $roomId, 'discount_amount' => Money::round(Money::sum(array_values($nightly))),
+                    'snapshot' => json_encode($snapshot, JSON_UNESCAPED_UNICODE), 'created_at' => now(),
+                ];
+            }
+        }
+        if ($rows !== []) {
+            DB::table('offer_applications')->insert($rows);
+        }
+
+        return array_values(array_unique(array_column($rows, 'offer_id')));
+    }
+
+    /** Modify: rewrites the applications; kept nights keep their frozen discounts; redemptions follow. */
+    private function replaceOffers(Reservation $reservation, array $rooms, array $roomIds, array $removedIds, OfferResult $offers, ?OfferContext $context): void
+    {
+        // Rows of rooms that are not edited (finished earlier) stay as they are.
+        $touched = array_values(array_unique(array_merge(array_filter(array_values($roomIds)), $removedIds)));
+        $before = DB::table('offer_applications')->where('reservation_id', $reservation->id)->distinct()->pluck('offer_id')->map(fn ($id) => (int) $id)->all();
+        $old = DB::table('offer_applications')->where('reservation_id', $reservation->id)->whereIn('reservation_room_id', $touched)->get();
+        $carried = ['_terms' => []];
+        foreach ($rooms as $key => $spec) {
+            $keep = ! empty($spec['reoffer']) ? [] : ($spec['keep'] ?? []);
+            $roomId = $roomIds[$key] ?? null;
+            if ($keep === [] || $roomId === null) {
+                continue;
+            }
+            foreach ($old->where('reservation_room_id', $roomId) as $row) {
+                $snap = json_decode((string) $row->snapshot, true) ?: [];
+                $nightly = array_intersect_key($snap['nightly'] ?? [], $keep);
+                if ($nightly !== []) {
+                    $carried[$roomId][(int) $row->offer_id] = $nightly;
+                    $carried['_terms'][(int) $row->offer_id] = array_diff_key($snap, ['nightly' => 1, 'entered_code' => 1]);
+                }
+            }
+        }
+        DB::table('offer_applications')->where('reservation_id', $reservation->id)->whereIn('reservation_room_id', $touched)->delete();
+        $this->writeOffers($reservation, $roomIds, $offers, $context, $carried);
+        $after = DB::table('offer_applications')->where('reservation_id', $reservation->id)->distinct()->pluck('offer_id')->map(fn ($id) => (int) $id)->all();
+        $this->offerService->redeem(array_values(array_diff($after, $before)));
+        $this->offerService->release(array_values(array_diff($before, $after)));
     }
 
     public function today(Property $property): CarbonImmutable
@@ -847,7 +994,7 @@ class ReservationService
             'status' => $status, 'check_in' => $spec['check_in'], 'check_out' => $spec['check_out'],
             'adults' => $spec['adults'], 'children' => $spec['children'], 'infants' => $spec['infants'],
             'child_ages' => $spec['child_ages'] ?: null, 'rate_snapshot' => $this->snapshot($product, $reservation->currency_code, $spec['rate']),
-            'room_total' => $price['room_total'], 'tax_total' => $price['tax_total'], 'grand_total' => $price['grand_total'],
+            'room_total' => $price['room_total'], 'discount_total' => $price['discount_total'] ?? '0.00', 'tax_total' => $price['tax_total'], 'grand_total' => $price['grand_total'],
             'sort_order' => $sort,
         ]);
     }
@@ -864,7 +1011,7 @@ class ReservationService
             'check_in' => $spec['check_in'], 'check_out' => $spec['check_out'],
             'adults' => $spec['adults'], 'children' => $spec['children'], 'infants' => $spec['infants'],
             'child_ages' => $spec['child_ages'] ?: null,
-            'room_total' => $price['room_total'], 'tax_total' => $price['tax_total'], 'grand_total' => $price['grand_total'], 'sort_order' => $sort,
+            'room_total' => $price['room_total'], 'discount_total' => $price['discount_total'] ?? '0.00', 'tax_total' => $price['tax_total'], 'grand_total' => $price['grand_total'], 'sort_order' => $sort,
         ]);
         if ($productChanged || $spec['rate'] !== null) {
             $room->rate_snapshot = $this->snapshot($product, (string) ($room->rate_snapshot['currency'] ?? ''), $spec['rate']);

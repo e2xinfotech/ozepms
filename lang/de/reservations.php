@@ -211,6 +211,7 @@ return [
         'room_charges' => 'Logis (:count Nächte)',
         'extra_charges' => 'Zusatzkosten',
         'discount' => 'Rabatt',
+        'apply_promo' => 'Anwenden',
         'subtotal' => 'Zwischensumme',
         'taxes' => 'Steuern und Gebühren',
         'taxes_rate' => 'Steuern und Gebühren (:rate %)',
