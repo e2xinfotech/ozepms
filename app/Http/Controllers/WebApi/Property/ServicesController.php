@@ -27,7 +27,7 @@ class ServicesController extends Controller
         return response()->json($this->query->page($request));
     }
 
-    public function show(string $service): JsonResponse
+    public function show(mixed $property, string $service): JsonResponse
     {
         return response()->json(['service' => $this->query->detail($this->serviceOr404($service))]);
     }
@@ -39,14 +39,14 @@ class ServicesController extends Controller
         return response()->json(['service' => $this->query->detail($service), 'message' => __('billing.messages.service_saved')], 201);
     }
 
-    public function update(SaveServiceRequest $request, string $service): JsonResponse
+    public function update(SaveServiceRequest $request, mixed $property, string $service): JsonResponse
     {
         $model = $this->services->update($this->serviceOr404($service), $request->validated());
 
         return response()->json(['service' => $this->query->detail($model), 'message' => __('billing.messages.service_saved')]);
     }
 
-    public function status(Request $request, string $service): JsonResponse
+    public function status(Request $request, mixed $property, string $service): JsonResponse
     {
         $data = $request->validate(['is_active' => ['required', 'boolean']]);
         $model = $this->services->setActive($this->serviceOr404($service), (bool) $data['is_active']);

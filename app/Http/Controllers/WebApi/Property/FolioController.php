@@ -24,7 +24,7 @@ class FolioController extends Controller
         private readonly BillingPresenter $presenter,
     ) {}
 
-    public function show(string $reservation): JsonResponse
+    public function show(mixed $property, string $reservation): JsonResponse
     {
         $r = $this->reservationOr404($reservation);
 
@@ -40,7 +40,7 @@ class FolioController extends Controller
         return response()->json($this->presenter->options($r));
     }
 
-    public function charge(PostChargeRequest $request, string $reservation): JsonResponse
+    public function charge(PostChargeRequest $request, mixed $property, string $reservation): JsonResponse
     {
         $r = $this->reservationOr404($reservation);
         $v = $request->validated();
@@ -63,7 +63,7 @@ class FolioController extends Controller
         return response()->json(['line' => $line->public_id, 'folio' => $this->presenter->folio($r->fresh(), $this->abilities()), 'message' => __('billing.messages.charge_posted')], 201);
     }
 
-    public function void(VoidLineRequest $request, string $reservation, string $line): JsonResponse
+    public function void(VoidLineRequest $request, mixed $property, string $reservation, string $line): JsonResponse
     {
         $r = $this->reservationOr404($reservation);
         $model = $this->lineOr404($r, $line);

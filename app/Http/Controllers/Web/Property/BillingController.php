@@ -34,7 +34,7 @@ class BillingController extends Controller
         ], __('billing.services.title'));
     }
 
-    public function invoice(string $invoice, PropertyContext $context): View
+    public function invoice(mixed $property, string $invoice, PropertyContext $context): View
     {
         $model = Invoice::query()->where('public_id', $invoice)->with(['original:id,public_id,invoice_no', 'creditNotes:id,public_id,original_invoice_id,invoice_no,grand_total,invoice_date'])->firstOrFail();
         $reservation = Reservation::query()->whereKey($model->folio()->value('reservation_id'))->first(['id', 'public_id', 'booking_ref']);
@@ -55,7 +55,7 @@ class BillingController extends Controller
         ], $model->invoice_no);
     }
 
-    public function folio(string $reservation, BillingPresenter $presenter, FolioService $folios, PropertyContext $context): View
+    public function folio(mixed $property, string $reservation, BillingPresenter $presenter, FolioService $folios, PropertyContext $context): View
     {
         $r = Reservation::query()->where('public_id', $reservation)->firstOrFail();
         $property = $context->property();

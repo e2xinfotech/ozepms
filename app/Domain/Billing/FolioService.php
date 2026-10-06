@@ -197,11 +197,19 @@ class FolioService
                 ->where('is_void', false)->whereNull('void_of_line_id')->where('posting_key', 'like', 'room:%')->get();
             $voided = 0;
             $reason = __('billing.reasons.stay_changed', [], $this->locale($reservation));
+            $toCredit = [];
             foreach ($lines as $line) {
                 if (! isset($active[$line->posting_key])) {
-                    $this->reverse($folio, $line, $reason, $by);
+                    $reversal = $this->reverse($folio, $line, $reason, $by, false);
+                    if ($line->invoice_id !== null) {
+                        $toCredit[(int) $line->invoice_id][] = $reversal;
+                    }
                     $voided++;
                 }
+            }
+            // One credit note per invoice for all nights that left the stay.
+            foreach ($toCredit as $invoiceId => $reversals) {
+                $this->invoices->creditLines($folio, $invoiceId, $reversals, $reason, $by);
             }
             $this->refreshTotals($folio, $reservation);
             if ($voided > 0) {
@@ -257,9 +265,10 @@ class FolioService
         $category = $categoryId ? TaxCategory::query()->find($categoryId) : null;
         $description = trim((string) ($data['description'] ?? '')) ?: ($service?->name ?? __('billing.types.'.$type, [], $this->locale($reservation)));
         $date = BusinessDate::of($property);
-        $key = isset($data['idempotency_key']) && $data['idempotency_key'] !== '' ? 'charge:'.$data['idempotency_key'] : null;
-
         $folio = $this->open($reservation);
+        // Keys are unique per property; the folio id keeps two reservations' keys apart.
+        $key = isset($data['idempotency_key']) && $data['idempotency_key'] !== '' ? mb_substr('charge:'.$folio->id.':'.$data['idempotency_key'], 0, 80) : null;
+
         if ($key !== null && ($existing = $this->lineByKey($folio, $key))) {
             return $existing;
         }
@@ -621,7 +630,7 @@ class FolioService
     }
 
     /** Marks $line void and posts its reversal today (credit note when it was invoiced). */
-    private function reverse(Folio $folio, FolioLine $line, string $reason, ?User $by): FolioLine
+    private function reverse(Folio $folio, FolioLine $line, string $reason, ?User $by, bool $credit = true): FolioLine
     {
         $property = $this->propertyOf($folio);
         $line->forceFill(['is_void' => true, 'void_reason' => mb_substr($reason, 0, 255)])->save();
@@ -645,7 +654,7 @@ class FolioService
             'taxable' => Money::negate((string) $t->taxable_amount), 'amount' => Money::negate((string) $t->tax_amount),
         ])->all());
 
-        if ($line->invoice_id !== null) {
+        if ($credit && $line->invoice_id !== null) {
             $this->invoices->creditLines($folio, (int) $line->invoice_id, [$reversal], $reason, $by);
         }
 

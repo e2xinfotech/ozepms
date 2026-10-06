@@ -38,6 +38,7 @@ return [
         'tax_category' => 'Choose a valid tax category.',
         'code_taken' => 'This code is already used by another service.',
         'service_not_found' => 'This service is not available.',
+        'key_reused' => 'This request was already used for another reservation. Reload the page and try again.',
     ],
     'messages' => [
         'charge_posted' => 'Charge posted to the folio.',

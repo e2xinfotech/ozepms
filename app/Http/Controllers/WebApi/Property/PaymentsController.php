@@ -22,14 +22,14 @@ class PaymentsController extends Controller
         private readonly BillingPresenter $presenter,
     ) {}
 
-    public function index(string $reservation): JsonResponse
+    public function index(mixed $property, string $reservation): JsonResponse
     {
         $r = $this->reservationOr404($reservation);
 
         return response()->json($this->presenter->payments($r, $this->allowed('payments.manage')));
     }
 
-    public function store(RecordPaymentRequest $request, string $reservation): JsonResponse
+    public function store(RecordPaymentRequest $request, mixed $property, string $reservation): JsonResponse
     {
         $r = $this->reservationOr404($reservation);
         $payment = $this->payments->record($r, $request->validated(), $request->user());
@@ -37,7 +37,7 @@ class PaymentsController extends Controller
         return $this->done($r, $payment->public_id, $this->payments->replayed ? 200 : 201, 'billing.messages.payment_recorded');
     }
 
-    public function refund(RefundPaymentRequest $request, string $reservation, string $payment): JsonResponse
+    public function refund(RefundPaymentRequest $request, mixed $property, string $reservation, string $payment): JsonResponse
     {
         $r = $this->reservationOr404($reservation);
         $refund = $this->payments->refund($this->paymentOr404($r, $payment), $request->validated(), $request->user());
@@ -47,7 +47,7 @@ class PaymentsController extends Controller
     }
 
     /** Creates the gateway order and returns what Razorpay Checkout needs. */
-    public function online(OnlinePaymentRequest $request, string $reservation): JsonResponse
+    public function online(OnlinePaymentRequest $request, mixed $property, string $reservation): JsonResponse
     {
         $r = $this->reservationOr404($reservation);
         $payment = $this->payments->startOnline($r, $request->validated(), $request->user());
@@ -56,7 +56,7 @@ class PaymentsController extends Controller
         return response()->json(['checkout' => $this->payments->checkoutData($payment, $r)], $this->payments->replayed ? 200 : 201);
     }
 
-    public function verify(VerifyOnlinePaymentRequest $request, string $reservation, string $payment): JsonResponse
+    public function verify(VerifyOnlinePaymentRequest $request, mixed $property, string $reservation, string $payment): JsonResponse
     {
         $r = $this->reservationOr404($reservation);
         $v = $request->validated();

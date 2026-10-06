@@ -382,8 +382,12 @@ class PaymentService
 
     private function byKey(Reservation $reservation, string $key): ?Payment
     {
-        return Payment::query()->where('property_id', $reservation->property_id)->where('reservation_id', $reservation->id)
-            ->where('idempotency_key', $key)->first();
+        $payment = Payment::query()->where('property_id', $reservation->property_id)->where('idempotency_key', $key)->first();
+        if ($payment !== null && (int) $payment->reservation_id !== (int) $reservation->id) {
+            throw ValidationException::withMessages(['idempotency_key' => __('billing.errors.key_reused')]);
+        }
+
+        return $payment;
     }
 
     private function replay(Payment $payment): Payment

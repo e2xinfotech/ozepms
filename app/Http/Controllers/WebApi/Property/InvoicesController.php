@@ -23,14 +23,14 @@ class InvoicesController extends Controller
         private readonly BillingPresenter $presenter,
     ) {}
 
-    public function index(string $reservation): JsonResponse
+    public function index(mixed $property, string $reservation): JsonResponse
     {
         $r = $this->reservationOr404($reservation);
 
         return response()->json($this->presenter->invoices($r, $this->allowed('invoices.manage')));
     }
 
-    public function store(IssueInvoiceRequest $request, string $reservation): JsonResponse
+    public function store(IssueInvoiceRequest $request, mixed $property, string $reservation): JsonResponse
     {
         $r = $this->reservationOr404($reservation);
         $v = $request->validated();
@@ -43,7 +43,7 @@ class InvoicesController extends Controller
             + $this->presenter->invoices($r, true), 201);
     }
 
-    public function cancel(CancelInvoiceRequest $request, string $invoice): JsonResponse
+    public function cancel(CancelInvoiceRequest $request, mixed $property, string $invoice): JsonResponse
     {
         $model = $this->invoiceOr404($invoice);
         $note = $this->invoices->cancel($model, (string) $request->validated('reason'), $request->user());
