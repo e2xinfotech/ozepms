@@ -91,7 +91,7 @@ class PricingServiceTest extends TestCase
         $this->assertSame('1500.00', $this->quote($product, $data, 4)->nights[0]['price']);
 
         $rules[] = ['guest_type' => 'adult', 'guest_count' => 4, 'adjust_value' => '400'];
-        $this->assertSame('1650.00', $this->quote($this->product(1, $rules), $data, 4)->nights[0]['price']);
+        $this->assertSame('1650.00', $this->quote($this->product(1, $rules), $this->data(self::TWO_NIGHTS), 4)->nights[0]['price']);
     }
 
     public function test_children_are_priced_by_age_band(): void

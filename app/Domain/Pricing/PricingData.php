@@ -2,6 +2,7 @@
 
 namespace App\Domain\Pricing;
 
+use App\Support\Money;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -24,7 +25,14 @@ final class PricingData
         public readonly array $occupancy,
         public readonly array $bands,
         public readonly string $currency,
-    ) {}
+        ?int $places = null,
+    ) {
+        // Looked up once per load: rounding every night must not hit the cache store.
+        $this->places = $places ?? Money::minorUnits($currency);
+    }
+
+    /** Decimal places of the currency. */
+    public readonly int $places;
 
     /**
      * Loads stay dates [from, to] (inclusive, so the check-out date's CTD is available).

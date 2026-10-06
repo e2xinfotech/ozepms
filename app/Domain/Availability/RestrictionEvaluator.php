@@ -2,6 +2,7 @@
 
 namespace App\Domain\Availability;
 
+use App\Domain\Inventory\StayDates;
 use Carbon\CarbonImmutable;
 
 /**
@@ -35,8 +36,8 @@ final class RestrictionEvaluator
         }
         $reasons = [];
 
-        for ($d = $checkIn; $d->lessThan($checkOut); $d = $d->addDay()) {
-            $row = $rows[$d->toDateString()] ?? null;
+        foreach (StayDates::nights($checkIn, $checkOut) as $date) {
+            $row = $rows[$date] ?? null;
             if ($row === null) {
                 $reasons['no_rate'] = true;
 

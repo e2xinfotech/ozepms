@@ -2,6 +2,7 @@
 
 namespace App\Domain\Pricing;
 
+use App\Domain\Inventory\StayDates;
 use App\Domain\Pricing\Exceptions\NoRateException;
 use App\Domain\Rates\DerivedPrice;
 use App\Domain\Rates\DerivedPricingGuard;
@@ -9,7 +10,6 @@ use App\Models\Product;
 use App\Models\Property;
 use App\Support\Money;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Collection;
 
 /**
  * Room price for a stay, before offers and taxes. The one place prices are calculated
@@ -33,6 +33,22 @@ use Illuminate\Support\Collection;
  */
 class PricingService
 {
+    /**
+     * Nights already priced, per data set (products are identified by id within one data set).
+     *
+     * @var \WeakMap<PricingData, \ArrayObject<string, array{base: string, price: string}|null>>
+     */
+    private \WeakMap $memo;
+
+    /** @var \WeakMap<Product, array<string, mixed>> occupancy rules indexed per product object */
+    private \WeakMap $compiled;
+
+    public function __construct()
+    {
+        $this->memo = new \WeakMap;
+        $this->compiled = new \WeakMap;
+    }
+
     /**
      * Nightly breakdown and room total for one room of $product.
      *
@@ -73,20 +89,19 @@ class PricingService
         $total = '0';
         $kids = $this->classifyChildren($childAges, $data->bands);
 
-        for ($d = $checkIn; $d->lessThan($checkOut); $d = $d->addDay()) {
-            $date = $d->toDateString();
+        foreach (StayDates::nights($checkIn, $checkOut) as $date) {
             $night = $this->night($product, $date, $adults, $kids, $data, 0);
             if ($night === null) {
                 $missing[] = $date;
 
                 continue;
             }
-            $base = Money::forCurrency($night['base'], $data->currency);
-            $price = Money::forCurrency(Money::max($night['price'], '0'), $data->currency);
+            $base = Money::round($night['base'], $data->places);
+            $price = Money::round(Money::max($night['price'], '0'), $data->places);
             $nights[] = [
                 'date' => $date,
                 'base_price' => $base,
-                'occupancy_adjust' => Money::forCurrency(Money::sub($price, $base), $data->currency),
+                'occupancy_adjust' => Money::round(Money::sub($price, $base), $data->places),
                 'price' => $price,
             ];
             $total = Money::add($total, $price);
@@ -104,7 +119,7 @@ class PricingService
             adults: $adults,
             childAges: array_values($childAges),
             nights: $nights,
-            roomTotal: Money::forCurrency($total, $data->currency),
+            roomTotal: Money::round($total, $data->places),
             currency: $data->currency,
         );
     }
@@ -131,7 +146,20 @@ class PricingService
      */
     private function night(Product $product, string $date, int $adults, array $kids, PricingData $data, int $depth): ?array
     {
-        $rules = $product->occupancyRules ?? new Collection;
+        // A parent's night is the same for every derived product of a search: compute it once.
+        $key = $product->id.'|'.$date.'|'.$adults.'|'.implode(',', array_column($kids, 'age'));
+        $memo = $this->memo[$data] ??= new \ArrayObject;
+        if ($memo->offsetExists($key)) {
+            return $memo[$key];
+        }
+
+        return $memo[$key] = $this->computeNight($product, $date, $adults, $kids, $data, $depth);
+    }
+
+    /** @return array{base: string, price: string}|null */
+    private function computeNight(Product $product, string $date, int $adults, array $kids, PricingData $data, int $depth): ?array
+    {
+        $rules = $this->rules($product);
         $baseAdults = max(1, (int) ($product->roomType?->base_adults ?? 1));
 
         if (! $product->isDerived()) {
@@ -158,7 +186,7 @@ class PricingService
         $value = (string) $product->adjust_value;
         $base = DerivedPrice::apply($parentNight['base'], $type, $value, $baseAdults, Money::SCALE);
 
-        if ($rules->isNotEmpty()) {
+        if ($rules['any']) {
             $price = Money::add($base, $this->adultAdjust($rules, $base, $adults, $baseAdults), $this->childAdjust($rules, $base, $kids));
         } else {
             $price = DerivedPrice::apply($parentNight['price'], $type, $value, max(1, $adults), Money::SCALE);
@@ -167,26 +195,55 @@ class PricingService
         return ['base' => $base, 'price' => $price];
     }
 
-    private function adultAdjust(Collection $rules, string $base, int $adults, int $baseAdults): string
+    /**
+     * Occupancy rules of a product, indexed once:
+     *   adult[n]                   rule for n adults
+     *   kids[type][band|'-'][n]    rule for the n-th child / infant (band '-' = any band)
+     *
+     * @return array{any: bool, adult: array<int, array{0: string, 1: string}>, kids: array<string, array<string, array<int, array{0: string, 1: string}>>>}
+     */
+    private function rules(Product $product): array
     {
-        $adultRules = $rules->where('guest_type', 'adult');
-        if ($adultRules->isEmpty() || $adults === $baseAdults) {
+        if (isset($this->compiled[$product])) {
+            return $this->compiled[$product];
+        }
+        $out = ['any' => false, 'adult' => [], 'kids' => []];
+        foreach ($product->occupancyRules ?? [] as $rule) {
+            $spec = [(string) $rule->adjust_type, (string) $rule->adjust_value];
+            $n = (int) $rule->guest_count;
+            $out['any'] = true;
+            if ($rule->guest_type === 'adult') {
+                $out['adult'][$n] = $spec;
+            } else {
+                $out['kids'][$rule->guest_type][$rule->age_band_id === null ? '-' : (string) $rule->age_band_id][$n] = $spec;
+            }
+        }
+        ksort($out['adult']);
+        foreach ($out['kids'] as &$byBand) {
+            foreach ($byBand as &$byCount) {
+                ksort($byCount);
+            }
+        }
+
+        $this->compiled[$product] = $out;
+
+        return $out;
+    }
+
+    private function adultAdjust(array $rules, string $base, int $adults, int $baseAdults): string
+    {
+        if ($rules['adult'] === [] || $adults === $baseAdults) {
             return '0';
         }
         if ($adults < $baseAdults) {
-            $rule = $adultRules->first(fn ($r) => (int) $r->guest_count === $adults);
-
-            return $rule ? $this->amount($rule, $base) : '0';
+            return isset($rules['adult'][$adults]) ? $this->amount($rules['adult'][$adults], $base) : '0';
         }
 
         $extra = '0';
         for ($k = $baseAdults + 1; $k <= $adults; $k++) {
-            $rule = $adultRules
-                ->filter(fn ($r) => (int) $r->guest_count > $baseAdults && (int) $r->guest_count <= $k)
-                ->sortByDesc(fn ($r) => (int) $r->guest_count)
-                ->first();
-            if ($rule) {
-                $extra = Money::add($extra, $this->amount($rule, $base));
+            $spec = $this->fromNth($rules['adult'], $k, $baseAdults + 1);
+            if ($spec !== null) {
+                $extra = Money::add($extra, $this->amount($spec, $base));
             }
         }
 
@@ -194,38 +251,55 @@ class PricingService
     }
 
     /** @param  list<array{age: int, type: string, band: ?int}>  $kids */
-    private function childAdjust(Collection $rules, string $base, array $kids): string
+    private function childAdjust(array $rules, string $base, array $kids): string
     {
-        if ($kids === [] || $rules->isEmpty()) {
+        if ($kids === [] || $rules['kids'] === []) {
             return '0';
         }
         $total = '0';
         $perBand = [];
         $perType = [];
         foreach ($kids as $kid) {
-            $nBand = $perBand[$kid['type'].':'.($kid['band'] ?? '-')] = ($perBand[$kid['type'].':'.($kid['band'] ?? '-')] ?? 0) + 1;
+            $band = $kid['band'] === null ? '-' : (string) $kid['band'];
+            $nBand = $perBand[$kid['type'].':'.$band] = ($perBand[$kid['type'].':'.$band] ?? 0) + 1;
             $nType = $perType[$kid['type']] = ($perType[$kid['type']] ?? 0) + 1;
-            $typeRules = $rules->where('guest_type', $kid['type']);
+            $byBand = $rules['kids'][$kid['type']] ?? [];
 
-            $rule = $kid['band'] === null ? null : $typeRules
-                ->filter(fn ($r) => (int) $r->age_band_id === $kid['band'] && (int) $r->guest_count <= $nBand)
-                ->sortByDesc(fn ($r) => (int) $r->guest_count)->first();
-            $rule ??= $typeRules
-                ->filter(fn ($r) => $r->age_band_id === null && (int) $r->guest_count <= $nType)
-                ->sortByDesc(fn ($r) => (int) $r->guest_count)->first();
-            if ($rule) {
-                $total = Money::add($total, $this->amount($rule, $base));
+            $spec = $band !== '-' && isset($byBand[$band]) ? $this->fromNth($byBand[$band], $nBand) : null;
+            $spec ??= isset($byBand['-']) ? $this->fromNth($byBand['-'], $nType) : null;
+            if ($spec !== null) {
+                $total = Money::add($total, $this->amount($spec, $base));
             }
         }
 
         return $total;
     }
 
-    private function amount(object $rule, string $base): string
+    /**
+     * The rule with the highest count ≤ $n (and ≥ $min): a rule for the n-th guest applies to every
+     * guest from the n-th on. $byCount is sorted by count.
+     *
+     * @param  array<int, array{0: string, 1: string}>  $byCount
+     */
+    private function fromNth(array $byCount, int $n, int $min = 1): ?array
     {
-        $value = (string) $rule->adjust_value;
+        $found = null;
+        foreach ($byCount as $count => $spec) {
+            if ($count > $n) {
+                break;
+            }
+            if ($count >= $min) {
+                $found = $spec;
+            }
+        }
 
-        return $rule->adjust_type === 'percent' ? Money::percent($base, $value) : Money::normalize($value);
+        return $found;
+    }
+
+    /** @param  array{0: string, 1: string}  $spec  [adjust type, value] */
+    private function amount(array $spec, string $base): string
+    {
+        return $spec[0] === 'percent' ? Money::percent($base, $spec[1]) : Money::normalize($spec[1]);
     }
 
     /**

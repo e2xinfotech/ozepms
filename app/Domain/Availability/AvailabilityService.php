@@ -3,6 +3,7 @@
 namespace App\Domain\Availability;
 
 use App\Domain\Accommodation\UnitNightGuard;
+use App\Domain\Inventory\StayDates;
 use App\Domain\Pricing\PricingData;
 use App\Domain\Pricing\PricingService;
 use App\Models\Product;
@@ -93,6 +94,9 @@ class AvailabilityService
         $data = PricingData::load($property->id, null, $checkIn, $checkOut, (string) $property->currency_code);
         $ages = $childAges ?? $this->defaultAges($data->bands, $children, $infants);
 
+        // Nights plus the check-out date (for closed-to-departure).
+        $stayDates = [...StayDates::nights($checkIn, $checkOut), $checkOut->toDateString()];
+
         $result = [];
         foreach ($roomTypes as $roomType) {
             if (! $roomType->is_active || $roomType->deleted_at !== null) {
@@ -129,8 +133,8 @@ class AvailabilityService
                 }
 
                 $rows = [];
-                for ($d = $checkIn; $d->lessThanOrEqualTo($checkOut); $d = $d->addDay()) {
-                    $rows[$d->toDateString()] = $this->restrictionRow($product, $d->toDateString(), $data, 0);
+                foreach ($stayDates as $date) {
+                    $rows[$date] = $this->restrictionRow($product, $date, $data, 0);
                 }
                 $reasons = array_merge($roomReasons, $this->restrictions->evaluate($rows, $checkIn, $checkOut, $today));
 
