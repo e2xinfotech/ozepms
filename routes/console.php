@@ -44,3 +44,11 @@ Schedule::command('booking:expire-holds')
     ->everyFiveMinutes()
     ->withoutOverlapping()
     ->onOneServer();
+
+// Reports: rebuilds the rollups of the last week and the selling horizon (bookings refresh them
+// as they change; this run also picks up room count changes and repairs anything missed).
+Schedule::command('reports:refresh')
+    ->dailyAt('03:10')
+    ->name('reports:refresh')
+    ->withoutOverlapping(120)
+    ->onOneServer();

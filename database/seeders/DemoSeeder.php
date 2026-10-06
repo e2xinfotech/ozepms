@@ -75,6 +75,10 @@ class DemoSeeder extends Seeder
         if (class_exists(BillingDemoSeeder::class)) {
             $this->call(BillingDemoSeeder::class);
         }
+        // Report rollups for the demo bookings.
+        foreach (\App\Models\Property::query()->pluck('id') as $id) {
+            app(\App\Domain\Reports\ReportRollupService::class)->refreshAll((int) $id);
+        }
     }
 
     /** @return array<int, string> codes of the properties created by this run */
