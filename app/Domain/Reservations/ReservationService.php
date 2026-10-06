@@ -513,11 +513,11 @@ class ReservationService
             throw ValidationException::withMessages(['status' => __('reservations.errors.cannot_check_out')]);
         }
         $remaining = $reservation->rooms->whereNotIn('status', ['cancelled', 'no_show', 'checked_out'])->whereNotIn('id', $rooms->pluck('id'));
-        $balance = $this->balance($reservation);
-        if ($remaining->isEmpty() && $balance !== null && Money::isPositive($balance) && ! $overrideBalance) {
-            throw ValidationException::withMessages(['balance' => __('reservations.errors.balance_due', ['amount' => Money::forCurrency($balance, (string) $reservation->currency_code).' '.$reservation->currency_code])]);
-        }
         $today = $this->today($property);
+        $balance = $this->balance($reservation, $today->toDateString());
+        if ($remaining->isEmpty() && $balance !== null && Money::isPositive($balance) && ! $overrideBalance) {
+            throw ValidationException::withMessages(['balance' => __('reservations.errors.balance_due', ['amount' => Money::display($balance, (string) $reservation->currency_code)])]);
+        }
         $changes = [];
 
         Tx::run(function () use ($reservation, $rooms, $remaining, $by, $note, $today, &$changes) {
@@ -573,12 +573,18 @@ class ReservationService
         return $note;
     }
 
-    /** Open balance from billing, or null while billing is not installed. */
-    public function balance(Reservation $reservation): ?string
+    /**
+     * Open balance from billing, or null while billing is not installed. With $departingOn: the
+     * balance when checking out that day (later nights are not charged).
+     */
+    public function balance(Reservation $reservation, ?string $departingOn = null): ?string
     {
         $class = 'App\\Domain\\Billing\\FolioService';
         if (! class_exists($class) || ! method_exists($class, 'summary')) {
             return null;
+        }
+        if ($departingOn !== null && method_exists($class, 'checkoutBalance')) {
+            return (string) app($class)->checkoutBalance($reservation, $departingOn);
         }
         $summary = app($class)->summary($reservation);
 

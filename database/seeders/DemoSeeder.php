@@ -30,7 +30,7 @@ class DemoSeeder extends Seeder
     private const PROPERTIES = [
         [
             'slug' => 'sunrise-grand-hotel', 'name' => 'Sunrise Grand Hotel', 'tagline' => 'Luxury redefined in Dubai', 'type' => 'hotel', 'star_rating' => 5,
-            'country_iso2' => 'AE', 'state' => 'Dubayy', 'city' => 'Dubai', 'address_line1' => 'Sheikh Mohammed bin Rashid Blvd, Downtown Dubai',
+            'country_iso2' => 'AE', 'state' => 'Dubai', 'city' => 'Dubai', 'address_line1' => 'Sheikh Mohammed bin Rashid Blvd, Downtown Dubai',
             'postcode' => '00000', 'currency_code' => 'AED', 'timezone' => 'Asia/Dubai', 'phone' => '+971 4 123 4567', 'email' => 'stay@sunrisegrand.example',
             'website' => 'https://sunrisegrand.example', 'contact_person' => 'Amit Pandey', 'languages' => ['fr', 'de'],
         ],

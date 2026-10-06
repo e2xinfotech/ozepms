@@ -62,7 +62,7 @@ export default function FolioTab({ reservation, onChanged }: BillingProps) {
                                 </td>
                                 <td className="num">{Number(l.quantity)}</td>
                                 <td className="num">{fmt(l.amount, cur)}</td>
-                                <td className="num" title={l.taxes.map((x) => `${x.component} ${Number(x.rate)}%: ${fmt(x.amount, cur)}`).join('\n') || undefined}>{fmt(l.tax, cur)}</td>
+                                <td className="num" title={l.taxes.map((x) => `${x.label ?? x.component}: ${fmt(x.amount, cur)}`).join('\n') || undefined}>{fmt(l.tax, cur)}</td>
                                 <td className="num strong">{fmt(l.total, cur)}</td>
                                 <td><LineStatus l={l} /></td>
                                 <td className="col-actions">{l.can_void && <RowMenu items={[{ label: t('billing.folio.void'), icon: 'ban', danger: true, onClick: () => setVoiding(l) }]} />}</td>

@@ -32,16 +32,21 @@ class BillingPresenter
         $folio = $this->folios->folioOf($reservation);
         $summary = $this->folios->summary($reservation);
         $lines = $folio ? FolioLine::query()->where('folio_id', $folio->id)
-            ->with(['taxes:id,folio_line_id,component,rate,tax_amount', 'poster:id,name'])
+            ->with(['taxes:id,folio_line_id,tax_rule_id,component,rate,tax_amount', 'poster:id,name'])
             ->orderBy('business_date')->orderBy('id')->get() : collect();
         $invoiceNos = $lines->pluck('invoice_id')->filter()->unique()->isEmpty() ? collect()
             : Invoice::query()->whereIn('id', $lines->pluck('invoice_id')->filter()->unique())->pluck('invoice_no', 'id');
         $places = Money::minorUnits((string) $reservation->currency_code);
 
+        // Fixed fees (per night / per stay) are shown without a percentage.
+        $ruleIds = $lines->flatMap(fn (FolioLine $l) => $l->taxes->pluck('tax_rule_id'))->filter()->unique()->values();
+        $fixed = $ruleIds->isEmpty() ? [] : array_flip(DB::table('tax_rules')->whereIn('id', $ruleIds)->where('calc_type', '<>', 'percent')->pluck('id')->all());
+        $label = fn ($t) => isset($fixed[$t->tax_rule_id]) ? (string) $t->component : $t->component.' '.rtrim(rtrim((string) $t->rate, '0'), '.').'%';
+
         $byComponent = [];
-        $rows = $lines->map(function (FolioLine $l) use ($invoiceNos, $can, &$byComponent, $places) {
+        $rows = $lines->map(function (FolioLine $l) use ($invoiceNos, $can, &$byComponent, $places, $label) {
             foreach ($l->taxes as $t) {
-                $k = $t->component.' '.rtrim(rtrim((string) $t->rate, '0'), '.').'%';
+                $k = $label($t);
                 $byComponent[$k] = Money::add($byComponent[$k] ?? '0', (string) $t->tax_amount);
             }
 
@@ -56,7 +61,7 @@ class BillingPresenter
                 'amount' => (string) $l->amount,
                 'tax' => (string) $l->tax_amount,
                 'total' => Money::round(Money::add((string) $l->amount, (string) $l->tax_amount), $places),
-                'taxes' => $l->taxes->map(fn ($t) => ['component' => $t->component, 'rate' => (string) $t->rate, 'amount' => (string) $t->tax_amount])->all(),
+                'taxes' => $l->taxes->map(fn ($t) => ['component' => $t->component, 'label' => $label($t), 'rate' => (string) $t->rate, 'amount' => (string) $t->tax_amount])->all(),
                 'void' => $l->is_void,
                 'reversal' => $l->void_of_line_id !== null,
                 'void_reason' => $l->void_reason,

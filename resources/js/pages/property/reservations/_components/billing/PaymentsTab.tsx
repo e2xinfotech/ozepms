@@ -45,8 +45,8 @@ export default function PaymentsTab({ reservation, onChanged, compact }: Billing
     if (compact) {
         return data.rows.length === 0
             ? <p className="billing-note">{t('billing.payment.none')}</p>
-            : <div className="table-scroll"><table className="table table-compact">
-                <thead><tr><th>{t('billing.fields.date')}</th><th>{t('billing.fields.method')}</th><th>{t('billing.fields.reference')}</th><th className="num">{t('billing.fields.amount')}</th><th>{t('billing.fields.status')}</th></tr></thead>
+            : <div className="table-scroll"><table className="table table-compact pay-compact">
+                <thead><tr><th>{t('billing.fields.date')}</th><th>{t('billing.fields.method_short')}</th><th>{t('billing.fields.reference')}</th><th className="num">{t('billing.fields.amount')}</th><th>{t('billing.fields.status')}</th></tr></thead>
                 <tbody>{data.rows.map((p) => (
                     <tr key={p.id}>
                         <td>{date(p.date)}</td>

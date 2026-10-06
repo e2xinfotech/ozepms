@@ -235,9 +235,11 @@ class AccommodationDemoSeeder extends Seeder
                 ['code' => 'CLF', 'name' => 'Cleaning Fee', 'kind' => 'fee', 'calc_type' => 'fixed_per_stay', 'rate' => '500', 'apply_to' => ['add_ons'], 'priority' => 50, 'is_active' => false],
             ];
 
+        // Valid since the start of last year, so demo stays in the past are taxed as well.
+        $since = now($property->timezone ?: config('app.timezone'))->subYear()->startOfYear()->toDateString();
         foreach ($rules as $rule) {
             if (! TaxRule::query()->forProperty($property->id)->where('code', $rule['code'])->exists()) {
-                $service->create($rule);
+                $service->create($rule + ['effective_from' => $since]);
             }
         }
     }

@@ -12,7 +12,7 @@ export interface Summary {
 
 export interface FolioLineRow {
     id: string; date: string; type: string; description: string; sac: string | null; quantity: string; unit_price: string;
-    amount: string; tax: string; total: string; taxes: { component: string; rate: string; amount: string }[];
+    amount: string; tax: string; total: string; taxes: { component: string; label?: string; rate: string; amount: string }[];
     void: boolean; reversal: boolean; void_reason: string | null; invoice: string | null; posted_by: string | null; posted_at: string | null; can_void: boolean;
 }
 

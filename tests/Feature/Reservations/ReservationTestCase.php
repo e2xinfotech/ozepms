@@ -89,10 +89,10 @@ SQL);
         return $this->member($role);
     }
 
-    /** Settles the open folio balance in cash (check-out needs a zero balance). */
+    /** Settles what checking out today costs, in cash (check-out needs a zero balance). */
     protected function payBalance(Reservation $reservation): void
     {
-        $balance = app(\App\Domain\Billing\FolioService::class)->summary($reservation->fresh())['balance'] ?? '0';
+        $balance = $this->service()->balance($reservation->fresh(), $this->day(0)->toDateString()) ?? '0';
         if (\App\Support\Money::isPositive((string) $balance)) {
             app(\App\Domain\Billing\PaymentService::class)->record($reservation->fresh(), ['method' => 'cash', 'amount' => (string) $balance], $this->owner);
         }

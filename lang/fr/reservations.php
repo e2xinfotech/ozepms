@@ -334,6 +334,7 @@ return [
         'check_out_title' => 'Enregistrer le départ de :guest',
         'check_out_text' => 'Vérifiez que tous les frais sont enregistrés et la facture réglée.',
         'check_out_balance' => 'Solde ouvert : :amount',
+        'take_payment' => 'Encaisser',
         'check_out_override' => 'Enregistrer le départ avec le solde ouvert (dérogation du responsable)',
         'check_out_early' => 'Le client part avant la date prévue ; les nuits restantes sont libérées et le prix recalculé.',
         'check_out_confirm' => 'Enregistrer le départ',

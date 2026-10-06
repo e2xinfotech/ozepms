@@ -118,7 +118,7 @@ class PaymentService
             $parent = Payment::query()->where('property_id', $payment->property_id)->whereKey($payment->id)->lockForUpdate()->firstOrFail();
             $left = Money::sub((string) $parent->amount, (string) $parent->refunded_amount);
             if (Money::compare($amount, $left) > 0) {
-                throw ValidationException::withMessages(['amount' => __('billing.errors.refund_too_high', ['amount' => Money::forCurrency($left, (string) $parent->currency_code)])]);
+                throw ValidationException::withMessages(['amount' => __('billing.errors.refund_too_high', ['amount' => Money::display($left, (string) $parent->currency_code)])]);
             }
             $refund = Payment::query()->create([
                 'property_id' => $parent->property_id,

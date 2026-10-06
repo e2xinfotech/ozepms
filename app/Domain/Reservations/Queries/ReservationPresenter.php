@@ -167,7 +167,7 @@ class ReservationPresenter
         // the price breakdown shows the total and the effective rate.
         $taxRate = Money::isPositive((string) $r->room_total) ? Money::round(Money::mul(Money::div((string) $r->tax_total, (string) $r->room_total), '100'), 2) : '0.00';
 
-        $billing = $this->billing($r);
+        $billing = $this->billing($r, $today);
         $state = $this->actions($r, $today, $user);
 
         return array_merge($row, [
@@ -181,7 +181,7 @@ class ReservationPresenter
                 'room_total' => (string) $r->room_total, 'extras_total' => (string) $r->extras_total, 'discount_total' => (string) $r->discount_total,
                 'subtotal' => Money::round(Money::add((string) $r->room_total, (string) $r->extras_total, Money::negate((string) $r->discount_total))),
                 'tax_total' => (string) $r->tax_total, 'tax_rate' => $taxRate, 'grand_total' => (string) $r->grand_total,
-                'paid' => $billing['paid'], 'balance' => $billing['balance'], 'billing_ready' => $billing['ready'],
+                'paid' => $billing['paid'], 'balance' => $billing['balance'], 'checkout_balance' => $billing['checkout_balance'], 'billing_ready' => $billing['ready'],
             ],
             'cancellation' => [
                 'fee' => $r->cancellation_fee !== null ? (string) $r->cancellation_fee : null,
@@ -274,20 +274,24 @@ class ReservationPresenter
     }
 
     /** "paid / balance": billing's FolioService::summary() when installed, else the reservation columns. */
-    public function billing(Reservation $r): array
+    public function billing(Reservation $r, ?string $today = null): array
     {
         $class = 'App\\Domain\\Billing\\FolioService';
         if (class_exists($class) && method_exists($class, 'summary')) {
             try {
                 $s = app($class)->summary($r);
+                $balance = (string) ($s['balance'] ?? $r->balance_due);
+                // In house: what checking out today costs (nights after today are not charged).
+                $atCheckout = $today !== null && $r->status === 'checked_in' && method_exists($class, 'checkoutBalance')
+                    ? (string) app($class)->checkoutBalance($r, $today) : $balance;
 
-                return ['paid' => (string) ($s['payments'] ?? $r->paid_total), 'balance' => (string) ($s['balance'] ?? $r->balance_due), 'ready' => true];
+                return ['paid' => (string) ($s['payments'] ?? $r->paid_total), 'balance' => $balance, 'checkout_balance' => $atCheckout, 'ready' => true];
             } catch (\Throwable $e) {
                 report($e);
             }
         }
 
-        return ['paid' => (string) $r->paid_total, 'balance' => (string) $r->balance_due, 'ready' => false];
+        return ['paid' => (string) $r->paid_total, 'balance' => (string) $r->balance_due, 'checkout_balance' => (string) $r->balance_due, 'ready' => false];
     }
 
     /** Unit for tonight (in-house) or the first assigned night. */

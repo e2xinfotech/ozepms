@@ -210,6 +210,7 @@ return [
         'check_out_title' => 'Check out :guest',
         'check_out_text' => 'Make sure all charges are posted and the bill is settled.',
         'check_out_balance' => 'Open balance: :amount',
+        'take_payment' => 'Take payment',
         'check_out_override' => 'Check out with the open balance (manager override)',
         'check_out_early' => 'The guest leaves before the booked departure date; the remaining nights are released and repriced.',
         'check_out_confirm' => 'Check Out',

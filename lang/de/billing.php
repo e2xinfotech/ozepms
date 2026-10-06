@@ -68,6 +68,7 @@ return [
         'tax_category' => 'Steuerkategorie',
         'note' => 'Notiz',
         'method' => 'Zahlungsart',
+        'method_short' => 'Zahlart',
         'reference' => 'Referenz',
         'received_at' => 'Erhalten am',
         'received_by' => 'Erhalten von',
@@ -141,6 +142,7 @@ return [
         'refund_gateway' => 'Die Erstattung wird an Razorpay gesendet und auf das ursprüngliche Zahlungsmittel des Gastes zurückgezahlt.',
     ],
     'invoice' => [
+        'fixed' => 'Fest',
         'list_title' => 'Rechnungen & Gutschriften',
         'types' => [
             'tax_invoice' => 'Steuerrechnung',

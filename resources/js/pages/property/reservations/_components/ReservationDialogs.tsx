@@ -4,7 +4,8 @@ import { date, money } from '@/lib/format';
 import { http, type ApiError } from '@/lib/http';
 import { t } from '@/lib/i18n';
 import { propertyApiUrl } from '@/lib/page';
-import type { ReservationDetail, ReservationRoomDetail } from './types';
+import { BillingSlot, hasBilling } from './BillingSlot';
+import { billingRef, type ReservationDetail, type ReservationRoomDetail } from './types';
 
 export type DialogKind = 'cancel' | 'no_show' | 'check_in' | 'check_out' | 'assign' | 'confirm';
 
@@ -27,6 +28,7 @@ export function ReservationDialogs({ reservation: r, kind, roomId, idTypes, onCl
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<ApiError | null>(null);
     const [form, setForm] = useState<Record<string, string | boolean>>({});
+    const [paying, setPaying] = useState(false);
     const set = (k: string, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }));
 
     useEffect(() => {
@@ -120,19 +122,32 @@ export function ReservationDialogs({ reservation: r, kind, roomId, idTypes, onCl
     }
 
     if (kind === 'check_out') {
-        const balance = Number(r.totals.balance);
+        // Balance when leaving today: nights after today are not charged (early departure).
+        const due = r.totals.checkout_balance ?? r.totals.balance;
+        const balance = Number(due);
+        const canPay = balance > 0 && r.actions.payments && hasBilling('AddPaymentModal');
+        const paid = async () => {
+            setPaying(false);
+            setError(null);
+            try {
+                const res = await http.get<{ reservation: ReservationDetail }>(propertyApiUrl(`/reservations/${r.id}`));
+                onDone(res.reservation);
+            } catch { /* the dialog keeps the old figures; check-out re-checks on the server */ }
+        };
         const early = r.check_out > r.today;
         const go = () => run('check-out', { note: form.note || null, override_balance: !!form.override });
         return (
             <Modal open title={t('reservations.dialogs.check_out_title', { guest: r.guest.name })} onClose={onClose} footer={footer(t('reservations.dialogs.check_out_confirm'), go)}>
                 <form className="stack" onSubmit={submitOnEnter(go)}>
                     <p className="muted">{t('reservations.dialogs.check_out_text')}</p>
-                    {balance > 0 && <Alert tone="warn">{t('reservations.dialogs.check_out_balance', { amount: money(r.totals.balance, cur) })}</Alert>}
+                    {balance > 0 && <Alert tone="warn"><div className="row-between"><span>{t('reservations.dialogs.check_out_balance', { amount: money(due, cur) })}</span>
+                        {canPay && <Button size="sm" variant="outline" icon="wallet" onClick={() => setPaying(true)}>{t('reservations.dialogs.take_payment')}</Button>}</div></Alert>}
                     {early && <Alert tone="info">{t('reservations.dialogs.check_out_early')}</Alert>}
                     {balance > 0 && r.actions.override_balance && <Checkbox checked={!!form.override} onChange={(e) => set('override', e.target.checked)} label={t('reservations.dialogs.check_out_override')} />}
                     <Input label={t('reservations.fields.note')} optional value={String(form.note ?? '')} maxLength={255} autoFocus onChange={(e) => set('note', e.target.value)} />
                     {firstError && <Alert tone="danger">{firstError}</Alert>}
                 </form>
+                {paying && <BillingSlot name="AddPaymentModal" reservation={billingRef(r)} amount={due} open onClose={() => setPaying(false)} onSaved={paid} />}
             </Modal>
         );
     }

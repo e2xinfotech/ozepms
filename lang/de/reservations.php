@@ -334,6 +334,7 @@ return [
         'check_out_title' => ':guest auschecken',
         'check_out_text' => 'Stellen Sie sicher, dass alle Kosten gebucht und die Rechnung beglichen ist.',
         'check_out_balance' => 'Offener Saldo: :amount',
+        'take_payment' => 'Zahlung erfassen',
         'check_out_override' => 'Mit offenem Saldo auschecken (Freigabe durch Manager)',
         'check_out_early' => 'Der Gast reist vor dem gebuchten Datum ab; die restlichen Nächte werden freigegeben und neu berechnet.',
         'check_out_confirm' => 'Auschecken',

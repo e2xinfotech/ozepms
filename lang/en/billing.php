@@ -68,6 +68,7 @@ return [
         'tax_category' => 'Tax category',
         'note' => 'Note',
         'method' => 'Payment method',
+        'method_short' => 'Method',
         'reference' => 'Reference',
         'received_at' => 'Received on',
         'received_by' => 'Received by',
@@ -141,6 +142,7 @@ return [
         'refund_gateway' => 'The refund is sent to Razorpay and returned to the guest\'s original payment method.',
     ],
     'invoice' => [
+        'fixed' => 'Fixed',
         'list_title' => 'Invoices & credit notes',
         'types' => [
             'tax_invoice' => 'Tax invoice',

@@ -6,6 +6,8 @@
 .billing-totals strong { font-size: var(--text-lg); }
 .billing-totals .due strong { color: var(--red-fg); }
 .table-compact th, .table-compact td { padding-top: 8px; padding-bottom: 8px; }
+.folio-table .cell-main, .folio-table .cell-sub { display: block; }
+.folio-table .cell-sub { color: var(--muted); font-size: var(--text-xs); margin-top: 2px; }
 .folio-table tr.line-void td { color: var(--muted); }
 .folio-table tr.line-void .cell-main { text-decoration: line-through; }
 .folio-table tr.line-pending td { color: var(--ink-2); background: var(--surface-2); }
@@ -44,3 +46,10 @@ a.link { color: var(--brand-600); font-weight: var(--weight-semibold); }
     .inv-table th { background: var(--surface); }
     @page { margin: 14mm; }
 }
+
+/* "Payment Information" card of the reservation detail: one line per payment. */
+.pay-compact { font-size: var(--text-sm); }
+.table.pay-compact thead th, .table.pay-compact td { white-space: nowrap; min-width: 0; padding-left: 5px; padding-right: 5px; font-size: var(--text-sm); }
+.pay-compact th:first-child, .pay-compact td:first-child { padding-left: 0; }
+.pay-compact th:last-child, .pay-compact td:last-child { padding-right: 0; }
+.pay-compact .cell-clip { display: inline-block; max-width: 70px; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }

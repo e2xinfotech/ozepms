@@ -82,6 +82,7 @@ class BillingDemoSeeder extends Seeder
                 // One correction after invoicing: the laundry was posted by mistake → credit note.
                 if (! $creditNoteDone && ! FolioLine::query()->whereKey($laundry->id)->value('is_void')) {
                     $folios->voidLine($laundry->fresh(), 'Posted to the wrong guest', $user);
+                    $this->refundCredit($payments, $folios, $r, "demo-ref-$ref", $user);
                     $creditNoteDone = true;
                 } elseif (FolioLine::query()->whereKey($laundry->id)->value('is_void')) {
                     $creditNoteDone = true;
@@ -105,6 +106,22 @@ class BillingDemoSeeder extends Seeder
         $amount = Money::forCurrency(Money::mul($balance, $share), (string) $r->currency_code);
         if (Money::isPositive($amount)) {
             $payments->record($r, ['method' => $method, 'amount' => $amount, 'reference' => $reference, 'idempotency_key' => $key], $user);
+        }
+    }
+
+    /** Gives back what the guest paid above the total (after a credit note), once, by key. */
+    private function refundCredit(PaymentService $payments, FolioService $folios, Reservation $r, string $key, ?User $user): void
+    {
+        if (Payment::query()->where('reservation_id', $r->id)->where('idempotency_key', $key)->exists()) {
+            return;
+        }
+        $balance = (string) $folios->summary($r->fresh())['balance'];
+        if (! Money::isPositive(Money::sub('0', $balance))) {
+            return;
+        }
+        $payment = Payment::query()->where('reservation_id', $r->id)->where('kind', 'payment')->where('status', 'captured')->orderByDesc('id')->first();
+        if ($payment !== null) {
+            $payments->refund($payment, ['amount' => Money::sub('0', $balance), 'notes' => 'Laundry charge reversed', 'idempotency_key' => $key], $user);
         }
     }
 }

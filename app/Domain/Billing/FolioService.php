@@ -96,6 +96,32 @@ class FolioService
     }
 
     /**
+     * Room nights an early check-out today gives back: active, not posted yet, from $today on,
+     * for rooms in house (the first night of a room always stays).
+     */
+    public function earlyDepartureCredit(Reservation $reservation, string $today): string
+    {
+        $row = DB::table('reservation_room_nights as n')
+            ->join('reservation_rooms as rr', 'rr.id', '=', 'n.reservation_room_id')
+            ->where('rr.property_id', $reservation->property_id)->where('rr.reservation_id', $reservation->id)
+            ->where('rr.status', 'checked_in')->where('n.is_active', 1)
+            ->where('n.stay_date', '>=', $today)->whereColumn('n.stay_date', '>', 'rr.check_in')
+            ->whereNotExists(fn ($q) => $q->from('folio_lines as fl')->where('fl.property_id', $reservation->property_id)
+                ->whereRaw("fl.live_key = CONCAT('room:', n.reservation_room_id, ':', n.stay_date)"))
+            ->selectRaw('COALESCE(SUM(n.net_price), 0) AS net, COALESCE(SUM(n.tax_amount), 0) AS tax')->first();
+
+        return Money::add((string) $row->net, (string) $row->tax);
+    }
+
+    /** What the guest owes when checking out today (nights after today are not charged). */
+    public function checkoutBalance(Reservation $reservation, string $today): string
+    {
+        $places = Money::minorUnits((string) $reservation->currency_code);
+
+        return Money::round(Money::sub($this->summary($reservation)['balance'], $this->earlyDepartureCredit($reservation, $today)), $places);
+    }
+
+    /**
      * Check-out guard: the balance must be settled unless the user may override it
      * (permission billing.override, or checkout.override_balance of the front desk).
      */

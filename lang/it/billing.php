@@ -68,6 +68,7 @@ return [
         'tax_category' => 'Categoria fiscale',
         'note' => 'Nota',
         'method' => 'Metodo di pagamento',
+        'method_short' => 'Metodo',
         'reference' => 'Riferimento',
         'received_at' => 'Ricevuto il',
         'received_by' => 'Ricevuto da',
@@ -141,6 +142,7 @@ return [
         'refund_gateway' => 'Il rimborso viene inviato a Razorpay e restituito sul metodo di pagamento originale dell\'ospite.',
     ],
     'invoice' => [
+        'fixed' => 'Fisso',
         'list_title' => 'Fatture e note di credito',
         'types' => [
             'tax_invoice' => 'Fattura fiscale',

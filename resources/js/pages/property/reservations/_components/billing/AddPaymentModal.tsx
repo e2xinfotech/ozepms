@@ -25,7 +25,7 @@ function loadCheckoutScript(): Promise<RazorpayCtor> {
 }
 
 /** Records a payment at the desk (cash, card, UPI, bank transfer, other) or takes it online. */
-export default function AddPaymentModal({ reservation, open = true, onClose, onSaved, onChanged }: BillingProps) {
+export default function AddPaymentModal({ reservation, open = true, onClose, onSaved, onChanged, amount }: BillingProps) {
     const [options, setOptions] = useState<BillingOptions | null>(null);
     const [summary, setSummary] = useState<Summary | null>(null);
     const [failed, setFailed] = useState<string | null>(null);
@@ -41,7 +41,7 @@ export default function AddPaymentModal({ reservation, open = true, onClose, onS
             .then(([o, p]) => {
                 setOptions(o);
                 setSummary(p.summary);
-                setForm((f) => ({ ...f, amount: f.amount || (isPositive(p.summary.balance) ? p.summary.balance : ''), is_deposit: ['inquiry', 'hold', 'pending', 'confirmed'].includes(reservation.status) }));
+                setForm((f) => ({ ...f, amount: f.amount || (amount && isPositive(amount) ? amount : (isPositive(p.summary.balance) ? p.summary.balance : '')), is_deposit: ['inquiry', 'hold', 'pending', 'confirmed'].includes(reservation.status) }));
             })
             .catch((e: ApiError) => setFailed(e.message));
     };

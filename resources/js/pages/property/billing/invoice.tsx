@@ -6,13 +6,13 @@ import { t } from '@/lib/i18n';
 import { propertyUrl } from '@/lib/page';
 import { CancelModal } from '../reservations/_components/billing/InvoiceList';
 
-interface Party { name: string; legal_name?: string; address?: string[] | string | null; tax_no: string | null; state: string | null; state_code: string | null; phone?: string | null; email?: string | null }
-interface Line { date: string; type: string; description: string; sac: string | null; quantity: string; unit_price: string; taxable: string; taxes: { component: string; rate: string; amount: string }[]; tax_total: string; total: string }
+interface Party { name: string; legal_name?: string; address?: string[] | string | null; tax_no: string | null; state: string | null; state_code: string | null; phone?: string | null; email?: string | null; country?: string | null }
+interface Line { date: string; type: string; description: string; sac: string | null; quantity: string; unit_price: string; taxable: string; taxes: { component: string; rate: string; fixed?: boolean; amount: string }[]; tax_total: string; total: string }
 interface Snapshot {
     type: 'tax_invoice' | 'credit_note'; number: string; date: string; financial_year: string; currency: string;
     parties: { supplier: Party; bill_to: Party & { guest_name: string }; place_of_supply: { code: string | null; name: string | null } };
     reservation: { ref: string; folio_no: string; guest_name: string; check_in: string; check_out: string; nights: number; rooms: string[]; adults: number; children: number };
-    lines: Line[]; tax_summary: { component: string; name: string; rate: string; taxable: string; amount: string }[];
+    lines: Line[]; tax_summary: { component: string; name: string; rate: string; fixed?: boolean; taxable: string; amount: string }[];
     totals: { taxable: string; cgst: string; sgst: string; igst: string; other: string; tax: string; round_off: string; grand: string };
     amount_in_words: string; payments: { kind: string; method: string; amount: string; date: string | null; reference: string | null }[];
     original?: { number: string; date: string; id: string }; reason?: string;
@@ -33,6 +33,9 @@ function InvoicePage({ invoice, reservation, can }: Props) {
     const components = Array.from(new Set(s.lines.flatMap((l) => l.taxes.map((x) => x.component))));
     const comp = (l: Line, c: string) => l.taxes.filter((x) => x.component === c).reduce((a, x) => a + Number(x.amount), 0);
     const rate = (l: Line, c: string) => l.taxes.find((x) => x.component === c)?.rate;
+    const fixedTax = (l: Line, c: string) => !!l.taxes.find((x) => x.component === c)?.fixed;
+    // SAC/HSN codes belong to Indian GST invoices only.
+    const showSac = s.parties.supplier.country === 'IN';
     const supplierAddress = Array.isArray(s.parties.supplier.address) ? s.parties.supplier.address : [];
     const paid = s.payments.reduce((a, p) => a + (p.kind === 'refund' ? -Number(p.amount) : Number(p.amount)), 0);
 
@@ -91,7 +94,7 @@ function InvoicePage({ invoice, reservation, can }: Props) {
 
                 <table className="inv-table">
                     <thead><tr>
-                        <th>#</th><th>{t('billing.fields.description')}</th><th>SAC/HSN</th><th className="num">{t('billing.fields.quantity')}</th>
+                        <th>#</th><th>{t('billing.fields.description')}</th>{showSac && <th>SAC/HSN</th>}<th className="num">{t('billing.fields.quantity')}</th>
                         <th className="num">{t('billing.fields.unit_price')}</th><th className="num">{t('billing.invoice.taxable')}</th>
                         {components.map((c) => <th key={c} className="num">{c}</th>)}
                         <th className="num">{t('billing.fields.total')}</th>
@@ -100,11 +103,11 @@ function InvoicePage({ invoice, reservation, can }: Props) {
                         <tr key={i}>
                             <td>{i + 1}</td>
                             <td>{l.description}<span className="cell-sub">{date(l.date)}</span></td>
-                            <td>{l.sac ?? '—'}</td>
+                            {showSac && <td>{l.sac ?? '—'}</td>}
                             <td className="num">{Number(l.quantity)}</td>
                             <td className="num">{m(l.unit_price)}</td>
                             <td className="num">{m(l.taxable)}</td>
-                            {components.map((c) => <td key={c} className="num">{rate(l, c) ? <>{m(String(comp(l, c)))}<span className="cell-sub">{Number(rate(l, c))}%</span></> : '—'}</td>)}
+                            {components.map((c) => <td key={c} className="num">{rate(l, c) ? <>{m(String(comp(l, c)))}{!fixedTax(l, c) && <span className="cell-sub">{Number(rate(l, c))}%</span>}</> : '—'}</td>)}
                             <td className="num">{m(l.total)}</td>
                         </tr>
                     ))}</tbody>
@@ -114,7 +117,7 @@ function InvoicePage({ invoice, reservation, can }: Props) {
                     <div>
                         {s.tax_summary.length > 0 && <table className="inv-table small">
                             <thead><tr><th>{t('billing.invoice.tax')}</th><th className="num">{t('billing.invoice.rate')}</th><th className="num">{t('billing.invoice.taxable')}</th><th className="num">{t('billing.fields.amount')}</th></tr></thead>
-                            <tbody>{s.tax_summary.map((x, i) => <tr key={i}><td>{x.name}</td><td className="num">{Number(x.rate)}%</td><td className="num">{m(x.taxable)}</td><td className="num">{m(x.amount)}</td></tr>)}</tbody>
+                            <tbody>{s.tax_summary.map((x, i) => <tr key={i}><td>{x.name}</td><td className="num">{x.fixed ? t('billing.invoice.fixed') : `${Number(x.rate)}%`}</td><td className="num">{m(x.taxable)}</td><td className="num">{m(x.amount)}</td></tr>)}</tbody>
                         </table>}
                         <p className="inv-words"><strong>{t('billing.invoice.in_words')}:</strong> {s.amount_in_words}</p>
                         {s.reason && <p><strong>{t('billing.fields.reason')}:</strong> {s.reason}</p>}

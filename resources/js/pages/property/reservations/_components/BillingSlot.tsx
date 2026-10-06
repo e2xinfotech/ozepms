@@ -17,6 +17,8 @@ export interface BillingProps {
     onClose?: () => void;
     onSaved?: () => void;
     compact?: boolean;
+    /** AddPaymentModal: amount to suggest instead of the open balance. */
+    amount?: string;
 }
 
 export function hasBilling(name: string): boolean {

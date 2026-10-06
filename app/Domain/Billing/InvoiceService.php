@@ -193,15 +193,19 @@ class InvoiceService
         $out = [];
         $summary = [];
         $totals = ['taxable' => '0', 'cgst' => '0', 'sgst' => '0', 'igst' => '0', 'other' => '0'];
+        // Fixed fees (per night / per stay) carry an amount, not a percentage.
+        $ruleIds = $lines->flatMap(fn ($l) => $l->taxes->pluck('tax_rule_id'))->filter()->unique()->values();
+        $fixed = $ruleIds->isEmpty() ? [] : array_flip(DB::table('tax_rules')->whereIn('id', $ruleIds)->where('calc_type', '<>', 'percent')->pluck('id')->all());
         foreach ($lines as $line) {
             $taxes = [];
             foreach ($line->taxes as $t) {
                 $amount = $sign((string) $t->tax_amount);
-                $taxes[] = ['component' => $t->component, 'name' => $t->tax_name, 'rate' => Money::round((string) $t->rate, 2), 'amount' => Money::round($amount, $places)];
+                $isFixed = isset($fixed[$t->tax_rule_id]);
+                $taxes[] = ['component' => $t->component, 'name' => $t->tax_name, 'rate' => Money::round((string) $t->rate, 2), 'fixed' => $isFixed, 'amount' => Money::round($amount, $places)];
                 $bucket = in_array($t->component, ['CGST', 'SGST', 'IGST'], true) ? strtolower($t->component) : 'other';
                 $totals[$bucket] = Money::add($totals[$bucket], $amount);
                 $k = $t->component.'|'.Money::round((string) $t->rate, 2);
-                $summary[$k] ??= ['component' => $t->component, 'name' => $t->tax_name, 'rate' => Money::round((string) $t->rate, 2), 'taxable' => '0', 'amount' => '0'];
+                $summary[$k] ??= ['component' => $t->component, 'name' => $t->tax_name, 'rate' => Money::round((string) $t->rate, 2), 'fixed' => $isFixed, 'taxable' => '0', 'amount' => '0'];
                 $summary[$k]['taxable'] = Money::add($summary[$k]['taxable'], $sign((string) $t->taxable_amount));
                 $summary[$k]['amount'] = Money::add($summary[$k]['amount'], $amount);
             }

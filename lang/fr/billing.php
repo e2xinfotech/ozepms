@@ -68,6 +68,7 @@ return [
         'tax_category' => 'Catégorie de taxe',
         'note' => 'Note',
         'method' => 'Mode de paiement',
+        'method_short' => 'Mode',
         'reference' => 'Référence',
         'received_at' => 'Reçu le',
         'received_by' => 'Reçu par',
@@ -141,6 +142,7 @@ return [
         'refund_gateway' => 'Le remboursement est envoyé à Razorpay et rendu sur le moyen de paiement d\'origine du client.',
     ],
     'invoice' => [
+        'fixed' => 'Fixe',
         'list_title' => 'Factures et avoirs',
         'types' => [
             'tax_invoice' => 'Facture fiscale',

@@ -334,6 +334,7 @@ return [
         'check_out_title' => 'Check-out di :guest',
         'check_out_text' => 'Assicurati che tutti gli addebiti siano registrati e il conto saldato.',
         'check_out_balance' => 'Saldo aperto: :amount',
+        'take_payment' => 'Incassa',
         'check_out_override' => 'Check-out con saldo aperto (deroga del responsabile)',
         'check_out_early' => 'L\'ospite parte prima della data prevista; le notti restanti vengono liberate e il prezzo ricalcolato.',
         'check_out_confirm' => 'Check-out',

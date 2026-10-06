@@ -89,6 +89,18 @@ final class Money
         return self::round($value, self::minorUnits($currency));
     }
 
+    /** For messages: "AED 2,745.75" (currency code, grouped thousands, the currency's decimals). */
+    public static function display(string|int $value, string $currency): string
+    {
+        $places = self::minorUnits($currency);
+        $v = self::round($value, $places);
+        $neg = str_starts_with($v, '-');
+        [$int, $dec] = array_pad(explode('.', ltrim($v, '-')), 2, '');
+        $int = strrev(implode(',', str_split(strrev($int), 3)));
+
+        return ($neg ? '-' : '').trim($currency.' '.$int.($places > 0 ? '.'.str_pad($dec, $places, '0') : ''));
+    }
+
     public static function minorUnits(string $currency): int
     {
         $currency = strtoupper($currency);
