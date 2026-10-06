@@ -29,3 +29,15 @@ const tones: Record<string, Tone> = {
 export function toneOf(status: string | null | undefined): Tone {
     return (status && tones[status]) || 'slate';
 }
+
+/**
+ * Calendar reservation / block bars (design legend: Confirmed, In-House, Pending, Blocked, Out of Service).
+ * Out of service is grey on the calendar, unlike the orange room status badge.
+ */
+const barTones: Record<string, Tone> = {
+    confirmed: 'green', in_house: 'blue', pending: 'amber', checked_out: 'slate', blocked: 'pink', out_of_service: 'slate',
+};
+
+export function barToneOf(status: string): Tone {
+    return barTones[status] ?? toneOf(status);
+}

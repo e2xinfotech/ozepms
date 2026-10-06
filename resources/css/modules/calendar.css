@@ -1,0 +1,133 @@
+/* Rates & availability calendar (Phase 3). Tokens only; sizes of the grid live here. */
+.cal-page { gap: 14px; }
+.cal-header .page-actions { gap: 8px; }
+.cal-views button { display: inline-flex; align-items: center; gap: 8px; height: var(--control-h); }
+.cal-nav { display: inline-flex; gap: 0; }
+.cal-nav .btn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.cal-nav .btn:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -1px; }
+.cal-month { position: relative; min-width: 190px; justify-content: space-between; font-weight: var(--weight-semibold); }
+.cal-month input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.cal-range { width: 124px; }
+.cal-filters .field { max-width: 220px; }
+
+/* Legend */
+.cal-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; list-style: none; margin: 0; padding: 0; font-size: var(--text-sm); color: var(--ink-2); }
+.cal-legend li { display: inline-flex; align-items: center; gap: 8px; }
+.cal-legend li.sep { width: 1px; height: 18px; background: var(--line-strong); }
+.cal-legend .swatch { width: 18px; height: 18px; border-radius: 4px; display: inline-block; border: 1px solid var(--line); }
+.cal-legend .swatch.zero { background: var(--cal-zero); border-color: var(--cal-zero); }
+.cal-legend .swatch.open { background: var(--surface-2); }
+.cal-legend .swatch.stop { background: var(--cal-stop-sell); border-color: var(--cal-stop-sell); }
+.mark { color: var(--red-solid); }
+
+/* Card + scroll container (both axes; header row and label column stay in view) */
+.cal-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; position: relative; }
+.cal-card.loading::after { content: ''; position: absolute; inset: 0; background: var(--surface); opacity: .45; pointer-events: none; }
+.cal-wrap {
+    --cal-label-w: 270px; --cal-col-w: 40px;
+    overflow: auto; max-height: calc(100vh - var(--topbar-h) - 300px); min-height: 280px;
+    user-select: none; font-size: var(--text-xs);
+}
+.cal-row { display: grid; grid-template-columns: var(--cal-label-w) repeat(var(--cal-days), minmax(var(--cal-col-w), 1fr)); min-width: calc(var(--cal-label-w) + var(--cal-days) * var(--cal-col-w)); }
+.cal-row > * { grid-row: 1; }
+.cal-label {
+    position: sticky; left: 0; z-index: 2; background: var(--surface); grid-column: 1;
+    display: flex; align-items: center; gap: 10px; padding: 0 12px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); min-width: 0;
+}
+.cal-head { position: sticky; top: 0; z-index: 4; }
+.cal-head > * { background: var(--surface-2); }
+.cal-head .cal-label { z-index: 5; font-weight: var(--weight-semibold); font-size: var(--text-sm); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; line-height: 52px; }
+.cal-day { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 52px; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); color: var(--muted); }
+.cal-day b { font-size: var(--text-md); color: var(--ink); }
+.cal-day.weekend { background: var(--cal-weekend); color: var(--cal-weekend-text); }
+.cal-day.weekend b { color: var(--cal-weekend-text); }
+.cal-day.today { box-shadow: inset 0 -3px 0 var(--brand-600); }
+.cal-day.today b { color: var(--brand-600); }
+
+/* Cells */
+.cal-cell { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-variant-numeric: tabular-nums; color: var(--ink); min-width: 0; outline: none; }
+.cal-cell.weekend { background: var(--cal-weekend); }
+.cal-cell[tabindex] { cursor: pointer; }
+.cal-cell[tabindex]:hover { box-shadow: inset 0 0 0 1px var(--brand-500); }
+.cal-cell:focus-visible { box-shadow: inset 0 0 0 2px var(--brand-600); }
+.cal-cell.selected { background: var(--selected); box-shadow: inset 0 0 0 1px var(--brand-600); }
+.cal-cell.muted, .cal-cell .muted { color: var(--muted); }
+.cal-cell.stop { background: var(--cal-stop-sell); }
+.cal-cell.inv { font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+.cal-cell.inv.zero { background: var(--cal-zero); color: var(--on-brand); }
+.cal-cell.inv.zero.selected { box-shadow: inset 0 0 0 2px var(--ink); }
+.cal-cell.rate .price { font-weight: var(--weight-medium); }
+.cal-cell.rate .los { color: var(--muted); display: inline-flex; gap: 2px; }
+
+/* Room type line */
+.cal-group { content-visibility: auto; contain-intrinsic-size: auto 260px; }
+.cal-group.collapsed { contain-intrinsic-size: auto 60px; }
+.cal-rt { min-height: 58px; }
+.cal-rt > * { background: var(--surface-2); }
+.cal-rt .cal-label { background: var(--surface-2); }
+.cal-rt .cal-cell.weekend { background: var(--cal-weekend); }
+.cal-rt .cal-cell.stop { background: var(--cal-stop-sell); }
+.cal-rt .cal-cell.inv.zero { background: var(--cal-zero); }
+.cal-rt .cal-cell.selected { background: var(--selected); }
+.cal-toggle, .cal-sub-toggle { border: 0; background: none; padding: 4px; cursor: pointer; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-sm); }
+.cal-toggle:hover, .cal-sub-toggle:hover { background: var(--hover); }
+.cal-thumb { width: 48px; height: 36px; border-radius: var(--radius-sm); object-fit: cover; flex: none; background: linear-gradient(135deg, var(--placeholder-from), var(--placeholder-to)); display: grid; place-items: center; color: var(--brand-600); }
+.cal-rt-name { display: flex; flex-direction: column; min-width: 0; }
+.cal-rt-name b, .cal-plan b { font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
+.cal-rt-name small, .cal-plan small { color: var(--muted); font-size: var(--text-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-group.inactive .cal-rt-name b { color: var(--muted); }
+
+/* Rate plan line */
+.cal-product { min-height: 44px; }
+.cal-product .cal-label { padding-left: 46px; }
+.cal-plan { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+.cal-plan small { display: flex; gap: 10px; white-space: nowrap; }
+.cal-plan small span { display: inline-flex; align-items: center; gap: 3px; }
+.cal-product.inactive .cal-plan b { color: var(--muted); }
+
+/* PMS rooms */
+.cal-sub { min-height: 30px; }
+.cal-sub .cal-label { padding-left: 40px; font-weight: var(--weight-semibold); font-size: var(--text-xs); color: var(--ink-2); }
+.cal-unit { min-height: 32px; position: relative; }
+.view-reservations .cal-unit { min-height: 40px; }
+.cal-unit .cal-label { padding-left: 46px; justify-content: space-between; }
+.cal-unit-name { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+.cal-unit.inactive .cal-unit-name { color: var(--muted); }
+.cal-bar {
+    z-index: 1; align-self: center; margin: 0 3px; height: 24px; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 6px;
+    padding: 0 8px; min-width: 0; overflow: hidden; white-space: nowrap; font-size: var(--text-xs); text-decoration: none;
+    border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+}
+.view-reservations .cal-bar { height: 30px; }
+.cal-bar.cont-before { margin-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: 0; }
+.cal-bar.cont-after { margin-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: 0; }
+.cal-bar-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.cal-bar-text b { font-weight: var(--weight-semibold); }
+a.cal-bar:hover { filter: brightness(.97); }
+
+/* Shared hover tooltip (one element for the whole grid) */
+.cal-tip { position: fixed; z-index: 60; transform: translate(-50%, -100%); max-width: 320px; background: var(--tooltip-bg); color: var(--on-brand); padding: 6px 10px; border-radius: var(--radius-sm); font-size: var(--text-xs); font-weight: var(--weight-medium); pointer-events: none; white-space: normal; line-height: 1.4; }
+.cal-tip.below { transform: translate(-50%, 0); }
+
+/* Inline editor */
+.cal-editor { position: fixed; z-index: 70; width: 400px; max-width: calc(100vw - 24px); max-height: calc(100vh - 24px); display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
+.cal-editor header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.cal-editor header b { display: block; font-size: var(--text-md); }
+.cal-editor header small { color: var(--muted); }
+.cal-editor-body { padding: 14px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.cal-editor-body .form-grid { gap: 12px; }
+.cal-editor footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.field-inline { display: flex; align-items: center; min-height: var(--control-h); }
+
+/* Bulk drawer */
+.cal-weekdays { display: flex; flex-wrap: wrap; gap: 6px; }
+.cal-weekdays button { height: 34px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); background: var(--surface); color: var(--ink); cursor: pointer; font-weight: var(--weight-medium); }
+.cal-weekdays button.active { background: var(--brand-600); border-color: var(--brand-600); color: var(--on-brand); }
+.cal-checklist { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); }
+.cal-bulk-count { margin-right: auto; align-self: center; }
+
+@media (max-width: 1600px) {
+    .cal-wrap { --cal-label-w: 250px; --cal-col-w: 38px; }
+    .cal-legend { gap: 6px 12px; font-size: var(--text-xs); }
+    .cal-legend .swatch { width: 16px; height: 16px; }
+}

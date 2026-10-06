@@ -156,14 +156,15 @@ final class AriChangeSet
         if ($this->roomTypeIds === [] && $this->productIds === []) {
             $errors['targets'] = __('inventory.errors.no_target');
         }
-        if (! $this->hasRoomTypeChanges() && ! $this->hasProductChanges()) {
+        if ($errors === [] && ! $this->hasRoomTypeChanges() && ! $this->hasProductChanges()) {
             $errors['fields'] = __('inventory.errors.no_change');
         }
-        if ($sellLimit !== null && $this->roomTypeIds === []) {
+        $hasTarget = $this->roomTypeIds !== [] || $this->productIds !== [];
+        if ($hasTarget && $sellLimit !== null && $this->roomTypeIds === []) {
             $errors['sell_limit'] = __('inventory.errors.needs_room_types');
         }
         $productOnly = array_filter(['price', 'occupancyPrices', 'minLos', 'maxLos', 'cta', 'ctd', 'minAdvance', 'maxAdvance', 'closed'], fn ($f) => $this->{$f} !== null);
-        if ($productOnly !== [] && $this->productIds === []) {
+        if ($hasTarget && $productOnly !== [] && $this->productIds === []) {
             $errors['products'] = __('inventory.errors.needs_products');
         }
 

@@ -47,7 +47,7 @@ return [
     'reservation' => 'Reservation',
     'inactive' => 'Inactive',
     'derived' => 'Derived from :parent',
-    'derived_short' => 'Derived price',
+    'derived_short' => 'Derived',
     'default_value' => 'Default (not saved for this date yet)',
     'adults' => ':count adults included in the price',
     'meal_plan' => 'Meal plan: :name',
