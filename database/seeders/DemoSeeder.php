@@ -63,6 +63,9 @@ class DemoSeeder extends Seeder
         if (class_exists(AccommodationDemoSeeder::class)) {
             $this->call(AccommodationDemoSeeder::class);
         }
+        if (class_exists(InventoryDemoSeeder::class)) {
+            $this->call(InventoryDemoSeeder::class);
+        }
     }
 
     /** @return array<int, string> codes of the properties created by this run */

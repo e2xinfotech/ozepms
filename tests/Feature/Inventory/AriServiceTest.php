@@ -155,6 +155,7 @@ class AriServiceTest extends InventoryTestCase
         $range = ['date_from' => $this->day(1)->toDateString(), 'date_to' => $this->day(1)->toDateString(), 'product_ids' => [$this->bar->id]];
         $this->apply($range + ['price' => '1000']);
         $version = $this->version();
+        $this->travel(5)->seconds();
         $result = $this->apply($range + ['price' => '1000']);
         $this->assertSame(0, $result['ari_rows']);
         $this->assertSame($version, $this->version());

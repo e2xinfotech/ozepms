@@ -120,3 +120,45 @@ Each row is ~40–60 bytes, so these sizes fit comfortably in InnoDB with the cl
 | Direct overbooking write bypassing the service | rejected by CHECK `ck_inv_no_overbook` |
 | Same PMS room twice on the same night | rejected by `unit_nights` primary key |
 | Derived product without parent | rejected by CHECK `ck_prod_derived` |
+
+## Phase 3 additions
+
+| Migration | Change | Why |
+|---|---|---|
+| `2026_10_03_000002_add_max_advance_to_ari_daily` | `ari_daily.max_advance_days SMALLINT UNSIGNED NULL` | booking window per date: `cutoff_days` is the minimum days between booking and arrival, `max_advance_days` the maximum |
+
+How the daily tables are maintained (code in `app/Domain/Inventory`):
+
+* Rows exist from the property's today up to `config('ozepms.inventory.horizon_days')` (730) ahead.
+  `inventory:horizon` (scheduled daily 00:30) and the Phase 2 events (room type / PMS rooms / product changed)
+  create them with one `INSERT IGNORE … SELECT` over a generated date list. Existing rows are never overwritten.
+  New `ari_daily` rows take the product's default price and the rate plan's default restrictions.
+* `inventory_daily.total_units` = active PMS rooms; `ooo_units` = active rooms with an open block
+  (out of order, maintenance, owner hold) that night. Both are recounted when rooms or blocks change,
+  in the same statement, so the CHECK sees the final row.
+* Every write to `sold`, `held`, `ooo_units` is a guarded `UPDATE` written with additions only
+  (`LEAST(total_units, COALESCE(sell_limit, total_units)) >= ooo_units + sold + held + :rooms`), so unsigned
+  columns never underflow and the CHECK `ck_inv_no_overbook` never has to fire.
+* Calendar edits update only rows whose values really change (NULL-safe comparison), write one
+  `ari_change_log` row per room type / product and scope, and increment `properties.ari_version` once.
+
+## Load test (Phase 3)
+
+`php artisan inventory:benchmark --seed` on a separate database (`ozepms_perf`): 50 properties × 10 room types ×
+4 rate plans (one derived) × 10 rooms × 730 days = 365 000 `inventory_daily` and 1 460 000 `ari_daily` rows.
+Random property, arrival within the horizon, 1–3 adults, 0–1 child; 300 searches per stay length.
+Container with 2 vCPUs, MySQL 8.0, PHP 8.3 CLI (no opcache), another workload running at the same time.
+
+| Operation | p50 | p95 | p99 |
+|---|---|---|---|
+| `AvailabilityService::search`, 1 night | 21 ms | 30 ms | 35 ms |
+| search, 3 nights | 25 ms | 38 ms | 41 ms |
+| search, 7 nights | 41 ms | 67 ms | 72 ms |
+| search, 14 nights | 57 ms | 94 ms | 112 ms |
+| `InventoryService::reserve`, 3 nights | 4 ms | 7 ms | 10 ms |
+
+A search runs 8 queries whatever the stay length: room types, products, occupancy rules, rate plans (small
+master tables), then the `inventory_daily`, `ari_daily` and `ari_daily_occupancy` ranges for the whole property
+(`ix_inv_property_date`, `ix_ari_property_date`, `ix_ario_property_date`) and the age bands. The daily queries take
+1–3 ms; the rest of the time is pricing and restriction checks in PHP for 40 products, which grows with the number
+of nights. With opcache and JIT enabled the p95 figures are 25 / 36 / 61 / 89 ms.

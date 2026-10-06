@@ -212,17 +212,29 @@ class AriService
     }
 
     /**
-     * UPDATE … WHERE key = id AND stay_date in [from, to] (+ weekday filter). Returns rows whose
-     * values actually changed (MySQL "affected rows").
+     * UPDATE … WHERE key = id AND stay_date in [from, to] (+ weekday filter), touching only rows
+     * where at least one value really changes. Returns the number of rows changed.
      *
-     * @param  list<string>  $sets
-     * @param  list<mixed>  $bindings
+     * @param  list<string>  $sets  "column = expression" with ? placeholders
+     * @param  list<mixed>  $bindings  values for the placeholders, in order
      */
     private function updateRange(string $table, string $key, int $id, array $sets, array $bindings, CarbonImmutable $from, CarbonImmutable $to, AriChangeSet $changes): int
     {
         if ($sets === []) {
             return 0;
         }
+        // Same expressions again, compared NULL-safe with the current values.
+        $differs = [];
+        $differBindings = [];
+        $offset = 0;
+        foreach ($sets as $set) {
+            [$column, $expression] = explode(' = ', $set, 2);
+            $count = substr_count($expression, '?');
+            $differs[] = "NOT ({$column} <=> {$expression})";
+            array_push($differBindings, ...array_slice($bindings, $offset, $count));
+            $offset += $count;
+        }
+
         $sql = "UPDATE {$table} SET ".implode(', ', $sets).", updated_at = ? WHERE {$key} = ? AND stay_date >= ? AND stay_date <= ?";
         $params = [...$bindings, now(), $id, $from->toDateString(), $to->toDateString()];
         if ($changes->weekdays !== []) {
@@ -230,8 +242,9 @@ class AriService
             $sql .= ' AND WEEKDAY(stay_date) IN ('.implode(',', array_fill(0, count($changes->weekdays), '?')).')';
             array_push($params, ...array_map(fn ($d) => $d - 1, $changes->weekdays));
         }
+        $sql .= ' AND ('.implode(' OR ', $differs).')';
 
-        return DB::update($sql, $params);
+        return DB::update($sql, [...$params, ...$differBindings]);
     }
 
     private function dateFilter($query, CarbonImmutable $from, CarbonImmutable $to, AriChangeSet $changes)
@@ -262,12 +275,21 @@ class AriService
                 continue;
             }
             foreach (array_chunk($dates, 500) as $chunk) {
-                $rows = array_map(fn ($d) => [
-                    'product_id' => $productId, 'stay_date' => $d, 'adults' => $adults,
-                    'property_id' => $propertyId, 'price' => $price, 'updated_at' => $now,
-                ], $chunk);
-                DB::table('ari_daily_occupancy')->upsert($rows, ['product_id', 'stay_date', 'adults'], ['price', 'updated_at']);
-                $count += count($rows);
+                $values = [];
+                $bindings = [];
+                foreach ($chunk as $d) {
+                    $values[] = '(?, ?, ?, ?, ?, ?)';
+                    array_push($bindings, $productId, $d, $adults, $propertyId, $price, $now);
+                }
+                // updated_at is set before price so it only moves when the price really changes;
+                // MySQL then reports 1 per insert, 2 per changed row and 0 per unchanged row.
+                $affected = DB::affectingStatement(
+                    'INSERT INTO ari_daily_occupancy (product_id, stay_date, adults, property_id, price, updated_at) VALUES '
+                    .implode(', ', $values)
+                    .' ON DUPLICATE KEY UPDATE updated_at = IF(price <=> VALUES(price), updated_at, VALUES(updated_at)), price = VALUES(price)',
+                    $bindings,
+                );
+                $count += $affected;
             }
         }
 
