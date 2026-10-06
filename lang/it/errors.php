@@ -11,6 +11,7 @@ return [
     'title_429' => 'Troppe richieste',
     'title_500' => 'Si è verificato un errore',
     'title_503' => 'Manutenzione in corso',
+    '400' => 'Impossibile elaborare la richiesta.',
     '401' => 'La sessione è terminata. Accedi di nuovo.',
     '403' => 'Non hai l\'autorizzazione per eseguire questa operazione.',
     '404' => 'La pagina cercata non esiste o non hai accesso.',

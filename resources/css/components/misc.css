@@ -25,5 +25,8 @@
 .chart-box { width: 100%; }
 .chart-box svg { display: block; width: 100%; height: auto; overflow: visible; }
 .chart-box text { font-family: var(--font-sans); font-size: 11px; fill: var(--muted); }
-.donut-wrap { display: flex; align-items: center; gap: 28px; }
+.donut-wrap { display: flex; align-items: center; gap: 20px; }
+.donut-wrap > svg { flex: none; }
+.donut-wrap li > span { white-space: nowrap; }
+.donut-wrap li { gap: 12px; }
 .donut-center { font-weight: var(--weight-bold); fill: var(--ink) !important; }

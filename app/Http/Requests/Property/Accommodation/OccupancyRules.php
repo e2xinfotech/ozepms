@@ -17,7 +17,7 @@ final class OccupancyRules
             "$prefix.*.guest_count" => ['required', 'integer', 'min:1', 'max:20'],
             "$prefix.*.age_band" => ['nullable', Rule::in(['infant', 'child', 'teen'])],
             "$prefix.*.adjust_type" => ['required', Rule::in(['fixed', 'percent'])],
-            "$prefix.*.adjust_value" => ['required', 'numeric', 'min:-99999999', 'max:99999999'],
+            "$prefix.*.adjust_value" => ['required', 'decimal:0,4', 'min:-99999999', 'max:99999999'],
         ];
     }
 }

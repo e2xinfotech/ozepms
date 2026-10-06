@@ -11,6 +11,7 @@ return [
     'title_429' => 'Trop de requêtes',
     'title_500' => 'Une erreur s\'est produite',
     'title_503' => 'Maintenance en cours',
+    '400' => 'La demande n\'a pas pu être traitée.',
     '401' => 'Votre session a pris fin. Veuillez vous reconnecter.',
     '403' => 'Vous n\'avez pas l\'autorisation d\'effectuer cette action.',
     '404' => 'La page demandée n\'existe pas ou vous n\'y avez pas accès.',

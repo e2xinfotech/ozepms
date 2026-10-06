@@ -10,7 +10,7 @@ class TaxPreviewRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tariff' => ['required', 'numeric', 'min:0', 'max:99999999'],
+            'tariff' => ['required', 'decimal:0,2', 'min:0', 'max:99999999'],
             'nights' => ['required', 'integer', 'min:1', 'max:365'],
             'persons' => ['sometimes', 'integer', 'min:1', 'max:40'],
             'date' => ['sometimes', 'date_format:Y-m-d'],

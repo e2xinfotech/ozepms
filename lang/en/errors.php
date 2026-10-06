@@ -11,6 +11,7 @@ return [
     'title_429' => 'Too many requests',
     'title_500' => 'Something went wrong',
     'title_503' => 'Down for maintenance',
+    '400' => 'The request could not be processed.',
     '401' => 'Your session has ended. Please sign in again.',
     '403' => 'You do not have permission to do this.',
     '404' => 'The page you are looking for does not exist or you do not have access to it.',
