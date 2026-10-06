@@ -31,13 +31,13 @@ export function KpiCard({ icon, tone = 'blue', label, value, sub, change, compac
         <Tag className={clsx('kpi', compact && 'compact', onClick && 'button', active && 'active')} onClick={onClick} type={onClick ? 'button' : undefined}>
             <span className={clsx('kpi-icon', `tone-${tone}`)}><Icon name={icon} size={compact ? 18 : 26} /></span>
             <span className="grow">
-                {!compact && <span className="kpi-label" style={{ display: 'block' }}>{label}</span>}
+                {!compact && <span className="kpi-label" style={{ display: 'block' }} title={typeof label === 'string' ? label : undefined}>{label}</span>}
                 <span className="kpi-value num">
                     {value}
                     {change !== undefined && change !== null && <Change value={change} />}
                 </span>
-                {compact && <span className="kpi-label" style={{ display: 'block' }}>{label}</span>}
-                {sub && <span className="kpi-sub" style={{ display: 'block' }}>{sub}</span>}
+                {compact && <span className="kpi-label" style={{ display: 'block' }} title={typeof label === 'string' ? label : undefined}>{label}</span>}
+                {sub && <span className="kpi-sub" style={{ display: 'block' }} title={typeof sub === 'string' ? sub : undefined}>{sub}</span>}
             </span>
         </Tag>
     );
