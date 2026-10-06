@@ -84,6 +84,17 @@ class AccommodationDemoSeeder extends Seeder
     /** @return \Illuminate\Support\Collection<int, Property> */
     private function properties()
     {
+        return self::demoProperties();
+    }
+
+    /**
+     * The demo properties, by code or by slug (codes come from a counter and can differ, e.g. in
+     * tests). Shared by every module demo seeder.
+     *
+     * @return \Illuminate\Support\Collection<int, Property>
+     */
+    public static function demoProperties()
+    {
         return Property::query()->whereIn('code', self::CODES)->orWhereIn('slug', self::SLUGS)->orderBy('id')->get();
     }
 

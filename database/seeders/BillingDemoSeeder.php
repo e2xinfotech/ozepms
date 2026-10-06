@@ -24,7 +24,6 @@ use Illuminate\Database\Seeder;
  */
 class BillingDemoSeeder extends Seeder
 {
-    private const CODES = ['P1001', 'P1002'];
 
     /** code, name, price (property currency), tax category, posting rule */
     private const SERVICES = [
@@ -38,13 +37,9 @@ class BillingDemoSeeder extends Seeder
     public function run(): void
     {
         $user = User::query()->where('email', 'manager@demo.ozepms.test')->first();
-        foreach (self::CODES as $code) {
-            $property = Property::query()->where('code', $code)->first();
-            if ($property === null) {
-                continue;
-            }
+        foreach (AccommodationDemoSeeder::demoProperties() as $property) {
             $count = InProperty::run($property, fn () => $this->seedProperty($property, $user));
-            $this->command?->info("Billing demo data ready for {$code} ({$count} reservations).");
+            $this->command?->info("Billing demo data ready for {$property->code} ({$count} reservations).");
         }
     }
 

@@ -120,6 +120,12 @@ class ReservationEndpointsTest extends ReservationTestCase
 
         $this->actingAs($this->owner)->get($this->page('/front-desk?tab=in_house'))->assertOk()->assertSee($r->booking_ref);
         $this->actingAs($this->owner)->postJson($this->api('/reservations/'.$r->public_id.'/notes'), ['body' => 'Late checkout requested'])->assertCreated();
+        // Open balance blocks check-out; after the payment it goes through.
+        $this->actingAs($this->owner)->postJson($this->api('/reservations/'.$r->public_id.'/check-out'), ['note' => 'All good'])
+            ->assertStatus(422)->assertJsonStructure(['error' => ['fields' => ['balance']]]);
+        $balance = app(\App\Domain\Billing\FolioService::class)->summary($r->fresh())['balance'];
+        $this->actingAs($this->owner)->postJson($this->api('/reservations/'.$r->public_id.'/payments'), ['method' => 'cash', 'amount' => (string) $balance, 'idempotency_key' => 'test-pay-'.$r->public_id])
+            ->assertSuccessful();
         $this->actingAs($this->owner)->postJson($this->api('/reservations/'.$r->public_id.'/check-out'), ['note' => 'All good'])
             ->assertOk()->assertJsonPath('reservation.status', 'checked_out');
         $this->assertInventoryConsistent();

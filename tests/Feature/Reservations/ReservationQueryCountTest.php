@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\DB;
 class ReservationQueryCountTest extends ReservationTestCase
 {
     /** Module queries stay under ~15; every request adds about 5 for the session user, property, membership and permissions. */
-    private const MAX = 20;
+    // 22: the detail adds the billing summary (folio, pending nights, line count) — constant, not per row.
+    private const MAX = 22;
 
     protected function setUp(): void
     {

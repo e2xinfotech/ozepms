@@ -20,13 +20,12 @@ use Illuminate\Support\Facades\DB;
  */
 class InventoryDemoSeeder extends Seeder
 {
-    private const CODES = ['P1001', 'P1002'];
 
     private const DAYS = 365;
 
     public function run(): void
     {
-        $properties = Property::query()->whereIn('code', self::CODES)->orderBy('id')->get();
+        $properties = AccommodationDemoSeeder::demoProperties();
         if ($properties->isEmpty()) {
             $this->command?->warn('No demo properties found; run the DemoSeeder first.');
 

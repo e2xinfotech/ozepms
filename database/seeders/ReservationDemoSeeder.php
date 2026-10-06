@@ -24,7 +24,6 @@ use Illuminate\Validation\ValidationException;
  */
 class ReservationDemoSeeder extends Seeder
 {
-    private const CODES = ['P1001', 'P1002'];
 
     /** first, last, e-mail, phone, nationality, id type */
     private const GUESTS = [
@@ -76,7 +75,7 @@ class ReservationDemoSeeder extends Seeder
 
     public function run(): void
     {
-        $properties = Property::query()->whereIn('code', self::CODES)->orderBy('id')->get();
+        $properties = AccommodationDemoSeeder::demoProperties();
         if ($properties->isEmpty()) {
             $this->command?->warn('No demo properties found; run the DemoSeeder first.');
 

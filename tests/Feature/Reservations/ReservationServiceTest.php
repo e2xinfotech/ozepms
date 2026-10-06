@@ -193,6 +193,7 @@ class ReservationServiceTest extends ReservationTestCase
         $this->assertSame(2, DB::table('unit_nights')->where('unit_id', $u2->id)->where('reservation_room_id', $room->id)->count());
 
         // Leaving today, a day early: the second night is released.
+        $this->payBalance($r);
         $this->service()->checkOut($r->fresh(), null, $this->owner);
         $r->refresh();
         $this->assertSame('checked_out', $r->status);

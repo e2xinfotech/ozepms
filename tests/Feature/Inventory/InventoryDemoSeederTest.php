@@ -17,7 +17,8 @@ class InventoryDemoSeederTest extends TestCase
         config(['ozepms.inventory.horizon_days' => 30]);
         // Creates the demo properties through DemoSeeder, which runs the inventory demo seeder too.
         $this->seed(AccommodationDemoSeeder::class);
-        $property = Property::query()->where('code', 'P1001')->firstOrFail();
+        $property = \Database\Seeders\AccommodationDemoSeeder::demoProperties()->first();
+        $this->assertNotNull($property);
         $today = app(InventoryService::class)->today($property->id);
 
         $roomTypeId = (int) DB::table('room_types')->where('property_id', $property->id)->orderBy('sort_order')->value('id');
