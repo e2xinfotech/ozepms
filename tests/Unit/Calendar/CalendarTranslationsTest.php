@@ -34,7 +34,7 @@ class CalendarTranslationsTest extends TestCase
                 preg_match_all('/:([a-z_]+)/', $text, $a);
                 preg_match_all('/:([a-z_]+)/', $other[$key], $b);
                 $this->assertEqualsCanonicalizing(array_unique($a[1]), array_unique($b[1]), "Placeholders differ in {$locale}.{$key}");
-                if (! in_array($key, ['bar.dates', 'fields.date', 'filters.status', 'bulk.dates', 'edit.no'], true) && strlen($text) > 6) {
+                if (! in_array($key, ['bar.dates', 'fields.date', 'filters.status', 'bulk.dates', 'edit.no', 'filters.restriction', 'copy.restrictions', 'copy.optional'], true) && strlen($text) > 6) {
                     $this->assertNotSame($text, $other[$key], "Untranslated {$locale}.{$key}");
                 }
             }

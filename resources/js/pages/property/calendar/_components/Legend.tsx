@@ -19,6 +19,7 @@ export function Legend() {
             {item('stop_sell', <i className="swatch stop" aria-hidden="true" />)}
             {item('cta', <Icon name="door-closed" size={16} className="mark" />)}
             {item('ctd', <Icon name="log-out" size={16} className="mark" />)}
+            {item('cutoff', <i className="swatch cutoff" aria-hidden="true" />)}
         </ul>
     );
 }

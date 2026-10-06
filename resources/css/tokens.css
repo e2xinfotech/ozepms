@@ -66,6 +66,10 @@
     --cal-stop-sell: #fde3e3;
     --cal-weekend: #fff5f5;
     --cal-weekend-text: #d63c3c;
+    --cal-low: var(--amber-solid);        /* year view: few rooms left */
+    --cal-ok: #9bd8b0;                    /* year view: rooms available */
+    --cal-nodata: var(--slate-bg);        /* year view: nothing stored for the night */
+    --cal-cutoff: var(--orange-solid);    /* rate cell marker: book at least N days ahead */
 
     /* Sign-in screen overlay */
     --auth-hero-shade: rgba(7, 20, 51, 0.92);

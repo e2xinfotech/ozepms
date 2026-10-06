@@ -94,7 +94,7 @@ export interface Grid {
 }
 
 export type View = 'inventory' | 'reservations';
-export type Range = 'month' | 'week';
+export type Range = 'day' | 'week' | 'month' | 'year';
 
 export interface Filters {
     view: View;
@@ -103,7 +103,33 @@ export interface Filters {
     room_type: string | null;
     unit: string | null;
     rate_plan: string | null;
-    status: string | null;
+    status: string | null;          // '' active only · all · inactive
+    availability: string | null;    // sold_out · low · available
+    restriction: string | null;     // any · stop_sell · cta · ctd · min_los · max_los · cutoff
+    price_min: string | null;
+    price_max: string | null;
+}
+
+/** Year overview (CalendarYearQuery): per room type one level per night and the lowest open price. */
+export interface YearMonth { month: string; days: number; first_dow: number; start: number }
+
+export interface YearRow {
+    id: string;
+    code: string;
+    name: string;
+    is_active: boolean;
+    levels: string;                  // per night: 0 sold out · 1 low · 2 available · s stop sell · . no data
+    prices: (string | null)[];
+    month_min: (string | null)[];
+}
+
+export interface YearData {
+    from: string;
+    to: string;
+    today: string;
+    currency: string;
+    months: YearMonth[];
+    room_types: YearRow[];
 }
 
 /** Cells chosen for editing: one row, a run of consecutive nights. */

@@ -10,7 +10,7 @@ import type { Bar, Day, Grid, InvDay, ProductRow, RateDay, RoomTypeRow, Selectio
 interface Props {
     grid: Grid;
     view: View;
-    range: 'month' | 'week';
+    range: 'day' | 'week' | 'month';
     canEdit: boolean;
     selection: Selection | null;
     onSelect: (sel: Selection | null) => void;
@@ -142,7 +142,7 @@ export function CalendarGrid({ grid, view, range, canEdit, selection, onSelect, 
     const style = { '--cal-days': grid.days.length } as CSSProperties;
 
     return (
-        <div className={clsx('cal-wrap', `view-${view}`)} ref={wrap} style={style}
+        <div className={clsx('cal-wrap', `view-${view}`, `range-${range}`)} ref={wrap} style={style}
             onMouseDown={onMouseDown} onMouseOver={onMouseOver} onMouseLeave={() => setTip(null)} onKeyDown={onKeyDown}
             role="grid" aria-readonly={!canEdit} aria-label={t('calendar.title')}>
             <div className="cal-row cal-head" role="row">
@@ -158,7 +158,7 @@ export function CalendarGrid({ grid, view, range, canEdit, selection, onSelect, 
             </div>
 
             {grid.room_types.map((rt) => (
-                <RoomTypeGroup key={rt.id} rt={rt} days={grid.days} view={view} canEdit={canEdit}
+                <RoomTypeGroup key={rt.id} rt={rt} days={grid.days} view={view} canEdit={canEdit} detail={range === 'day'}
                     collapsed={collapsed.has(rt.id)} roomsOpen={view === 'reservations' || roomsOpen.has(rt.id)}
                     selection={selection?.roomTypeId === rt.id ? selection : null} onToggle={toggle} />
             ))}
@@ -179,9 +179,11 @@ interface GroupProps {
     roomsOpen: boolean;
     selection: Selection | null;
     onToggle: (set: 'collapsed' | 'rooms', id: string) => void;
+    /** Day view: one wide column, so every value is written out in the cell. */
+    detail: boolean;
 }
 
-const RoomTypeGroup = memo(function RoomTypeGroup({ rt, days, view, canEdit, collapsed, roomsOpen, selection, onToggle }: GroupProps) {
+const RoomTypeGroup = memo(function RoomTypeGroup({ rt, days, view, canEdit, collapsed, roomsOpen, selection, onToggle, detail }: GroupProps) {
     const summary = rt.units_count === 0 ? t('calendar.rooms_none')
         : rt.units_count === 1 ? t('calendar.rooms_one', { range: rt.units_range ?? '' }) : t('calendar.rooms_many', { count: rt.units_count, range: rt.units_range ?? '' });
     const editable = canEdit ? 0 : undefined;
@@ -205,12 +207,13 @@ const RoomTypeGroup = memo(function RoomTypeGroup({ rt, days, view, canEdit, col
                         className={clsx('cal-cell inv', days[i].weekend && 'weekend', d.a === 0 && 'zero', d.ss && 'stop', d.d && 'muted', inSel(selection, rt.id, i) && 'selected')}
                         data-row={rt.id} data-rt={rt.id} data-kind="room_type" data-i={i} data-tip={invTip(d)} aria-label={invTip(d)}>
                         <span className="num">{d.a}</span>
+                        {detail && <small className="cal-detail">{invTip(d)}</small>}
                     </div>
                 ))}
             </div>
 
             {!collapsed && view === 'inventory' && rt.products.map((p) => (
-                <ProductLine key={p.id} rt={rt} p={p} days={days} canEdit={canEdit} selection={selection} />
+                <ProductLine key={p.id} rt={rt} p={p} days={days} canEdit={canEdit} selection={selection} detail={detail} />
             ))}
 
             {!collapsed && rt.units.length > 0 && (
@@ -233,7 +236,7 @@ const RoomTypeGroup = memo(function RoomTypeGroup({ rt, days, view, canEdit, col
     );
 });
 
-function ProductLine({ rt, p, days, canEdit, selection }: { rt: RoomTypeRow; p: ProductRow; days: Day[]; canEdit: boolean; selection: Selection | null }) {
+function ProductLine({ rt, p, days, canEdit, selection, detail }: { rt: RoomTypeRow; p: ProductRow; days: Day[]; canEdit: boolean; selection: Selection | null; detail: boolean }) {
     const derived = p.pricing_mode === 'derived';
     return (
         <div className={clsx('cal-row cal-product', !p.is_active && 'inactive')} role="row">
@@ -252,7 +255,7 @@ function ProductLine({ rt, p, days, canEdit, selection }: { rt: RoomTypeRow; p: 
                 const tip = rateTip(d, p);
                 return (
                     <div key={i} role="gridcell" tabIndex={canEdit ? 0 : undefined}
-                        className={clsx('cal-cell rate', days[i].weekend && 'weekend', d.ss && 'stop', inSel(selection, p.id, i) && 'selected')}
+                        className={clsx('cal-cell rate', days[i].weekend && 'weekend', d.ss && 'stop', !!d.cut && 'has-cutoff', inSel(selection, p.id, i) && 'selected')}
                         data-row={p.id} data-rt={rt.id} data-kind="product" data-i={i} data-tip={tip} aria-label={tip}>
                         <span className={clsx('price num', (derived || d.d) && 'muted')}>{price(d.p)}</span>
                         <span className="los num">
@@ -263,6 +266,8 @@ function ProductLine({ rt, p, days, canEdit, selection }: { rt: RoomTypeRow; p: 
                                 </>
                             ) : d.ss ? '–' : `${d.min}-${d.max ?? '∞'}`}
                         </span>
+                        {!!d.cut && <i className="cut-mark" aria-hidden="true" />}
+                        {detail && <small className="cal-detail">{tip}</small>}
                     </div>
                 );
             })}

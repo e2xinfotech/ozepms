@@ -33,7 +33,27 @@ export function fullDay(ymd: string): string {
     return new Intl.DateTimeFormat(intl(), { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(ymd + 'T00:00:00Z'));
 }
 
-/** Window title: "March 2026" for a month, "12 Mar – 25 Mar 2026" for two weeks. */
-export function windowLabel(from: string, to: string, range: 'month' | 'week'): string {
-    return range === 'month' ? monthLabel(from) : `${dayLabel(from)} – ${fullDay(to)}`;
+/** "Mar 2026" */
+export function shortMonth(ymd: string): string {
+    const s = new Intl.DateTimeFormat(intl(), { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(ymd + 'T00:00:00Z'));
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** "Mar" */
+export function monthName(ymd: string): string {
+    const s = new Intl.DateTimeFormat(intl(), { month: 'short', timeZone: 'UTC' }).format(new Date(ymd + 'T00:00:00Z'));
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** "Tue, 12 Mar 2026" */
+export function longDay(ymd: string): string {
+    return new Intl.DateTimeFormat(intl(), { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(ymd + 'T00:00:00Z'));
+}
+
+/** Window title: "March 2026", "12 Mar – 25 Mar 2026" (two weeks), "Tue, 12 Mar 2026" (day), "Oct 2026 – Sep 2027" (year). */
+export function windowLabel(from: string, to: string, range: 'day' | 'week' | 'month' | 'year'): string {
+    if (range === 'month') return monthLabel(from);
+    if (range === 'day') return longDay(from);
+    if (range === 'year') return `${shortMonth(from)} – ${shortMonth(to)}`;
+    return `${dayLabel(from)} – ${fullDay(to)}`;
 }
