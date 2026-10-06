@@ -36,3 +36,14 @@ table.table { width: 100%; border-collapse: separate; border-spacing: 0; font-si
 .progress.amber > span { background: var(--amber-solid); }
 .progress.red > span { background: var(--red-solid); }
 .progress.blue > span { background: var(--blue-solid); }
+
+/* Long text cells stay on one line; the full text is in the title tooltip */
+.cell-clip { display: block; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.with-panel .media-cell img, .with-panel .media-cell .thumb { width: 56px !important; height: 40px !important; }
+.with-panel .media-cell > div { min-width: 120px; }
+.with-panel .cell-clip { max-width: 130px; }
+/* Next to a detail panel (laptop widths) tables are denser and drop secondary columns */
+@media (max-width: 1600px) {
+    .with-panel .table thead th, .with-panel .table tbody td { padding-left: 10px; padding-right: 10px; }
+    .with-panel .table .hide-with-panel { display: none; }
+}

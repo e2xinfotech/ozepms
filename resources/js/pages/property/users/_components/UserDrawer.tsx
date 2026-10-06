@@ -6,8 +6,10 @@ import { propertyApiUrl } from '@/lib/page';
 import type { RoleInfo, UserDetail } from './types';
 
 /** Add a user to the property, or edit one (name, title, phone, role). */
-export function UserDrawer({ user, roles, locales, onClose, onSaved }: {
+export function UserDrawer({ user, roles, locales, onClose, onSaved, template }: {
     user: UserDetail | null;
+    /** "Duplicate User": a new user starting with this user's role, job title and language. */
+    template?: UserDetail | null;
     roles: RoleInfo[];
     locales: Record<string, string>;
     onClose: () => void;
@@ -18,10 +20,10 @@ export function UserDrawer({ user, roles, locales, onClose, onSaved }: {
     const [data, setData] = useState({
         name: user?.name ?? '',
         email: user?.email ?? '',
-        job_title: user?.job_title ?? '',
+        job_title: user?.job_title ?? template?.job_title ?? '',
         phone_e164: user?.phone_e164 ?? '',
-        locale: user?.locale ?? 'en',
-        role: user?.role ?? assignable[0]?.code ?? '',
+        locale: user?.locale ?? template?.locale ?? 'en',
+        role: user?.role ?? (template?.role && assignable.some((r) => r.code === template.role) ? template.role : assignable[0]?.code) ?? '',
     });
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<ApiError | null>(null);

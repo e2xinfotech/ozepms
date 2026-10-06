@@ -36,4 +36,5 @@ return [
     'sign_out' => 'Sign Out',
     'support_mode_banner' => 'Support mode: you are viewing this property as E2X platform staff. All actions are recorded.',
     'support_mode_hint' => 'You are in support mode.',
+    'your_properties' => 'Your properties',
 ];

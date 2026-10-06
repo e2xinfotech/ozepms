@@ -63,4 +63,5 @@ return [
     'platform_invite_hint' => 'Il nuovo membro del team riceve un\'e-mail per impostare la password. L\'autenticazione a due fattori è obbligatoria per gli account della piattaforma.',
     'property_user' => 'Utente della struttura',
     'section_details' => 'Dati utente',
+    'duplicate_hint' => 'Aggiungi un nuovo utente con lo stesso ruolo, mansione e lingua',
 ];

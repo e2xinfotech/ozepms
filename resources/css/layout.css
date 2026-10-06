@@ -57,11 +57,11 @@
 .banner.info { background: var(--brand-100); color: var(--brand-700); }
 
 /* ---------- Page header ---------- */
-.page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-.page-header > :first-child { min-width: 0; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px 16px; flex-wrap: wrap; }
+.page-header > :first-child { min-width: 0; flex: 1 1 340px; }
 .page-header h1 { line-height: 1.15; }
 .page-header .page-desc { margin-top: 6px; color: var(--ink-2); font-size: 15px; }
-.page-header .page-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; flex: none; max-width: 60%; }
+.page-header .page-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; flex: 0 1 auto; margin-left: auto; }
 .page-back { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); display: grid; place-items: center; color: var(--ink); }
 
 /* ---------- Auth layout ---------- */
@@ -103,3 +103,4 @@
     .sidebar.open { display: flex; position: fixed; z-index: 60; width: var(--sidebar-width); }
     .topbar-search { display: none; }
 }
+.topbar > .prop-switch + .topbar-actions { margin-left: auto; }

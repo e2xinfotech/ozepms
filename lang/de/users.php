@@ -63,4 +63,5 @@ return [
     'platform_invite_hint' => 'Das neue Teammitglied erhält eine E-Mail, um ein Passwort festzulegen. Für Plattformkonten ist die Zwei-Faktor-Authentifizierung Pflicht.',
     'property_user' => 'Benutzer einer Unterkunft',
     'section_details' => 'Benutzerdaten',
+    'duplicate_hint' => 'Neuen Benutzer mit derselben Rolle, Position und Sprache anlegen',
 ];

@@ -3,6 +3,14 @@
 namespace App\Providers;
 
 use App\Domain\Access\AccessService;
+use App\Infrastructure\Logging\ErrorRecorder;
+use Illuminate\Console\Events\ScheduledTaskFailed;
+use Illuminate\Console\Events\ScheduledTaskFinished;
+use Illuminate\Console\Events\ScheduledTaskStarting;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\Event;
 use App\Models\User;
 use App\Support\PropertyContext;
 use Illuminate\Database\Eloquent\Model;
@@ -55,6 +63,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->configureRateLimiting();
+        $this->tagErrorSources();
 
         $threshold = (int) config('ozepms.logging.slow_query_ms');
         DB::listen(function (QueryExecuted $query) use ($threshold) {
@@ -66,6 +75,15 @@ class AppServiceProvider extends ServiceProvider
                 ]);
             }
         });
+    }
+
+    /** Errors raised inside queued jobs and scheduled tasks are labelled as such on System Health. */
+    private function tagErrorSources(): void
+    {
+        Event::listen(JobProcessing::class, fn () => ErrorRecorder::runningIn('queue'));
+        Event::listen([JobProcessed::class, JobFailed::class], fn () => ErrorRecorder::runningIn('server'));
+        Event::listen(ScheduledTaskStarting::class, fn () => ErrorRecorder::runningIn('scheduler'));
+        Event::listen([ScheduledTaskFinished::class, ScheduledTaskFailed::class], fn () => ErrorRecorder::runningIn('server'));
     }
 
     private function configureRateLimiting(): void

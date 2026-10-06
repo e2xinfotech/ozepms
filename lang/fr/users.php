@@ -63,4 +63,5 @@ return [
     'platform_invite_hint' => 'Le nouveau membre de l\'équipe reçoit un e-mail pour définir son mot de passe. La double authentification est obligatoire pour les comptes de la plateforme.',
     'property_user' => 'Utilisateur d\'établissement',
     'section_details' => 'Informations sur l\'utilisateur',
+    'duplicate_hint' => 'Ajouter un nouvel utilisateur avec le même rôle, la même fonction et la même langue',
 ];

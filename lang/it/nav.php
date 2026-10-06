@@ -36,4 +36,5 @@ return [
     'sign_out' => 'Esci',
     'support_mode_banner' => 'Modalità assistenza: stai visualizzando questa struttura come personale E2X. Tutte le azioni vengono registrate.',
     'support_mode_hint' => 'Sei in modalità assistenza.',
+    'your_properties' => 'Le tue strutture',
 ];

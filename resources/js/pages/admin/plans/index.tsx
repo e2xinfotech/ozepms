@@ -87,7 +87,7 @@ function PlansPage({ rows, meta, counts, filters, features, currencies }: Props)
     const [editing, setEditing] = useState<{ plan: Plan | null } | null>(null);
     const columns: Column<Plan>[] = [
         { key: 'name', header: t('subscription.name'), render: (p) => <div><div className="cell-main">{p.name}</div><div className="cell-sub">{p.code}</div></div> },
-        { key: 'price', header: t('subscription.price'), align: 'right', render: (p) => <>{money(p.price, p.currency_code)}<div className="cell-sub">{t(`subscription.cycles.${p.billing_cycle}`)}</div></> },
+        { key: 'price', header: t('subscription.price'), align: 'right', render: (p) => <><span className="nowrap">{money(p.price, p.currency_code)}</span><div className="cell-sub">{t(`subscription.cycles.${p.billing_cycle}`)}</div></> },
         { key: 'trial', header: t('subscription.trial_days'), align: 'right', render: (p) => number(p.trial_days) },
         { key: 'rt', header: t('subscription.max_room_types'), align: 'right', render: (p) => limit(p.max_room_types) },
         { key: 'units', header: t('subscription.max_units'), align: 'right', render: (p) => limit(p.max_units) },

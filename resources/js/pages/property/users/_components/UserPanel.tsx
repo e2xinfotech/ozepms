@@ -10,8 +10,8 @@ import type { PermissionGroup, UserDetail } from './types';
 type Pending = 'disable' | 'enable' | 'remove' | null;
 
 /** Right-hand panel of Users & Roles for the selected user. */
-export function UserPanel({ id, me, catalogue, onClose, onEdit }: {
-    id: string; me: string; catalogue: PermissionGroup[]; onClose: () => void; onEdit: (u: UserDetail) => void;
+export function UserPanel({ id, me, catalogue, onClose, onEdit, onDuplicate }: {
+    id: string; me: string; catalogue: PermissionGroup[]; onClose: () => void; onEdit: (u: UserDetail) => void; onDuplicate?: (u: UserDetail) => void;
 }) {
     const [user, setUser] = useState<UserDetail | null>(null);
     const [failed, setFailed] = useState<string | null>(null);
@@ -71,7 +71,7 @@ export function UserPanel({ id, me, catalogue, onClose, onEdit }: {
                         { icon: 'mail', label: t('users.email'), value: user.email },
                         { icon: 'phone', label: t('users.phone'), value: user.phone_e164 },
                         { icon: 'briefcase', label: t('users.job_title'), value: user.job_title },
-                        { icon: 'user-cog', label: t('users.role'), value: <span className="row" style={{ gap: 8 }}><RoleBadge name={user.role_name} color={user.role_color} />{user.is_owner && <Badge size="sm" tone="violet">{t('users.owner')}</Badge>}</span> },
+                        { icon: 'user-cog', label: t('users.role'), value: <span className="row" style={{ gap: 8 }}><RoleBadge name={user.role_name} color={user.role_color} />{user.is_owner && user.role !== 'owner' && <Badge size="sm" tone="violet">{t('users.owner')}</Badge>}</span> },
                         { icon: 'activity', label: t('users.status'), value: <Badge status={user.status} /> },
                         { icon: 'log-in', label: t('users.last_login'), value: user.last_login_at ? dateTime(user.last_login_at) : t('ui.never') },
                         { icon: 'calendar-plus', label: t('users.created_on'), value: dateTime(user.created_at) },
@@ -99,6 +99,7 @@ export function UserPanel({ id, me, catalogue, onClose, onEdit }: {
                     {user.status === 'disabled'
                         ? <Button variant="outline" icon="check-circle" disabled={busy || self} onClick={() => setPending('enable')}>{t('users.enable_user')}</Button>
                         : <Button variant="danger-soft" icon="pause" disabled={busy || self || user.is_owner} title={user.is_owner ? t('users.owner_cannot_disable') : undefined} onClick={() => setPending('disable')}>{t('users.disable_user')}</Button>}
+                    {onDuplicate && <Button variant="outline" icon="copy" disabled={busy} title={t('users.duplicate_hint')} onClick={() => onDuplicate(user)}>{t('users.duplicate_user')}</Button>}
                     <Button variant="danger-soft" icon="trash" disabled={busy || self || user.is_owner} title={user.is_owner ? t('users.owner_cannot_remove') : undefined} onClick={() => setPending('remove')}>{t('users.remove_user')}</Button>
                 </div>
             </div>

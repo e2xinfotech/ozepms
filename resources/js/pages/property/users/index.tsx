@@ -30,7 +30,7 @@ interface Props {
 function UsersPage(props: Props) {
     const [selected, setSelected] = useQueryState('selected', props.selected || props.rows[0]?.id || '');
     const [q, setQ] = useState(props.filters.q);
-    const [drawer, setDrawer] = useState<{ user: UserDetail | null } | null>(null);
+    const [drawer, setDrawer] = useState<{ user: UserDetail | null; template?: UserDetail | null } | null>(null);
     const [rolesOpen, setRolesOpen] = useState(false);
     const [checked, setChecked] = useState<Set<string>>(new Set());
 
@@ -48,7 +48,7 @@ function UsersPage(props: Props) {
         { key: 'email', header: t('users.email_short'), sortable: true, render: (r) => r.email },
         { key: 'role', header: t('users.role'), sortable: true, render: (r) => <span className="row" style={{ gap: 6 }}><RoleBadge name={r.role_name} color={r.role_color} />{r.is_owner && <Icon name="star" size={14} />}</span> },
         { key: 'status', header: t('users.status'), sortable: true, render: (r) => <Badge status={r.invited && r.status === 'active' ? 'invited' : r.status} /> },
-        { key: 'last_login', header: t('users.last_login'), sortable: true, render: (r) => <span className="nowrap">{r.last_login_at ? dateTime(r.last_login_at) : t('ui.never')}</span> },
+        { key: 'last_login', header: t('users.last_login'), sortable: true, className: 'hide-with-panel', render: (r) => <span className="nowrap">{r.last_login_at ? dateTime(r.last_login_at) : t('ui.never')}</span> },
         {
             key: 'actions', header: t('ui.actions'), className: 'col-actions', render: (r) => (
                 <RowMenu items={[
@@ -95,8 +95,8 @@ function UsersPage(props: Props) {
                 <Pagination meta={props.meta} label={t('users.users')} />
             </div>
 
-            {selected && <UserPanel id={selected} me={props.me} catalogue={props.catalogue} onClose={() => setSelected(null)} onEdit={(u) => setDrawer({ user: u })} />}
-            {drawer && <UserDrawer user={drawer.user} roles={props.roles} locales={props.locales} onClose={() => setDrawer(null)}
+            {selected && <UserPanel id={selected} me={props.me} catalogue={props.catalogue} onClose={() => setSelected(null)} onEdit={(u) => setDrawer({ user: u })} onDuplicate={(u) => setDrawer({ user: null, template: u })} />}
+            {drawer && <UserDrawer user={drawer.user} template={drawer.template} roles={props.roles} locales={props.locales} onClose={() => setDrawer(null)}
                 onSaved={(id) => navigateWithQuery({ selected: id }, false)} />}
             {rolesOpen && <RoleManager roles={props.roles} catalogue={props.catalogue} colors={props.colors} onClose={() => setRolesOpen(false)} />}
         </div>

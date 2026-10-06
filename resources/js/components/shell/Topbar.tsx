@@ -54,17 +54,17 @@ export function Topbar({ shell, onMenu }: { shell: ShellData; onMenu: () => void
                 } />
             ) : (
                 <a className="prop-switch" href="/home">
-                    <span className="prop-thumb"><Icon name="shield-check" size={24} /></span>
-                    <span><span className="prop-name">{shell.brand.name}</span><span className="prop-meta">{t('nav.platform_admin')}</span></span>
+                    <span className="prop-thumb"><Icon name={shell.is_platform ? 'shield-check' : 'building-2'} size={24} /></span>
+                    <span><span className="prop-name">{shell.brand.name}</span><span className="prop-meta">{shell.is_platform ? t('nav.platform_admin') : t('nav.your_properties')}</span></span>
                 </a>
             )}
 
-            <div className="topbar-search">
+            {(property || shell.is_platform) && <div className="topbar-search">
                 <div className="control">
                     <Icon name="search" size={18} className="control-icon" />
                     <input type="search" placeholder={property ? t('nav.search_property') : t('nav.search_platform')} aria-label={t('ui.search')} />
                 </div>
-            </div>
+            </div>}
 
             <div className="topbar-actions">
                 <Dropdown width={180} trigger={(toggle) => (

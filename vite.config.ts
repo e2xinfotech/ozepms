@@ -15,6 +15,12 @@ export default defineConfig({
         }),
         react(),
     ],
+    // The dev server listens on localhost so its address can be named in the Content-Security-Policy.
+    server: {
+        host: 'localhost',
+        port: 5173,
+        strictPort: true,
+    },
     resolve: {
         alias: { '@': '/resources/js' },
     },

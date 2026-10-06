@@ -65,3 +65,23 @@
 .media-tile.logo img, .media-tile.logo .media-empty { width: 72px; height: 72px; object-fit: contain; background-color: var(--surface); }
 .media-tile.cover img, .media-tile.cover .media-empty { width: 144px; height: 72px; }
 .media-actions { display: flex; gap: 8px; align-items: center; }
+
+/* Laptop widths (≤ 1600px): tighter KPI tiles so labels fit on one line */
+@media (max-width: 1600px) {
+    .kpi { padding: 16px; gap: 12px; }
+    .kpi-icon { width: 48px; height: 48px; }
+    .kpi-label { font-size: var(--text-sm); }
+    .kpi-value { font-size: 24px; }
+    .summary-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1600px) {
+    .with-panel .kpi { padding: 12px; gap: 10px; }
+    .with-panel .kpi .kpi-icon { width: 36px; height: 36px; }
+    .with-panel .kpi .kpi-value { font-size: 20px; }
+}
+@media (max-width: 1600px) {
+    /* Five KPI tiles next to a panel: icon above the text so all five fit in one row */
+    .with-panel .kpi-row:has(> :nth-child(5)) { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .with-panel .kpi-row:has(> :nth-child(5)) .kpi { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .with-panel .kpi-row:has(> :nth-child(5)) .kpi > .grow { width: 100%; }
+}

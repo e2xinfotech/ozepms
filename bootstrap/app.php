@@ -25,9 +25,19 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
-        health: '/up',
         then: function () {
             Route::middleware('web')->prefix('web-api')->name('webapi.')->group(base_path('routes/web-api.php'));
+
+            // Uptime check for the load balancer / monitoring: plain JSON, no session, no framework page.
+            Route::get('/up', function () {
+                try {
+                    \Illuminate\Support\Facades\DB::select('select 1');
+
+                    return response()->json(['status' => 'ok']);
+                } catch (\Throwable) {
+                    return response()->json(['status' => 'unavailable'], 503);
+                }
+            })->name('health');
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

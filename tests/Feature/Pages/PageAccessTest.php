@@ -155,4 +155,12 @@ class PageAccessTest extends TestCase
             $this->assertStringNotContainsString('laravel', strtolower($cookie->getName()));
         }
     }
+
+    public function test_health_check_is_plain_json_without_framework_page(): void
+    {
+        $response = $this->get('/up')->assertOk()->assertExactJson(['status' => 'ok']);
+
+        $this->assertStringNotContainsString('Application up', $response->getContent());
+        $this->assertSame([], $response->headers->getCookies());
+    }
 }

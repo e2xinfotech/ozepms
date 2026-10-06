@@ -61,7 +61,7 @@ class AuditQuery
             'user_email' => $log->user?->email,
             'property' => $log->property?->name,
             'property_code' => $log->property?->code,
-            'entity' => $log->entity_type,
+            'entity' => $log->entity_type ? self::entityLabel($log->entity_type) : null,
             'ip' => $log->ip,
             'ref' => $log->request_id ? substr($log->request_id, -8) : null,
             'changes' => $log->changes,
@@ -80,6 +80,13 @@ class AuditQuery
 
         // Readable fallback for actions added later ("room_type.created" → "Room type created").
         return \Illuminate\Support\Str::ucfirst(str_replace(['.', '_'], ' ', $action));
+    }
+
+    public static function entityLabel(string $type): string
+    {
+        $labels = trans('admin.entities');
+
+        return is_array($labels) && isset($labels[$type]) ? (string) $labels[$type] : \Illuminate\Support\Str::ucfirst(str_replace('_', ' ', $type));
     }
 
     private function date(string $value): ?CarbonImmutable

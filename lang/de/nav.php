@@ -36,4 +36,5 @@ return [
     'sign_out' => 'Abmelden',
     'support_mode_banner' => 'Supportmodus: Sie sehen diese Unterkunft als E2X-Mitarbeiter. Alle Aktionen werden protokolliert.',
     'support_mode_hint' => 'Sie befinden sich im Supportmodus.',
+    'your_properties' => 'Ihre Unterkünfte',
 ];

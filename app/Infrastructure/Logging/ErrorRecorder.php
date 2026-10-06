@@ -12,8 +12,22 @@ use Throwable;
  */
 final class ErrorRecorder
 {
-    public static function exception(Throwable $e, string $source = 'server', string $level = 'error'): void
+    /** Where code is running now: server (web request), queue (job) or scheduler (scheduled task). */
+    private static string $source = 'server';
+
+    public static function runningIn(string $source): void
     {
+        self::$source = $source;
+    }
+
+    public static function currentSource(): string
+    {
+        return self::$source;
+    }
+
+    public static function exception(Throwable $e, ?string $source = null, string $level = 'error'): void
+    {
+        $source ??= self::$source;
         $location = basename($e->getFile()).':'.$e->getLine();
         self::record(
             fingerprint: sha1($e::class.'|'.$e->getFile().'|'.$e->getLine()),

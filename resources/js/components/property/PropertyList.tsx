@@ -63,7 +63,7 @@ export function PropertyTable({ rows, meta, selected, onSelect, extra = [], menu
     const setChecked = onCheck ?? setLocalChecked;
     const columns: Column<PropertyRow>[] = [
         {
-            key: 'name', header: t('property.property'), sortable: true, width: 280, render: (r) => (
+            key: 'name', header: t('property.property'), sortable: true, render: (r) => (
                 <div className="media-cell">
                     {r.image ? <img src={r.image} alt="" style={{ width: 72, height: 48 }} /> : <span className="thumb" style={{ width: 72, height: 48 }}><Icon name="hotel" size={20} /></span>}
                     <div><div className="cell-main">{r.name}</div>{r.tagline && <div className="cell-sub">{r.tagline}</div>}</div>
@@ -71,8 +71,8 @@ export function PropertyTable({ rows, meta, selected, onSelect, extra = [], menu
             ),
         },
         { key: 'code', header: t('property.code_short'), sortable: true, render: (r) => <span className="num">{r.code}</span> },
-        { key: 'location', header: t('property.location'), width: 170, render: (r) => <span className="row" style={{ gap: 10 }}><Flag code={r.country_code} />{r.location || '—'}</span> },
-        { key: 'type', header: t('property.type_short'), render: (r) => r.type_label ?? '—' },
+        { key: 'location', header: t('property.location'), render: (r) => <span className="row" style={{ gap: 10, flexWrap: 'nowrap' }} title={r.location}><Flag code={r.country_code} /><span className="cell-clip">{r.location || '—'}</span></span> },
+        { key: 'type', header: t('property.type_short'), className: 'hide-with-panel', render: (r) => r.type_label ?? '—' },
         { key: 'rooms', header: t('property.total_rooms'), sortable: true, align: 'right', render: (r) => number(r.rooms) },
         ...extra,
         { key: 'status', header: t('ui.status_label'), sortable: true, render: (r) => <Badge status={r.status} /> },

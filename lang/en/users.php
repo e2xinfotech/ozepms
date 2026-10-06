@@ -63,4 +63,5 @@ return [
     'platform_invite_hint' => 'The new team member receives an e-mail to set a password. Two-step verification is required for platform accounts.',
     'property_user' => 'Property user',
     'section_details' => 'User Details',
+    'duplicate_hint' => 'Add a new user with the same role, job title and language',
 ];

@@ -58,5 +58,5 @@
 
 /* Filter bar: inputs and buttons share one baseline */
 .filter-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
-.filter-bar .field { min-width: 170px; }
-.filter-bar .field.search { flex: 1 1 260px; max-width: 360px; }
+.filter-bar .field { flex: 1 1 150px; min-width: 140px; max-width: 240px; }
+.filter-bar .field.search { flex: 2 1 220px; max-width: 360px; }

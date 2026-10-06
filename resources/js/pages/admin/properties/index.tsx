@@ -86,7 +86,7 @@ function AdminPropertiesPage(props: Props) {
                 <PropertyFilters filters={props.filters} options={props.options} />
                 <PropertyStatusTabs counts={props.counts} active={props.filters.status} statuses={props.options.statuses} />
                 <PropertyTable rows={props.rows} meta={props.meta} selected={selected} onSelect={(r) => select(r.code)} checked={checked} onCheck={setChecked}
-                    extra={[{ key: 'plan', header: t('subscription.plan'), render: (r) => <span className="row" style={{ gap: 8 }}>{r.plan ?? '—'}<Badge size="sm" status={r.subscription_status} /></span> }]}
+                    extra={[{ key: 'plan', header: t('subscription.plan'), className: 'hide-with-panel', render: (r) => <span className="row" style={{ gap: 8 }}>{r.plan ?? '—'}<Badge size="sm" status={r.subscription_status} /></span> }]}
                     menu={(r) => [
                         { label: t('ui.view'), icon: 'eye', onClick: () => select(r.code) },
                         { label: t('admin.edit_property'), icon: 'pencil', href: `/admin/properties/${r.code}/edit` },

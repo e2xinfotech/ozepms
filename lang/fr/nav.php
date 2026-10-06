@@ -36,4 +36,5 @@ return [
     'sign_out' => 'Se déconnecter',
     'support_mode_banner' => 'Mode assistance : vous consultez cet établissement en tant que membre de l\'équipe E2X. Toutes les actions sont enregistrées.',
     'support_mode_hint' => 'Vous êtes en mode assistance.',
+    'your_properties' => 'Vos établissements',
 ];
