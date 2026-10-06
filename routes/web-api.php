@@ -68,6 +68,7 @@ Route::middleware('auth')->group(function () {
                 Route::post('/properties/{code}/status', [WebApi\Admin\PropertiesController::class, 'status'])->name('properties.status');
                 Route::post('/properties/{code}/media/{kind}', [WebApi\Admin\PropertiesController::class, 'uploadMedia'])->whereIn('kind', ['logo', 'cover'])->name('properties.media.store');
                 Route::delete('/properties/{code}/media/{kind}', [WebApi\Admin\PropertiesController::class, 'removeMedia'])->whereIn('kind', ['logo', 'cover'])->name('properties.media.destroy');
+                Route::post('/properties/{code}/owner', [WebApi\Admin\PropertiesController::class, 'owner'])->name('properties.owner');
                 Route::post('/properties/{code}/copy', [WebApi\Admin\PropertiesController::class, 'copy'])->name('properties.copy');
             });
             Route::post('/properties/{code}/subscription', [WebApi\Admin\PropertiesController::class, 'subscription'])

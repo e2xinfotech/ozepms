@@ -53,6 +53,7 @@ return [
         'property_user.removed' => 'Benutzer aus Unterkunft entfernt', 'property_user.status_changed' => 'Benutzerzugriff geändert',
         'role.created' => 'Rolle angelegt', 'role.updated' => 'Rolle aktualisiert', 'role.deleted' => 'Rolle gelöscht',
         'plan.created' => 'Tarif angelegt', 'plan.updated' => 'Tarif aktualisiert',
+        'property.owner_changed' => 'Eigentümer der Unterkunft geändert',
         'user.password_reset' => 'Passwort zurückgesetzt',
         'user.recovery_code_used' => 'Wiederherstellungscode verwendet',
         'system.error_resolved' => 'Fehler als behoben markiert',

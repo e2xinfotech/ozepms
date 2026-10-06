@@ -60,7 +60,7 @@ class PropertyUserQuery
             'email' => $m->user_email,
             'job_title' => $m->user_job_title,
             'role' => $m->role_code,
-            'role_name' => $m->role_name,
+            'role_name' => \App\Support\RoleLabel::name($m->role_code, $m->role_name),
             'role_color' => $m->role_color,
             'is_owner' => $m->is_owner,
             'status' => $m->account_status === 'disabled' ? 'disabled' : $m->status,

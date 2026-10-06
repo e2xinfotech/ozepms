@@ -25,6 +25,24 @@ function EditPropertyPage({ property, lookups, plans, can_manage_subscription }:
     const [subBusy, setSubBusy] = useState(false);
     const [subError, setSubError] = useState<ApiError | null>(null);
     const [statusTarget, setStatusTarget] = useState<string | null>(null);
+    const [owner, setOwner] = useState({ name: '', email: '' });
+    const [ownerBusy, setOwnerBusy] = useState(false);
+    const [ownerError, setOwnerError] = useState<ApiError | null>(null);
+    const [ownerConfirm, setOwnerConfirm] = useState(false);
+
+    const changeOwner = async () => {
+        setOwnerBusy(true);
+        setOwnerError(null);
+        try {
+            const res = await http.post<{ message: string }>(`/web-api/admin/properties/${property.code}/owner`, owner);
+            toast.success(res.message);
+            window.location.reload();
+        } catch (e) {
+            setOwnerError(e as ApiError);
+            setOwnerBusy(false);
+            setOwnerConfirm(false);
+        }
+    };
 
     const save = async () => {
         setBusy(true);
@@ -93,6 +111,12 @@ function EditPropertyPage({ property, lookups, plans, can_manage_subscription }:
                 ]} />
             </Card>
 
+            <FormSection title={t('property.change_owner')} description={t('property.change_owner_sub')}
+                actions={<Button variant="outline" icon="user-check" disabled={!owner.name || !owner.email} onClick={() => setOwnerConfirm(true)}>{t('property.change_owner')}</Button>}>
+                <Input fieldClass="span-6" label={t('property.owner_name')} required value={owner.name} maxLength={120} onChange={(e) => setOwner({ ...owner, name: e.target.value })} error={ownerError?.field('name')} />
+                <Input fieldClass="span-6" label={t('property.owner_email')} required type="email" icon="mail" value={owner.email} onChange={(e) => setOwner({ ...owner, email: e.target.value })} error={ownerError?.field('email')} />
+            </FormSection>
+
             {can_manage_subscription && (
                 <FormSection title={t('subscription.assign')} description={t('subscription.assign_sub')}
                     actions={<Button variant="outline" icon="credit-card" loading={subBusy} onClick={assign}>{t('subscription.assign')}</Button>}>
@@ -110,6 +134,9 @@ function EditPropertyPage({ property, lookups, plans, can_manage_subscription }:
                 <Button variant="primary" icon="save" loading={busy} onClick={save}>{t('ui.save_changes')}</Button>
             </div>
 
+            <ConfirmDialog open={ownerConfirm} busy={ownerBusy} title={t('property.change_owner')}
+                message={t('property.change_owner_confirm', { name: owner.name, email: owner.email })}
+                onConfirm={changeOwner} onClose={() => setOwnerConfirm(false)} />
             <ConfirmDialog open={!!statusTarget} danger={statusTarget !== 'active'}
                 title={t(statusTarget === 'inactive' ? 'property.deactivate' : statusTarget === 'suspended' ? 'property.suspend' : 'property.activate')}
                 message={t(statusTarget === 'inactive' ? 'property.deactivate_confirm' : statusTarget === 'suspended' ? 'property.suspend_confirm' : 'property.activate_confirm', { name: property.name })}

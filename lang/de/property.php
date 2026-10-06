@@ -137,5 +137,10 @@ return [
         'cover' => 'Titelbild',
         'upload' => 'Hochladen',
         'hint' => 'JPG, PNG oder WebP, bis 4 MB.',
+        'none' => 'Noch kein Logo und kein Foto.',
     ],
+    'change_owner' => 'Eigentümer ändern',
+    'change_owner_sub' => 'Die Unterkunft an eine andere Person übergeben. Eine unbekannte E-Mail-Adresse erhält eine Einladung; der bisherige Eigentümer bleibt als Hotelmanager im Team.',
+    'change_owner_confirm' => ':name (:email) zum Eigentümer dieser Unterkunft machen?',
+    'owner_changed' => ':name ist jetzt Eigentümer.',
 ];

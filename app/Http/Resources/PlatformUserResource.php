@@ -41,7 +41,7 @@ class PlatformUserResource extends JsonResource
             'avatar' => $user->avatar_path ? Storage::url($user->avatar_path) : null,
             'is_platform' => $user->is_platform_user,
             'roles' => $user->platformRoles->pluck('code')->values()->all(),
-            'role_name' => $role?->name,
+            'role_name' => \App\Support\RoleLabel::name($role?->code, $role?->name),
             'role_color' => $role?->color,
             'role_description' => $description,
             'status' => $user->status,
@@ -55,9 +55,9 @@ class PlatformUserResource extends JsonResource
                 ->where('property_users.user_id', $user->id)
                 ->whereNull('properties.deleted_at')
                 ->orderBy('properties.name')
-                ->get(['properties.code', 'properties.name', 'properties.city', 'roles.name as role_name', 'property_users.status', 'property_users.is_owner'])
+                ->get(['properties.code', 'properties.name', 'properties.city', 'roles.code as role_code', 'roles.name as role_name', 'property_users.status', 'property_users.is_owner'])
                 ->map(fn ($p) => [
-                    'code' => $p->code, 'name' => $p->name, 'city' => $p->city, 'role_name' => $p->role_name,
+                    'code' => $p->code, 'name' => $p->name, 'city' => $p->city, 'role_name' => \App\Support\RoleLabel::name($p->role_code, $p->role_name),
                     'status' => $p->status, 'is_owner' => (bool) $p->is_owner,
                 ])->all(),
             'activity' => app(AuditQuery::class)->forUser($user->id, null, 15),

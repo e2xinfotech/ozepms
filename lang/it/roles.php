@@ -38,4 +38,17 @@ return [
         'blue' => 'Blu', 'sky' => 'Azzurro', 'teal' => 'Verde acqua', 'green' => 'Verde', 'amber' => 'Ambra', 'orange' => 'Arancione',
         'red' => 'Rosso', 'rose' => 'Rosa', 'pink' => 'Fucsia', 'purple' => 'Porpora', 'violet' => 'Viola', 'slate' => 'Grigio',
     ],
+    'names' => [
+        'super_admin' => 'Super amministratore',
+        'it_support' => 'Supporto IT',
+        'owner' => 'Proprietario',
+        'hotel_manager' => 'Direttore d’albergo',
+        'front_desk' => 'Reception',
+        'reservations' => 'Prenotazioni',
+        'housekeeping' => 'Housekeeping',
+        'accounts' => 'Contabilità',
+        'revenue_manager' => 'Revenue manager',
+        'guest_relations' => 'Relazioni con gli ospiti',
+        'sales_marketing' => 'Vendite e marketing',
+    ],
 ];

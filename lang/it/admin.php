@@ -53,6 +53,7 @@ return [
         'property_user.removed' => 'Utente rimosso dalla struttura', 'property_user.status_changed' => 'Accesso utente modificato',
         'role.created' => 'Ruolo creato', 'role.updated' => 'Ruolo aggiornato', 'role.deleted' => 'Ruolo eliminato',
         'plan.created' => 'Piano creato', 'plan.updated' => 'Piano aggiornato',
+        'property.owner_changed' => 'Proprietario della struttura modificato',
         'user.password_reset' => 'Password reimpostata',
         'user.recovery_code_used' => 'Codice di recupero utilizzato',
         'system.error_resolved' => 'Errore segnato come risolto',

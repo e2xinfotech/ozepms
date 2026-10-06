@@ -69,4 +69,12 @@ class TranslationsTest extends TestCase
         $this->assertSame('Property copied', AuditQuery::actionLabel('property.copied'));
         $this->assertSame('Something new happened', AuditQuery::actionLabel('something_new.happened'));
     }
+
+    public function test_system_role_names_are_translated_but_custom_names_are_kept(): void
+    {
+        app()->setLocale('it');
+        $this->assertSame('Proprietario', \App\Support\RoleLabel::name('owner', 'Owner'));
+        $this->assertSame('Night Owl', \App\Support\RoleLabel::name('owner', 'Night Owl'));
+        $this->assertSame('Night Audit', \App\Support\RoleLabel::name('night_audit', 'Night Audit'));
+    }
 }

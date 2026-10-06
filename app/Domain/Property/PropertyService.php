@@ -163,6 +163,47 @@ class PropertyService
         });
     }
 
+    /**
+     * Super Admin → Manage owner: the given person (found or invited) becomes the owner.
+     * The previous owner stays on the team as Hotel Manager, so nobody loses access by surprise.
+     *
+     * @param  array{name: string, email: string}  $owner
+     */
+    public function changeOwner(Property $property, array $owner): User
+    {
+        return Tx::run(function () use ($property, $owner) {
+            $newOwner = $this->users->findOrInvite($owner);
+            $ownerRole = Role::query()->whereNull('property_id')->where('code', 'owner')->firstOrFail();
+            $managerRole = Role::query()->whereNull('property_id')->where('code', 'hotel_manager')->firstOrFail();
+            $members = PropertyUser::query()->withoutGlobalScope('property')->where('property_id', $property->id);
+
+            $previous = (clone $members)->where('is_owner', true)->first();
+            if ($previous && (int) $previous->user_id === (int) $newOwner->id) {
+                return $newOwner;
+            }
+            if ($previous) {
+                $previous->forceFill(['is_owner' => false, 'role_id' => $managerRole->id])->save();
+            }
+
+            $membership = (clone $members)->where('user_id', $newOwner->id)->first();
+            if ($membership) {
+                $membership->forceFill(['is_owner' => true, 'role_id' => $ownerRole->id, 'status' => 'active'])->save();
+            } else {
+                PropertyUser::query()->withoutGlobalScope('property')->create([
+                    'property_id' => $property->id, 'user_id' => $newOwner->id, 'role_id' => $ownerRole->id,
+                    'is_owner' => true, 'status' => 'active', 'joined_at' => now(),
+                ]);
+            }
+
+            $this->audit->log('property.owner_changed', $property, [
+                'before' => ['owner_user_id' => $previous?->user_id],
+                'after' => ['owner' => $newOwner->email],
+            ], $property->id);
+
+            return $newOwner;
+        });
+    }
+
     public function changeStatus(Property $property, string $status, ?string $reason = null): Property
     {
         $before = $property->status;

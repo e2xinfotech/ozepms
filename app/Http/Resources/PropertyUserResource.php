@@ -40,7 +40,7 @@ class PropertyUserResource extends JsonResource
             'locale' => $user->locale,
             'avatar' => $user->avatar_path ? Storage::url($user->avatar_path) : null,
             'role' => $role?->code,
-            'role_name' => $role?->name,
+            'role_name' => \App\Support\RoleLabel::name($role?->code, $role?->name),
             'role_color' => $role?->color,
             'role_description' => $description,
             'is_owner' => $m->is_owner,
@@ -71,8 +71,8 @@ class PropertyUserResource extends JsonResource
             ->where('target.user_id', $m->user_id)
             ->whereNull('properties.deleted_at')
             ->orderBy('properties.name')
-            ->get(['properties.code', 'properties.name', 'properties.city', 'roles.name as role_name', 'target.status'])
-            ->map(fn ($p) => ['code' => $p->code, 'name' => $p->name, 'city' => $p->city, 'role_name' => $p->role_name, 'status' => $p->status])
+            ->get(['properties.code', 'properties.name', 'properties.city', 'roles.code as role_code', 'roles.name as role_name', 'target.status'])
+            ->map(fn ($p) => ['code' => $p->code, 'name' => $p->name, 'city' => $p->city, 'role_name' => \App\Support\RoleLabel::name($p->role_code, $p->role_name), 'status' => $p->status])
             ->all();
     }
 }

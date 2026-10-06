@@ -57,7 +57,7 @@ final class PermissionCatalogue
 
         return [
             'code' => $role->code,
-            'name' => $role->name,
+            'name' => \App\Support\RoleLabel::name($role->code, $role->name),
             'description' => $description,
             'color' => $role->color,
             'is_system' => $role->is_system,

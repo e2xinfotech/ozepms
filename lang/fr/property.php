@@ -137,5 +137,10 @@ return [
         'cover' => 'Photo de couverture',
         'upload' => 'Envoyer',
         'hint' => 'JPG, PNG ou WebP, 4 Mo maximum.',
+        'none' => 'Pas encore de logo ni de photo.',
     ],
+    'change_owner' => 'Changer de propriétaire',
+    'change_owner_sub' => 'Confier l’établissement à une autre personne. Une adresse e-mail inconnue reçoit une invitation ; le propriétaire actuel reste dans l’équipe en tant que directeur de l’hôtel.',
+    'change_owner_confirm' => 'Faire de :name (:email) le propriétaire de cet établissement ?',
+    'owner_changed' => ':name est désormais le propriétaire.',
 ];

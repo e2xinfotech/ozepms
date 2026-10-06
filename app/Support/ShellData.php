@@ -45,8 +45,8 @@ final class ShellData
             : $this->menu('platform', fn ($perm) => in_array($perm, $platformPerms, true));
 
         $role = $inProperty
-            ? ($this->context->membership()?->role?->name ?? __('roles.support_mode'))
-            : ($user->platformRoles->first()?->name ?? null);
+            ? (\App\Support\RoleLabel::name($this->context->membership()?->role?->code, $this->context->membership()?->role?->name) ?? __('roles.support_mode'))
+            : \App\Support\RoleLabel::name($user->platformRoles->first()?->code, $user->platformRoles->first()?->name);
 
         return self::guest() + [
             'menu' => $menu,

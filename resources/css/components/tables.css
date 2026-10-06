@@ -29,7 +29,7 @@ table.table { width: 100%; border-collapse: separate; border-spacing: 0; font-si
 .page-btn.active { background: var(--brand-600); border-color: var(--brand-600); color: var(--on-brand); }
 .page-btn:disabled { opacity: .45; cursor: not-allowed; }
 .per-page { display: flex; align-items: center; gap: 10px; }
-.per-page .control { width: 130px; }
+.per-page .control { width: 150px; }
 
 .progress { height: 8px; border-radius: 4px; background: var(--progress-track); overflow: hidden; min-width: 80px; }
 .progress > span { display: block; height: 100%; border-radius: 4px; background: var(--green-solid); }

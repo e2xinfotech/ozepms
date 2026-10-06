@@ -53,6 +53,7 @@ return [
         'property_user.removed' => 'Utilisateur retiré de l\'établissement', 'property_user.status_changed' => 'Accès de l\'utilisateur modifié',
         'role.created' => 'Rôle créé', 'role.updated' => 'Rôle mis à jour', 'role.deleted' => 'Rôle supprimé',
         'plan.created' => 'Forfait créé', 'plan.updated' => 'Forfait mis à jour',
+        'property.owner_changed' => 'Propriétaire de l’établissement modifié',
         'user.password_reset' => 'Mot de passe réinitialisé',
         'user.recovery_code_used' => 'Code de secours utilisé',
         'system.error_resolved' => 'Erreur marquée comme résolue',

@@ -26,10 +26,10 @@ class UsersController extends Controller
             'filters' => Listing::filters($request, ['q', 'role', 'property', 'status', 'kind']),
             'selected' => (string) $request->query('selected', ''),
             'options' => [
-                'roles' => $roles->map(fn (Role $r) => ['value' => $r->code, 'label' => $r->name])->values()->all(),
+                'roles' => $roles->map(fn (Role $r) => ['value' => $r->code, 'label' => \App\Support\RoleLabel::name($r->code, $r->name)])->values()->all(),
                 'platform_roles' => $roles->where('scope', 'platform')->map(fn (Role $r) => [
                     'value' => $r->code,
-                    'label' => $r->name,
+                    'label' => \App\Support\RoleLabel::name($r->code, $r->name),
                     'description' => $r->description && str_starts_with($r->description, 'roles.descriptions.') ? __($r->description) : $r->description,
                 ])->values()->all(),
                 'properties' => Property::query()->orderBy('name')->limit(self::PROPERTY_OPTIONS_LIMIT)

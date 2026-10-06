@@ -50,6 +50,7 @@ export function PropertyPanel({ endpoint, editUrl, onClose, actions, onLoaded }:
     const tabs = [
         { key: 'overview', label: t('property.tabs.overview') },
         { key: 'settings', label: t('property.tabs.settings') },
+        { key: 'images', label: t('property.tabs.images') },
         { key: 'users', label: t('property.tabs.users') },
         { key: 'subscription', label: t('property.tabs.subscription') },
     ];
@@ -97,6 +98,14 @@ export function PropertyPanel({ endpoint, editUrl, onClose, actions, onLoaded }:
                         { icon: 'file-text', label: t('property.tax_registration_no'), value: p.tax_registration_no },
                         { icon: 'calendar-check', label: t('property.business_date'), value: date(p.business_date) },
                     ]} />
+                )}
+                {tab === 'images' && (
+                    !p.logo && !p.image ? <EmptyState icon="images" title={t('property.media.none')} /> : (
+                        <div className="stack" style={{ gap: 12 }}>
+                            {p.image && <figure className="panel-figure"><img src={p.image} alt={t('property.media.cover')} /><figcaption>{t('property.media.cover')}</figcaption></figure>}
+                            {p.logo && <figure className="panel-figure logo"><img src={p.logo} alt={t('property.media.logo')} /><figcaption>{t('property.media.logo')}</figcaption></figure>}
+                        </div>
+                    )
                 )}
                 {tab === 'users' && (
                     <KeyValue items={[

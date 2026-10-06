@@ -137,5 +137,10 @@ return [
         'cover' => 'Cover photo',
         'upload' => 'Upload',
         'hint' => 'JPG, PNG or WebP, up to 4 MB.',
+        'none' => 'No logo or photo yet.',
     ],
+    'change_owner' => 'Change Owner',
+    'change_owner_sub' => 'Hand the property over to another person. An unknown e-mail receives an invitation; the current owner stays on the team as Hotel Manager.',
+    'change_owner_confirm' => 'Make :name (:email) the owner of this property?',
+    'owner_changed' => ':name is now the owner.',
 ];

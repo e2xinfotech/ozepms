@@ -53,6 +53,7 @@ return [
         'property_user.removed' => 'User removed from property', 'property_user.status_changed' => 'User access changed',
         'role.created' => 'Role created', 'role.updated' => 'Role updated', 'role.deleted' => 'Role deleted',
         'plan.created' => 'Plan created', 'plan.updated' => 'Plan updated',
+        'property.owner_changed' => 'Property owner changed',
         'user.password_reset' => 'Password reset',
         'user.recovery_code_used' => 'Recovery code used',
         'system.error_resolved' => 'Error marked resolved',

@@ -9,6 +9,7 @@ use App\Domain\Subscription\SubscriptionService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AssignSubscriptionRequest;
 use App\Http\Requests\Admin\BulkPropertyStatusRequest;
+use App\Http\Requests\Admin\ChangeOwnerRequest;
 use App\Http\Requests\Admin\ChangePropertyStatusRequest;
 use App\Http\Requests\Admin\StorePropertyRequest;
 use App\Http\Requests\Admin\UpdatePropertyRequest;
@@ -107,6 +108,18 @@ class PropertiesController extends Controller
         $property = $media->remove($this->find($code), $kind);
 
         return response()->json(['message' => __('ui.saved'), 'property' => (new PropertyResource($property->refresh()))->resolve($request)]);
+    }
+
+    /** Manage owner: hand the property over to another person. */
+    public function owner(ChangeOwnerRequest $request, string $code): JsonResponse
+    {
+        $property = $this->find($code);
+        $owner = $this->properties->changeOwner($property, $request->validated());
+
+        return response()->json([
+            'message' => __('property.owner_changed', ['name' => $owner->name]),
+            'property' => (new PropertyResource($property->refresh()))->resolve($request),
+        ]);
     }
 
     public function subscription(AssignSubscriptionRequest $request, SubscriptionService $subscriptions, string $code): JsonResponse

@@ -66,7 +66,7 @@ class PlatformUserQuery
                 'job_title' => $u->job_title,
                 'is_platform' => $u->is_platform_user,
                 'role' => $platformRole?->code ?? $membership?->role_code,
-                'role_name' => $platformRole?->name ?? $membership?->role_name,
+                'role_name' => \App\Support\RoleLabel::name($platformRole?->code, $platformRole?->name) ?? \App\Support\RoleLabel::name($membership?->role_code, $membership?->role_name),
                 'role_color' => $platformRole?->color ?? $membership?->role_color ?? 'slate',
                 'property_access' => $u->is_platform_user ? 'all' : ($membership?->property_name),
                 'properties_count' => (int) $u->properties_count,

@@ -137,5 +137,10 @@ return [
         'cover' => 'Foto di copertina',
         'upload' => 'Carica',
         'hint' => 'JPG, PNG o WebP, fino a 4 MB.',
+        'none' => 'Nessun logo o foto per ora.',
     ],
+    'change_owner' => 'Cambia proprietario',
+    'change_owner_sub' => 'Affida la struttura a un’altra persona. Un indirizzo e-mail sconosciuto riceve un invito; il proprietario attuale resta nel team come direttore d’albergo.',
+    'change_owner_confirm' => 'Rendere :name (:email) proprietario di questa struttura?',
+    'owner_changed' => ':name è ora il proprietario.',
 ];

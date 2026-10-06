@@ -50,3 +50,4 @@
 .side-panel .tab { padding: 0 10px; font-size: var(--text-md); }
 .action-grid .btn { min-width: 0; padding-left: 10px; padding-right: 10px; }
 .action-grid .btn > span, .action-grid .btn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 1600px) { .side-panel .action-grid { grid-template-columns: 1fr; } }
