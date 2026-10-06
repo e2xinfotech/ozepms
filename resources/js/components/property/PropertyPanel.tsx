@@ -50,6 +50,7 @@ export function PropertyPanel({ endpoint, editUrl, onClose, actions, onLoaded }:
     const tabs = [
         { key: 'overview', label: t('property.tabs.overview') },
         { key: 'settings', label: t('property.tabs.settings') },
+        { key: 'facilities', label: t('property.tabs.facilities') },
         { key: 'images', label: t('property.tabs.images') },
         { key: 'users', label: t('property.tabs.users') },
         { key: 'subscription', label: t('property.tabs.subscription') },
@@ -98,6 +99,13 @@ export function PropertyPanel({ endpoint, editUrl, onClose, actions, onLoaded }:
                         { icon: 'file-text', label: t('property.tax_registration_no'), value: p.tax_registration_no },
                         { icon: 'calendar-check', label: t('property.business_date'), value: date(p.business_date) },
                     ]} />
+                )}
+                {tab === 'facilities' && (
+                    p.facilities.length === 0 ? <EmptyState icon="sparkles" title={t('property.facilities_none')} /> : (
+                        <ul className="facility-list">
+                            {p.facilities.map((f) => <li key={f.code}><Icon name={f.icon ?? 'check'} size={16} />{f.name}</li>)}
+                        </ul>
+                    )
                 )}
                 {tab === 'images' && (
                     !p.logo && !p.image ? <EmptyState icon="images" title={t('property.media.none')} /> : (

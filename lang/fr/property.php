@@ -72,6 +72,7 @@ return [
         'total' => 'Total des établissements', 'active' => 'Actifs', 'inactive' => 'Inactifs', 'setup' => 'Configuration en cours',
         'total_rooms' => 'Nombre total de chambres', 'across_countries' => 'Dans :n pays', 'of_total' => ':p % du total',
     ],
+    'facilities_none' => "Aucun équipement de l'établissement pour le moment. Indiquez-les sur la page Équipements.",
     'tabs' => ['overview' => 'Aperçu', 'settings' => 'Paramètres', 'facilities' => 'Équipements', 'images' => 'Images', 'users' => 'Utilisateurs', 'subscription' => 'Abonnement'],
     'manage_rooms' => 'Gérer les chambres',
     'rate_plans' => 'Plans tarifaires',

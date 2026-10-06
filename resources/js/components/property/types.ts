@@ -52,6 +52,7 @@ export interface PropertyDetail {
     contact_person: string | null;
     image: string | null;
     logo: string | null;
+    facilities: Array<{ code: string; name: string; icon: string | null }>;
     country_iso2: string | null;
     country: string | null;
     state_id: number | null;

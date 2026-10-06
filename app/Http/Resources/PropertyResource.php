@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Domain\Property\PropertyService;
 use App\Domain\Subscription\SubscriptionService;
+use App\Models\Amenity;
 use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -72,6 +73,10 @@ class PropertyResource extends JsonResource
                 ->whereNull('deleted_at')->where('is_active', true)->count(),
             'rate_plans' => (int) DB::table('rate_plans')->where('property_id', $p->id)
                 ->whereNull('deleted_at')->where('is_active', true)->count(),
+            'facilities' => Amenity::query()->join('property_amenities', 'property_amenities.amenity_id', '=', 'amenities.id')
+                ->where('property_amenities.property_id', $p->id)->where('amenities.is_active', true)
+                ->orderBy('amenities.name')->get(['amenities.*'])
+                ->map(fn (Amenity $a) => ['code' => $a->code, 'name' => $a->label(), 'icon' => $a->icon])->values()->all(),
             'users' => (int) DB::table('property_users')->where('property_id', $p->id)->where('status', 'active')->count(),
             'owner' => $owner ? [
                 'id' => $owner->public_id,

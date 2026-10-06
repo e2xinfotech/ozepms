@@ -72,6 +72,7 @@ return [
         'total' => 'Unterkünfte gesamt', 'active' => 'Aktiv', 'inactive' => 'Inaktiv', 'setup' => 'In Einrichtung',
         'total_rooms' => 'Zimmer gesamt', 'across_countries' => 'In :n Ländern', 'of_total' => ':p % der Gesamtzahl',
     ],
+    'facilities_none' => 'Noch keine Einrichtungen der Unterkunft. Markieren Sie sie auf der Seite Ausstattung.',
     'tabs' => ['overview' => 'Übersicht', 'settings' => 'Einstellungen', 'facilities' => 'Ausstattung', 'images' => 'Bilder', 'users' => 'Benutzer', 'subscription' => 'Abonnement'],
     'manage_rooms' => 'Zimmer verwalten',
     'rate_plans' => 'Ratenpläne',

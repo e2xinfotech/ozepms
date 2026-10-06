@@ -72,6 +72,7 @@ return [
         'total' => 'Total Properties', 'active' => 'Active', 'inactive' => 'Inactive', 'setup' => 'Setup In Progress',
         'total_rooms' => 'Total Rooms', 'across_countries' => 'Across :n countries', 'of_total' => ':p% of total',
     ],
+    'facilities_none' => 'No property facilities yet. Mark them on the Amenities page.',
     'tabs' => ['overview' => 'Overview', 'settings' => 'Settings', 'facilities' => 'Facilities', 'images' => 'Images', 'users' => 'Users', 'subscription' => 'Subscription'],
     'manage_rooms' => 'Manage Rooms',
     'rate_plans' => 'Rate Plans',

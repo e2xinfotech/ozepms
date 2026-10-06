@@ -5,6 +5,9 @@ table.table { width: 100%; border-collapse: separate; border-spacing: 0; font-si
     position: sticky; top: 0; z-index: 1; background: var(--surface-2); color: var(--ink); font-weight: var(--weight-semibold);
     text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; font-size: var(--text-md);
 }
+/* Long headers (French, Italian, German) may wrap onto two lines instead of pushing the table sideways. */
+.table thead th:not(.col-check):not(.col-actions) { white-space: normal; min-width: 64px; }
+.table thead th .sort { white-space: nowrap; }
 .table thead th.sortable { cursor: pointer; user-select: none; }
 .table thead th .sort { display: inline-flex; vertical-align: middle; margin-left: 4px; color: var(--subtle); }
 .table thead th.sorted .sort { color: var(--brand-600); }

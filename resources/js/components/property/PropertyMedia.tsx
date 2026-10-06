@@ -47,14 +47,14 @@ export function PropertyMedia({ endpoint, logo, image, disabled, onChange }: {
     };
 
     const tile = (kind: Kind) => (
-        <Field className="span-6" label={t(`property.media.${kind}`)} optional hint={t('property.media.hint')}>
+        <Field className="span-6" label={t(`property.media.${kind}`)} optional hint={disabled ? undefined : t('property.media.hint')}>
             <div className={`media-tile ${kind}`}>
                 {urls[kind] ? <img src={urls[kind] ?? ''} alt={t(`property.media.${kind}`)} /> : <span className="media-empty"><Icon name={kind === 'logo' ? 'image' : 'images'} size={28} /></span>}
-                <div className="media-actions">
+                {!disabled && <div className="media-actions">
                     <input ref={inputs[kind]} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => { void upload(kind, e.target.files?.[0]); e.target.value = ''; }} />
                     <Button size="sm" icon="upload" loading={busy === kind} disabled={disabled} onClick={() => inputs[kind].current?.click()} title={t('property.media.upload')}>{t('property.media.upload')}</Button>
                     {urls[kind] && <Button size="sm" variant="ghost" icon="trash" disabled={disabled || busy === kind} onClick={() => void remove(kind)} title={t('ui.delete')} aria-label={t('ui.delete')} />}
-                </div>
+                </div>}
             </div>
         </Field>
     );

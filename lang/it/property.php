@@ -72,6 +72,7 @@ return [
         'total' => 'Strutture totali', 'active' => 'Attive', 'inactive' => 'Inattive', 'setup' => 'Configurazione in corso',
         'total_rooms' => 'Camere totali', 'across_countries' => 'In :n paesi', 'of_total' => ':p% del totale',
     ],
+    'facilities_none' => 'Nessun servizio della struttura per ora. Indicali nella pagina Servizi.',
     'tabs' => ['overview' => 'Panoramica', 'settings' => 'Impostazioni', 'facilities' => 'Servizi', 'images' => 'Immagini', 'users' => 'Utenti', 'subscription' => 'Abbonamento'],
     'manage_rooms' => 'Gestisci camere',
     'rate_plans' => 'Piani tariffari',

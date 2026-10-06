@@ -52,6 +52,11 @@ class AmenitiesTest extends AccommodationTestCase
         $this->assertSame(1, \Illuminate\Support\Facades\DB::table('property_amenities')->where('property_id', $this->property->id)->count());
         $this->assertSame(0, \Illuminate\Support\Facades\DB::table('property_amenities')->where('property_id', $this->other->id)->count());
         $this->actingAs($this->owner)->get($this->page('/amenities?category=property'))->assertOk()->assertSee('"property_facility":true', false);
+        // The property details panel (Facilities tab) lists it, translated.
+        $this->actingAs($this->owner)->getJson($this->api('/properties/'.$this->property->code))
+            ->assertOk()->assertJsonPath('property.facilities.0.code', 'swimming_pool')
+            ->assertJsonPath('property.facilities.0.name', __('amenities.items.swimming_pool'));
+        $this->actingAs($this->owner)->getJson($this->api('/properties/'.$this->other->code))->assertNotFound();
 
         $this->actingAs($this->owner)->postJson($this->api('/amenities/swimming_pool/facility'), ['offered' => false])
             ->assertOk()->assertJsonPath('amenity.property_facility', false);
