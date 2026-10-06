@@ -78,6 +78,8 @@ return [
         'rate_plan.created' => 'Plan tarifaire créé',
         'rate_plan.updated' => 'Plan tarifaire mis à jour',
         'rate_plan.copied' => 'Plan tarifaire copié',
+        'ari.updated' => 'Tarifs et disponibilités mis à jour',
+        'ari.copied' => 'Tarifs et restrictions copiés',
         'rate_plan.made_default' => 'Plan tarifaire par défaut défini',
         'product.occupancy_changed' => 'Tarification par occupation modifiée',
         'cancellation_policy.created' => 'Politique d’annulation créée',

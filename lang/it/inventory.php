@@ -15,6 +15,8 @@ return [
         'no_change' => 'Inserisci almeno un valore da modificare.',
         'needs_room_types' => 'Scegli almeno una tipologia di camera per questo valore.',
         'needs_products' => 'Scegli almeno un piano tariffario per questi valori.',
+        'copy_nothing' => 'Scegli di copiare tariffe, restrizioni o entrambe.',
+        'copy_too_varied' => 'Queste date hanno troppi valori diversi per essere copiate in una volta. Copia un periodo più breve.',
         'unit_count' => 'Impossibile rimuovere camere: il :date risultano già :booked camere vendute, opzionate o fuori servizio.',
         'rooms_needed' => 'Queste camere servono per prenotazioni del :date.',
     ],
@@ -43,5 +45,8 @@ return [
         'sell_limit_too_high' => 'Limite di vendita ridotto al numero di camere',
         'occupancy_too_high' => "Occupazione oltre il numero massimo di adulti della camera",
         'not_found' => 'Non trovato',
+        'no_source' => 'Nessun valore di origine per queste date',
+        'no_source_weekday' => 'Giorno della settimana non presente nelle date di origine',
+        'no_source_product' => 'Il piano tariffario di origine non è venduto per questa tipologia di camera',
     ],
 ];

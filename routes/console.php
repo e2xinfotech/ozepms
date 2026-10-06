@@ -22,3 +22,11 @@ Schedule::command('inventory:horizon')
     ->name('inventory:horizon')
     ->withoutOverlapping()
     ->onOneServer();
+
+// Removes daily inventory, rate and restriction rows of nights older than
+// config('ozepms.inventory.retention_days') and old calendar change-log rows, in small batches.
+Schedule::command('inventory:archive')
+    ->monthlyOn(1, '01:30')
+    ->name('inventory:archive')
+    ->withoutOverlapping()
+    ->onOneServer();

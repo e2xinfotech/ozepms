@@ -15,6 +15,8 @@ return [
         'no_change' => 'Geben Sie mindestens einen zu ändernden Wert ein.',
         'needs_room_types' => 'Wählen Sie für diesen Wert mindestens eine Zimmerkategorie.',
         'needs_products' => 'Wählen Sie für diese Werte mindestens einen Ratenplan.',
+        'copy_nothing' => 'Wählen Sie Preise, Beschränkungen oder beides zum Kopieren.',
+        'copy_too_varied' => 'Diese Daten haben zu viele unterschiedliche Werte, um sie auf einmal zu kopieren. Kopieren Sie einen kürzeren Zeitraum.',
         'unit_count' => 'Zimmer können nicht entfernt werden: Am :date sind bereits :booked Zimmer verkauft, reserviert oder außer Betrieb.',
         'rooms_needed' => 'Diese Zimmer werden für Buchungen am :date benötigt.',
     ],
@@ -43,5 +45,8 @@ return [
         'sell_limit_too_high' => 'Verkaufslimit auf die Zimmeranzahl begrenzt',
         'occupancy_too_high' => "Belegung über der maximalen Erwachsenenzahl des Zimmers",
         'not_found' => 'Nicht gefunden',
+        'no_source' => 'Keine Quellwerte für diese Daten',
+        'no_source_weekday' => 'Wochentag kommt in den Quelldaten nicht vor',
+        'no_source_product' => 'Der Quell-Ratenplan wird für diesen Zimmertyp nicht verkauft',
     ],
 ];

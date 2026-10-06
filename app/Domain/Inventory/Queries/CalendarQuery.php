@@ -2,6 +2,7 @@
 
 namespace App\Domain\Inventory\Queries;
 
+use App\Domain\Inventory\AvailabilityLevel;
 use App\Domain\Rates\DerivedPrice;
 use App\Models\Property;
 use App\Models\RoomTypeImage;
@@ -27,17 +28,74 @@ final class CalendarQuery
 {
     public const MAX_DAYS = 62;
 
-    /** Filter values for "status". "" = active records only. */
+    /**
+     * Record status filter. "" = active room types and rate plans only (default), "all" = active and
+     * inactive, "inactive" = inactive ones only. sold_out / stop_sell / restricted are older values,
+     * still accepted in links and mapped to the availability / restriction filters.
+     */
     public const STATUSES = ['all', 'active', 'inactive', 'sold_out', 'stop_sell', 'restricted'];
 
-    /** Window lengths: a calendar month, or two weeks from the chosen date. */
-    public const RANGES = ['month', 'week'];
+    /** Availability filter: sold out on some night, low on some night, available on every night. */
+    public const AVAILABILITY = ['sold_out', 'low', 'available'];
+
+    /** Restriction filter: rows with this restriction on at least one night of the window. */
+    public const RESTRICTIONS = ['any', 'stop_sell', 'cta', 'ctd', 'min_los', 'max_los', 'cutoff'];
+
+    /** Window lengths: one night, two weeks from the chosen date, or a calendar month. */
+    public const RANGES = ['day', 'week', 'month'];
 
     public const WEEK_DAYS = 14;
 
     /**
-     * First night and number of nights for a range ("month" | "week") around a date.
-     * A month always starts on the 1st; two weeks start on the date itself.
+     * Cleans filter input (query string or validated request): unknown values become null,
+     * prices must be decimals, legacy status values move to the filter they belong to.
+     *
+     * @param  array<string, mixed>  $input
+     * @return array{room_type: ?string, unit: ?string, rate_plan: ?string, status: ?string, availability: ?string, restriction: ?string, price_min: ?string, price_max: ?string}
+     */
+    public static function normalizeFilters(array $input): array
+    {
+        $id = fn (string $key) => is_string($input[$key] ?? null) && preg_match('/^[0-9A-Za-z]{1,26}$/', $input[$key]) ? $input[$key] : null;
+        $in = fn (string $key, array $allowed) => is_string($input[$key] ?? null) && in_array($input[$key], $allowed, true) ? $input[$key] : null;
+        $price = function (string $key) use ($input): ?string {
+            $v = $input[$key] ?? null;
+            if (is_int($v) || is_float($v)) {
+                $v = (string) $v;
+            }
+
+            return is_string($v) && preg_match('/^\d{1,8}(\.\d{1,2})?$/', $v) ? $v : null;
+        };
+
+        $filters = [
+            'room_type' => $id('room_type'),
+            'unit' => $id('unit'),
+            'rate_plan' => $id('rate_plan'),
+            'status' => $in('status', self::STATUSES),
+            'availability' => $in('availability', self::AVAILABILITY),
+            'restriction' => $in('restriction', self::RESTRICTIONS),
+            'price_min' => $price('price_min'),
+            'price_max' => $price('price_max'),
+        ];
+        // Links made before the split into separate filters.
+        $legacy = ['sold_out' => ['availability', 'sold_out'], 'stop_sell' => ['restriction', 'stop_sell'], 'restricted' => ['restriction', 'any']];
+        if (isset($legacy[$filters['status'] ?? ''])) {
+            [$key, $value] = $legacy[$filters['status']];
+            $filters[$key] ??= $value;
+            $filters['status'] = null;
+        }
+        if ($filters['status'] === 'active') {
+            $filters['status'] = null;
+        }
+        if ($filters['price_min'] !== null && $filters['price_max'] !== null && bccomp($filters['price_min'], $filters['price_max'], 2) > 0) {
+            [$filters['price_min'], $filters['price_max']] = [$filters['price_max'], $filters['price_min']];
+        }
+
+        return $filters;
+    }
+
+    /**
+     * First night and number of nights for a range ("month" | "week" | "day") around a date.
+     * A month always starts on the 1st; two weeks and a day start on the date itself.
      *
      * @return array{0: CarbonImmutable, 1: int}
      */
@@ -54,13 +112,15 @@ final class CalendarQuery
         }
         $start = $start ?: CarbonImmutable::createFromFormat('!Y-m-d', CarbonImmutable::now($tz)->toDateString());
 
-        return $range === 'week'
-            ? [$start, self::WEEK_DAYS]
-            : [$start->startOfMonth(), (int) $start->daysInMonth];
+        return match ($range) {
+            'week' => [$start, self::WEEK_DAYS],
+            'day' => [$start, 1],
+            default => [$start->startOfMonth(), (int) $start->daysInMonth],
+        };
     }
 
     /**
-     * @param  array{room_type?: ?string, unit?: ?string, rate_plan?: ?string, status?: ?string}  $filters  public ids / status key
+     * @param  array<string, ?string>  $filters  see normalizeFilters(): public ids, status, availability, restriction, price_min, price_max
      * @return array<string, mixed>
      */
     public function window(Property $property, CarbonImmutable $from, int $days, array $filters = []): array
@@ -71,7 +131,8 @@ final class CalendarQuery
         $fromDate = $from->toDateString();
         $toDate = $to->toDateString();
         $today = CarbonImmutable::now($property->timezone ?: 'UTC')->toDateString();
-        $status = in_array($filters['status'] ?? '', self::STATUSES, true) ? (string) $filters['status'] : '';
+        $filters = self::normalizeFilters($filters);
+        $status = (string) ($filters['status'] ?? '');
         $withInactive = in_array($status, ['all', 'inactive'], true);
         $pid = (int) $property->id;
 
@@ -338,7 +399,7 @@ final class CalendarQuery
             ];
         }
 
-        $rows = $this->applyStatusFilter($rows, $status);
+        $rows = $this->applyFilters($rows, $filters);
 
         return [
             'from' => $fromDate,
@@ -450,24 +511,76 @@ final class CalendarQuery
     }
 
     /**
-     * Status filter on the assembled rows (cheap: the window is already in memory).
+     * Status, availability, restriction and price filters on the assembled rows (cheap: the window
+     * is already in memory, and the queries above already only read this window).
+     *
+     *   status inactive  inactive room types, and the inactive rate plans of active room types
+     *   availability     room types sold out / low on at least one night, or available every night
+     *   restriction      rate plans with the restriction on at least one night (stop sell also matches
+     *                    the room type's own stop sell, which keeps all its rate plans)
+     *   price_min/max    rate plans with a price inside the range on at least one night
+     * A room type without any rate plan left after the restriction or price filter is hidden.
      *
      * @param  list<array<string, mixed>>  $rows
+     * @param  array<string, ?string>  $filters
      * @return list<array<string, mixed>>
      */
-    private function applyStatusFilter(array $rows, string $status): array
+    private function applyFilters(array $rows, array $filters): array
     {
-        $keep = match ($status) {
-            'inactive' => fn (array $rt) => ! $rt['is_active'] || collect($rt['products'])->contains(fn ($p) => ! $p['is_active']),
-            'active' => fn (array $rt) => $rt['is_active'],
-            'sold_out' => fn (array $rt) => collect($rt['inventory'])->contains(fn ($d) => $d['a'] === 0),
-            'stop_sell' => fn (array $rt) => collect($rt['inventory'])->contains(fn ($d) => $d['ss'])
-                || collect($rt['products'])->contains(fn ($p) => collect($p['days'])->contains(fn ($d) => $d['ss'])),
-            'restricted' => fn (array $rt) => collect($rt['products'])->contains(fn ($p) => collect($p['days'])->contains(
-                fn ($d) => $d['cta'] || $d['ctd'] || $d['min'] > 1 || $d['mla'] !== null)),
-            default => null,
-        };
+        $availability = $filters['availability'] ?? null;
+        $restriction = $filters['restriction'] ?? null;
+        $min = $filters['price_min'] ?? null;
+        $max = $filters['price_max'] ?? null;
+        $inactiveOnly = ($filters['status'] ?? null) === 'inactive';
 
-        return $keep === null ? $rows : array_values(array_filter($rows, $keep));
+        $dayHas = fn (array $d): bool => match ($restriction) {
+            'stop_sell' => $d['ss'],
+            'cta' => $d['cta'],
+            'ctd' => $d['ctd'],
+            'min_los' => $d['min'] > 1 || $d['mla'] !== null,
+            'max_los' => $d['max'] !== null,
+            'cutoff' => ($d['cut'] ?? 0) > 0,
+            default => $d['ss'] || $d['cta'] || $d['ctd'] || $d['min'] > 1 || $d['mla'] !== null || ($d['cut'] ?? 0) > 0,
+        };
+        $inPrice = fn (array $d): bool => $d['p'] !== null
+            && ($min === null || bccomp((string) $d['p'], $min, 2) >= 0)
+            && ($max === null || bccomp((string) $d['p'], $max, 2) <= 0);
+
+        $out = [];
+        foreach ($rows as $rt) {
+            if ($inactiveOnly && $rt['is_active']) {
+                $rt['products'] = array_values(array_filter($rt['products'], fn ($p) => ! $p['is_active']));
+                if ($rt['products'] === []) {
+                    continue;
+                }
+            }
+            if ($availability !== null) {
+                $levels = array_map(fn ($d) => AvailabilityLevel::of($d['a'], $d['t']), $rt['inventory']);
+                $keep = match ($availability) {
+                    'sold_out' => in_array(AvailabilityLevel::SOLD_OUT, $levels, true),
+                    'low' => in_array(AvailabilityLevel::LOW, $levels, true),
+                    default => $levels !== [] && ! in_array(AvailabilityLevel::SOLD_OUT, $levels, true),
+                };
+                if (! $keep) {
+                    continue;
+                }
+            }
+            $roomTypeMatch = false;
+            if ($restriction !== null) {
+                $roomTypeMatch = in_array($restriction, ['stop_sell', 'any'], true) && in_array(true, array_column($rt['inventory'], 'ss'), true);
+                if (! $roomTypeMatch) {
+                    $rt['products'] = array_values(array_filter($rt['products'], fn ($p) => (bool) array_filter($p['days'], $dayHas)));
+                }
+            }
+            if ($min !== null || $max !== null) {
+                $rt['products'] = array_values(array_filter($rt['products'], fn ($p) => (bool) array_filter($p['days'], $inPrice)));
+            }
+            if ((($restriction !== null && ! $roomTypeMatch) || $min !== null || $max !== null) && $rt['products'] === []) {
+                continue;
+            }
+            $out[] = $rt;
+        }
+
+        return $out;
     }
 }

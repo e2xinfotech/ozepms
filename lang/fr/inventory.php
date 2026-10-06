@@ -15,6 +15,8 @@ return [
         'no_change' => 'Saisissez au moins une valeur à modifier.',
         'needs_room_types' => 'Choisissez au moins un type de chambre pour cette valeur.',
         'needs_products' => 'Choisissez au moins un plan tarifaire pour ces valeurs.',
+        'copy_nothing' => 'Choisissez de copier les tarifs, les restrictions ou les deux.',
+        'copy_too_varied' => 'Ces dates ont trop de valeurs différentes pour être copiées en une fois. Copiez une période plus courte.',
         'unit_count' => 'Impossible de retirer des chambres : le :date, :booked chambres sont déjà vendues, en option ou hors service.',
         'rooms_needed' => 'Ces chambres sont nécessaires pour des réservations le :date.',
     ],
@@ -43,5 +45,8 @@ return [
         'sell_limit_too_high' => 'Limite de vente plafonnée au nombre de chambres',
         'occupancy_too_high' => "Occupation supérieure au nombre maximal d’adultes de la chambre",
         'not_found' => 'Introuvable',
+        'no_source' => 'Aucune valeur source pour ces dates',
+        'no_source_weekday' => 'Jour de la semaine absent des dates sources',
+        'no_source_product' => "Le plan tarifaire source n'est pas vendu pour ce type de chambre",
     ],
 ];

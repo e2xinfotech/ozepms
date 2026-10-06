@@ -15,6 +15,8 @@ return [
         'no_change' => 'Enter at least one value to change.',
         'needs_room_types' => 'Choose at least one room type for this value.',
         'needs_products' => 'Choose at least one rate plan for these values.',
+        'copy_nothing' => 'Choose rates, restrictions or both to copy.',
+        'copy_too_varied' => 'These dates have too many different values to copy at once. Copy a shorter range.',
         'unit_count' => 'Rooms cannot be removed: :date already has :booked rooms sold, held or out of order.',
         'rooms_needed' => 'These rooms are needed for bookings on :date.',
     ],
@@ -43,5 +45,8 @@ return [
         'sell_limit_too_high' => 'Sell limit capped at the number of rooms',
         'occupancy_too_high' => "Occupancy above the room's maximum adults",
         'not_found' => 'Not found',
+        'no_source' => 'No source values for these dates',
+        'no_source_weekday' => 'Weekday not in the source dates',
+        'no_source_product' => 'Rate plan to copy from is not sold for this room type',
     ],
 ];

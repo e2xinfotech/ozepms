@@ -2,7 +2,9 @@
 
 namespace App\Domain\Inventory\Calendar;
 
+use App\Domain\Inventory\AriApplyResult;
 use App\Domain\Inventory\AriChangeSet;
+use App\Domain\Inventory\AriCopyBuilder;
 use App\Domain\Inventory\AriService;
 use App\Infrastructure\Database\Tx;
 use App\Models\Product;
@@ -10,6 +12,7 @@ use App\Models\Property;
 use App\Models\RatePlan;
 use App\Models\RoomType;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -27,7 +30,10 @@ final class CalendarEditService
 {
     private const ROOM_TYPE_VALUES = ['stop_sell', 'sell_limit'];
 
-    public function __construct(private readonly AriService $ari) {}
+    public function __construct(
+        private readonly AriService $ari,
+        private readonly AriCopyBuilder $copies,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $values  validated value fields (price, min_los, stop_sell …)
@@ -74,6 +80,103 @@ final class CalendarEditService
 
         $results = Tx::run(fn () => array_map(fn (AriChangeSet $set) => $this->ari->apply($set, $by), $sets));
 
+        return $this->summary($results);
+    }
+
+    /**
+     * "Copy values": rates and/or restrictions of a source date range onto a target date range, for the
+     * chosen target rate plans (optionally only some room types). The source is the same product, or
+     * the product of $sourceRatePlanId for the same room type. With $dryRun nothing is kept: the
+     * changes are made inside a transaction that is rolled back, so the preview counts are exact.
+     *
+     * @param  array{source_from: string, source_to: string, target_from: string, target_to: string, rate_plan_ids: list<string>, room_type_ids?: list<string>, source_rate_plan_id?: ?string, copy_rates?: bool, copy_restrictions?: bool, align_weekdays?: bool}  $input  public ids
+     * @return array<string, mixed>  same keys as apply() plus preview, target_products, target_dates
+     */
+    public function copy(Property $property, array $input, bool $dryRun, ?User $by = null): array
+    {
+        $roomTypes = $this->ids(RoomType::query(), $input['room_type_ids'] ?? [], 'room_type_ids');
+        $plans = $this->ids(RatePlan::query(), $input['rate_plan_ids'] ?? [], 'rate_plan_ids');
+        $sourcePlan = null;
+        if (! empty($input['source_rate_plan_id'])) {
+            $sourcePlan = RatePlan::query()->where('public_id', $input['source_rate_plan_id'])->value('id')
+                ?? throw ValidationException::withMessages(['source_rate_plan_id' => __('calendar.errors.unknown_record')]);
+            $sourcePlan = (int) $sourcePlan;
+        }
+
+        $targets = Product::query()->whereIn('rate_plan_id', $plans)
+            ->when($roomTypes !== [], fn ($q) => $q->whereIn('room_type_id', $roomTypes))
+            ->orderBy('room_type_id')->orderBy('rate_plan_id')
+            ->get(['id', 'room_type_id', 'rate_plan_id']);
+        if ($targets->isEmpty()) {
+            throw ValidationException::withMessages(['rate_plan_ids' => __('calendar.errors.no_products')]);
+        }
+        $sources = $sourcePlan === null ? collect() : Product::query()->where('rate_plan_id', $sourcePlan)
+            ->whereIn('room_type_id', $targets->pluck('room_type_id')->unique()->all())
+            ->pluck('id', 'room_type_id');
+
+        $pairs = [];
+        $noSource = 0;
+        foreach ($targets as $target) {
+            $source = $sourcePlan === null ? $target->id : ($sources[$target->room_type_id] ?? null);
+            if ($source === null) {
+                $noSource++;
+
+                continue;
+            }
+            $pairs[] = [(int) $source, (int) $target->id];
+        }
+
+        $plan = $pairs === [] ? null : $this->copies->build(
+            $property->id,
+            (string) $input['source_from'], (string) $input['source_to'],
+            (string) $input['target_from'], (string) $input['target_to'],
+            $pairs,
+            (bool) ($input['copy_rates'] ?? false), (bool) ($input['copy_restrictions'] ?? false),
+            (bool) ($input['align_weekdays'] ?? false),
+        );
+
+        $extraSkipped = $noSource > 0 ? [['reason' => 'no_source_product', 'dates' => 0, 'products' => $noSource]] : [];
+        $results = [];
+        if ($plan !== null && $plan['sets'] !== []) {
+            $context = ['copy' => [
+                'source' => [$input['source_from'], $input['source_to']], 'target' => [$input['target_from'], $input['target_to']],
+                'source_rate_plan' => $input['source_rate_plan_id'] ?? null, 'rates' => (bool) ($input['copy_rates'] ?? false),
+                'restrictions' => (bool) ($input['copy_restrictions'] ?? false), 'align_weekdays' => (bool) ($input['align_weekdays'] ?? false),
+            ]];
+            $run = fn () => [$this->ari->applyMany($plan['sets'], $by, 'ari.copied', $context)];
+            if ($dryRun) {
+                DB::beginTransaction();
+                try {
+                    $results = $run();
+                } finally {
+                    DB::rollBack();
+                }
+            } else {
+                $results = $run();
+            }
+        }
+        if ($plan !== null) {
+            $results[] = new AriApplyResult(0, 0, 0, $plan['skipped'], 0);
+        }
+
+        $out = $this->summary($results, $extraSkipped);
+
+        return $out + [
+            'preview' => $dryRun,
+            'target_products' => count($pairs),
+            'target_dates' => $plan['target_dates'] ?? 0,
+            'mapped_dates' => $plan['mapped_dates'] ?? 0,
+        ];
+    }
+
+    /**
+     * Totals of several results; skipped entries are summed per reason with a translated label.
+     *
+     * @param  list<AriApplyResult>  $results
+     * @param  list<array{reason: string, dates: int, products?: int}>  $extra
+     */
+    private function summary(array $results, array $extra = []): array
+    {
         $out = ['inventory_rows' => 0, 'ari_rows' => 0, 'occupancy_rows' => 0, 'ari_version' => 0, 'skipped' => []];
         $skipped = [];
         foreach ($results as $result) {
@@ -84,6 +187,9 @@ final class CalendarEditService
             foreach ($result->skipped as $s) {
                 $skipped[$s['reason']] = ($skipped[$s['reason']] ?? 0) + (int) ($s['dates'] ?? 0);
             }
+        }
+        foreach ($extra as $s) {
+            $skipped[$s['reason']] = ($skipped[$s['reason']] ?? 0) + (int) ($s['products'] ?? $s['dates']);
         }
         foreach ($skipped as $reason => $dates) {
             $label = __('inventory.skipped.'.$reason);

@@ -78,6 +78,8 @@ return [
         'rate_plan.created' => 'Ratenplan angelegt',
         'rate_plan.updated' => 'Ratenplan aktualisiert',
         'rate_plan.copied' => 'Ratenplan kopiert',
+        'ari.updated' => 'Preise und Verfügbarkeit aktualisiert',
+        'ari.copied' => 'Preise und Beschränkungen kopiert',
         'rate_plan.made_default' => 'Standard-Ratenplan festgelegt',
         'product.occupancy_changed' => 'Belegungspreise geändert',
         'cancellation_policy.created' => 'Stornierungsbedingung angelegt',

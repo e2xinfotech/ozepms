@@ -78,6 +78,8 @@ return [
         'rate_plan.created' => 'Piano tariffario creato',
         'rate_plan.updated' => 'Piano tariffario aggiornato',
         'rate_plan.copied' => 'Piano tariffario copiato',
+        'ari.updated' => 'Tariffe e disponibilità aggiornate',
+        'ari.copied' => 'Tariffe e restrizioni copiate',
         'rate_plan.made_default' => 'Piano tariffario predefinito impostato',
         'product.occupancy_changed' => 'Prezzi per occupazione modificati',
         'cancellation_policy.created' => 'Politica di cancellazione creata',

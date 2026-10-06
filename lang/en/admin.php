@@ -78,6 +78,8 @@ return [
         'rate_plan.created' => 'Rate plan created',
         'rate_plan.updated' => 'Rate plan updated',
         'rate_plan.copied' => 'Rate plan copied',
+        'ari.updated' => 'Rates and availability updated',
+        'ari.copied' => 'Rates and restrictions copied',
         'rate_plan.made_default' => 'Default rate plan set',
         'product.occupancy_changed' => 'Occupancy pricing changed',
         'cancellation_policy.created' => 'Cancellation policy created',

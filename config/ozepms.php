@@ -104,6 +104,15 @@ return [
         'max_edit_days' => 731,
         // Booking-engine holds are released after this many minutes without payment.
         'hold_minutes' => 15,
+        // A night counts as "low availability" (calendar colours and filter) when the rooms left
+        // are at most this share of the room type's rooms (and at least 1 room).
+        'low_availability_percent' => 20,
+        // inventory:archive (monthly) deletes daily inventory / rate / restriction rows of nights
+        // older than this many days, and calendar change-log rows older than change_log_retention_days.
+        // Reservations keep their own nightly prices, so no booking depends on these rows.
+        'retention_days' => (int) env('OZ_INVENTORY_RETENTION_DAYS', 400),
+        'change_log_retention_days' => (int) env('OZ_ARI_LOG_RETENTION_DAYS', 400),
+        'archive_batch' => 5000,
     ],
 
     'uploads' => [

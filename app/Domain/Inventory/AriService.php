@@ -36,7 +36,73 @@ class AriService
      */
     public function apply(AriChangeSet $changes, ?User $by = null): AriApplyResult
     {
-        $property = Property::query()->findOrFail($changes->propertyId);
+        return $this->applyMany([$changes], $by);
+    }
+
+    /**
+     * Applies several change sets of one property in one transaction (used by "copy values", where
+     * every run of dates gets its own values): one ari_version increment and one audit record for
+     * the whole operation; ari_change_log keeps one row per change set and scope as usual.
+     *
+     * @param  list<AriChangeSet>  $sets
+     * @param  array<string, mixed>  $auditContext  extra details for the audit record (e.g. the copy source)
+     */
+    public function applyMany(array $sets, ?User $by = null, string $auditAction = 'ari.updated', array $auditContext = []): AriApplyResult
+    {
+        if ($sets === []) {
+            throw new \InvalidArgumentException('No change sets given.');
+        }
+        $propertyId = $sets[0]->propertyId;
+        foreach ($sets as $set) {
+            if ($set->propertyId !== $propertyId) {
+                throw new \InvalidArgumentException('All change sets must belong to one property.');
+            }
+        }
+        $property = Property::query()->findOrFail($propertyId);
+        $userId = $by?->id ?? auth()->id();
+        $source = $userId !== null ? 'user' : 'system';
+
+        return Tx::run(function () use ($sets, $property, $userId, $source, $auditAction, $auditContext) {
+            $totals = [0, 0, 0];
+            $skipped = [];
+            $touched = ['room_types' => [], 'products' => [], 'from' => null, 'to' => null];
+            foreach ($sets as $set) {
+                [$inv, $ari, $occ, $skip, $info] = $this->applyOne($set, $property, $userId, $source);
+                $totals[0] += $inv;
+                $totals[1] += $ari;
+                $totals[2] += $occ;
+                array_push($skipped, ...$skip);
+                if ($info !== null && $inv + $ari + $occ > 0) {
+                    $touched['room_types'] = array_merge($touched['room_types'], $info['room_types']);
+                    $touched['products'] = array_merge($touched['products'], $info['products']);
+                    $touched['from'] = $touched['from'] === null ? $info['from'] : min($touched['from'], $info['from']);
+                    $touched['to'] = $touched['to'] === null ? $info['to'] : max($touched['to'], $info['to']);
+                }
+            }
+
+            $version = $this->journal->version($property->id);
+            if (array_sum($totals) > 0) {
+                $version = $this->journal->bump($property->id);
+                $after = count($sets) === 1
+                    ? ['from' => $touched['from'], 'to' => $touched['to'], 'weekdays' => $sets[0]->weekdays,
+                        'room_types' => array_values(array_unique($touched['room_types'])), 'products' => array_values(array_unique($touched['products'])),
+                        'values' => $sets[0]->payload()]
+                    : ['from' => $touched['from'], 'to' => $touched['to'], 'changes' => count($sets),
+                        'room_types' => array_values(array_unique($touched['room_types'])), 'products' => array_values(array_unique($touched['products']))];
+                $this->audit->log($auditAction, $property, ['after' => $after + $auditContext], $property->id, $userId);
+            }
+
+            return new AriApplyResult($totals[0], $totals[1], $totals[2], $skipped, $version);
+        });
+    }
+
+    /**
+     * One change set (inside the caller's transaction, without version bump or audit).
+     *
+     * @return array{0: int, 1: int, 2: int, 3: list<array<string, mixed>>, 4: ?array<string, mixed>}
+     */
+    private function applyOne(AriChangeSet $changes, Property $property, ?int $userId, string $source): array
+    {
         $today = $this->inventory->today($property->id);
         $limit = $this->inventory->horizonEnd($today)->addDays(self::EXTRA_DAYS - 1);
         $skipped = [];
@@ -78,137 +144,126 @@ class AriService
         }
 
         if ($to->lessThan($from) || ($roomTypes->isEmpty() && $products->isEmpty())) {
-            return new AriApplyResult(0, 0, 0, $skipped, $this->journal->version($property->id));
+            return [0, 0, 0, $skipped, null];
         }
 
-        $userId = $by?->id ?? auth()->id();
-        $source = $userId !== null ? 'user' : 'system';
         $mask = $changes->weekdayMask();
 
-        return Tx::run(function () use ($changes, $property, $from, $to, $roomTypes, $products, $skipped, $userId, $source, $mask) {
-            $inventoryRows = 0;
-            $ariRows = 0;
-            $occupancyRows = 0;
-            $dayCount = count(array_filter($changes->dates(), fn ($d) => $d >= $from->toDateString() && $d <= $to->toDateString()));
+        $inventoryRows = 0;
+        $ariRows = 0;
+        $occupancyRows = 0;
+        $dayCount = count(array_filter($changes->dates(), fn ($d) => $d >= $from->toDateString() && $d <= $to->toDateString()));
 
-            // Room-type level -------------------------------------------------------------------
-            if ($changes->hasRoomTypeChanges()) {
-                foreach ($roomTypes->keys() as $roomTypeId) {
-                    $roomTypeId = (int) $roomTypeId;
-                    $this->inventory->ensureRoomTypeRows($roomTypeId, $from, $to->addDay());
-                    $sets = [];
-                    $bindings = [];
-                    if ($changes->stopSell !== null) {
-                        $sets[] = 'stop_sell = ?';
-                        $bindings[] = $changes->stopSell ? 1 : 0;
-                    }
-                    if ($changes->sellLimit !== null) {
-                        if ($changes->sellLimit === false) {
-                            $sets[] = 'sell_limit = NULL';
-                        } else {
-                            $capped = $this->dateFilter(DB::table('inventory_daily')->where('room_type_id', $roomTypeId), $from, $to, $changes)
-                                ->where('total_units', '<', $changes->sellLimit)->count();
-                            if ($capped > 0) {
-                                $skipped[] = $this->skip('room_type', $roomTypeId, 'sell_limit', 'sell_limit_too_high', $capped);
-                            }
-                            $sets[] = 'sell_limit = LEAST(?, total_units)';
-                            $bindings[] = $changes->sellLimit;
-                        }
-                    }
-                    $changed = $this->updateRange('inventory_daily', 'room_type_id', $roomTypeId, $sets, $bindings, $from, $to, $changes);
-                    $inventoryRows += $changed;
-                    if ($changed > 0) {
-                        $this->journal->record($property->id, 'inventory', $roomTypeId, null, $from, $to,
-                            array_intersect_key($changes->payload(), array_flip(['stop_sell', 'sell_limit'])), $source, $userId, $mask);
-                    }
-                }
-            }
-
-            // Product level ---------------------------------------------------------------------
-            foreach ($products as $product) {
-                $productId = (int) $product->id;
-                $derived = $product->pricing_mode === 'derived';
-                $inherits = $derived && (bool) $product->inherit_restrictions;
-                if (! $changes->hasProductChanges()) {
-                    continue;
-                }
-                $this->inventory->ensureProductRows($productId, $from, $to->addDay());
-
+        // Room-type level -------------------------------------------------------------------
+        if ($changes->hasRoomTypeChanges()) {
+            foreach ($roomTypes->keys() as $roomTypeId) {
+                $roomTypeId = (int) $roomTypeId;
+                $this->inventory->ensureRoomTypeRows($roomTypeId, $from, $to->addDay());
                 $sets = [];
                 $bindings = [];
-                $rateFields = [];
-                $restrictionFields = [];
-
-                if ($changes->hasPriceChanges() && $derived) {
-                    $skipped[] = $this->skip('product', $productId, 'price', 'derived_price', $dayCount);
-                }
-                if ($changes->price !== null && ! $derived) {
-                    $sets[] = 'price = ?';
-                    $bindings[] = $changes->price;
-                    $rateFields['price'] = $changes->price;
-                }
-
-                $restrictions = [
-                    'min_los' => $changes->minLos === null ? null : ($changes->minLos > 0 ? $changes->minLos : 'NULL'),
-                    'max_los' => $changes->maxLos === null ? null : ($changes->maxLos > 0 ? $changes->maxLos : 'NULL'),
-                    'cta' => $changes->cta === null ? null : (int) $changes->cta,
-                    'ctd' => $changes->ctd === null ? null : (int) $changes->ctd,
-                    'cutoff_days' => $changes->minAdvance === null ? null : ($changes->minAdvance > 0 ? $changes->minAdvance : 'NULL'),
-                    'max_advance_days' => $changes->maxAdvance === null ? null : ($changes->maxAdvance > 0 ? $changes->maxAdvance : 'NULL'),
-                ];
-                $inheritedEdits = array_filter($restrictions, fn ($v) => $v !== null);
-                if ($inherits && $inheritedEdits !== []) {
-                    $skipped[] = $this->skip('product', $productId, implode(',', array_keys($inheritedEdits)), 'inherits_restrictions', $dayCount);
-                } else {
-                    foreach ($inheritedEdits as $column => $value) {
-                        if ($value === 'NULL') {
-                            $sets[] = "{$column} = NULL";
-                            $restrictionFields[$column] = null;
-                        } else {
-                            $sets[] = "{$column} = ?";
-                            $bindings[] = $value;
-                            $restrictionFields[$column] = $value;
-                        }
-                    }
-                }
-                if (($stop = $changes->productStopSell()) !== null) {
+                if ($changes->stopSell !== null) {
                     $sets[] = 'stop_sell = ?';
-                    $bindings[] = $stop ? 1 : 0;
-                    $restrictionFields['stop_sell'] = $stop;
+                    $bindings[] = $changes->stopSell ? 1 : 0;
                 }
-
-                $changed = $this->updateRange('ari_daily', 'product_id', $productId, $sets, $bindings, $from, $to, $changes);
-
-                $occChanged = 0;
-                if ($changes->occupancyPrices !== null && ! $derived) {
-                    $occChanged = $this->writeOccupancy($property->id, $productId, (int) $product->max_adults, $changes, $from, $to, $skipped);
-                    if ($occChanged > 0) {
-                        $rateFields['occupancy_prices'] = $changes->occupancyPrices;
+                if ($changes->sellLimit !== null) {
+                    if ($changes->sellLimit === false) {
+                        $sets[] = 'sell_limit = NULL';
+                    } else {
+                        $capped = $this->dateFilter(DB::table('inventory_daily')->where('room_type_id', $roomTypeId), $from, $to, $changes)
+                            ->where('total_units', '<', $changes->sellLimit)->count();
+                        if ($capped > 0) {
+                            $skipped[] = $this->skip('room_type', $roomTypeId, 'sell_limit', 'sell_limit_too_high', $capped);
+                        }
+                        $sets[] = 'sell_limit = LEAST(?, total_units)';
+                        $bindings[] = $changes->sellLimit;
                     }
                 }
-                $ariRows += $changed;
-                $occupancyRows += $occChanged;
-
-                if ($rateFields !== [] && ($changed > 0 || $occChanged > 0)) {
-                    $this->journal->record($property->id, 'rate', (int) $product->room_type_id, $productId, $from, $to, $rateFields, $source, $userId, $mask);
-                }
-                if ($restrictionFields !== [] && $changed > 0) {
-                    $this->journal->record($property->id, 'restriction', (int) $product->room_type_id, $productId, $from, $to, $restrictionFields, $source, $userId, $mask);
+                $changed = $this->updateRange('inventory_daily', 'room_type_id', $roomTypeId, $sets, $bindings, $from, $to, $changes);
+                $inventoryRows += $changed;
+                if ($changed > 0) {
+                    $this->journal->record($property->id, 'inventory', $roomTypeId, null, $from, $to,
+                        array_intersect_key($changes->payload(), array_flip(['stop_sell', 'sell_limit'])), $source, $userId, $mask);
                 }
             }
+        }
 
-            $version = $this->journal->version($property->id);
-            if ($inventoryRows + $ariRows + $occupancyRows > 0) {
-                $version = $this->journal->bump($property->id);
-                $this->audit->log('ari.updated', $property, ['after' => [
-                    'from' => $from->toDateString(), 'to' => $to->toDateString(), 'weekdays' => $changes->weekdays,
-                    'room_types' => $roomTypes->keys()->all(), 'products' => $products->keys()->all(),
-                    'values' => $changes->payload(),
-                ]], $property->id, $userId);
+        // Product level ---------------------------------------------------------------------
+        foreach ($products as $product) {
+            $productId = (int) $product->id;
+            $derived = $product->pricing_mode === 'derived';
+            $inherits = $derived && (bool) $product->inherit_restrictions;
+            if (! $changes->hasProductChanges()) {
+                continue;
+            }
+            $this->inventory->ensureProductRows($productId, $from, $to->addDay());
+
+            $sets = [];
+            $bindings = [];
+            $rateFields = [];
+            $restrictionFields = [];
+
+            if ($changes->hasPriceChanges() && $derived) {
+                $skipped[] = $this->skip('product', $productId, 'price', 'derived_price', $dayCount);
+            }
+            if ($changes->price !== null && ! $derived) {
+                $sets[] = 'price = ?';
+                $bindings[] = $changes->price;
+                $rateFields['price'] = $changes->price;
             }
 
-            return new AriApplyResult($inventoryRows, $ariRows, $occupancyRows, $skipped, $version);
-        });
+            $restrictions = [
+                'min_los' => $changes->minLos === null ? null : ($changes->minLos > 0 ? $changes->minLos : 'NULL'),
+                'max_los' => $changes->maxLos === null ? null : ($changes->maxLos > 0 ? $changes->maxLos : 'NULL'),
+                'cta' => $changes->cta === null ? null : (int) $changes->cta,
+                'ctd' => $changes->ctd === null ? null : (int) $changes->ctd,
+                'cutoff_days' => $changes->minAdvance === null ? null : ($changes->minAdvance > 0 ? $changes->minAdvance : 'NULL'),
+                'max_advance_days' => $changes->maxAdvance === null ? null : ($changes->maxAdvance > 0 ? $changes->maxAdvance : 'NULL'),
+            ];
+            $inheritedEdits = array_filter($restrictions, fn ($v) => $v !== null);
+            if ($inherits && $inheritedEdits !== []) {
+                $skipped[] = $this->skip('product', $productId, implode(',', array_keys($inheritedEdits)), 'inherits_restrictions', $dayCount);
+            } else {
+                foreach ($inheritedEdits as $column => $value) {
+                    if ($value === 'NULL') {
+                        $sets[] = "{$column} = NULL";
+                        $restrictionFields[$column] = null;
+                    } else {
+                        $sets[] = "{$column} = ?";
+                        $bindings[] = $value;
+                        $restrictionFields[$column] = $value;
+                    }
+                }
+            }
+            if (($stop = $changes->productStopSell()) !== null) {
+                $sets[] = 'stop_sell = ?';
+                $bindings[] = $stop ? 1 : 0;
+                $restrictionFields['stop_sell'] = $stop;
+            }
+
+            $changed = $this->updateRange('ari_daily', 'product_id', $productId, $sets, $bindings, $from, $to, $changes);
+
+            $occChanged = 0;
+            if ($changes->occupancyPrices !== null && ! $derived) {
+                $occChanged = $this->writeOccupancy($property->id, $productId, (int) $product->max_adults, $changes, $from, $to, $skipped);
+                if ($occChanged > 0) {
+                    $rateFields['occupancy_prices'] = $changes->occupancyPrices;
+                }
+            }
+            $ariRows += $changed;
+            $occupancyRows += $occChanged;
+
+            if ($rateFields !== [] && ($changed > 0 || $occChanged > 0)) {
+                $this->journal->record($property->id, 'rate', (int) $product->room_type_id, $productId, $from, $to, $rateFields, $source, $userId, $mask);
+            }
+            if ($restrictionFields !== [] && $changed > 0) {
+                $this->journal->record($property->id, 'restriction', (int) $product->room_type_id, $productId, $from, $to, $restrictionFields, $source, $userId, $mask);
+            }
+        }
+
+        return [$inventoryRows, $ariRows, $occupancyRows, $skipped, [
+            'from' => $from->toDateString(), 'to' => $to->toDateString(),
+            'room_types' => $roomTypes->keys()->map(fn ($id) => (int) $id)->all(), 'products' => $products->keys()->map(fn ($id) => (int) $id)->all(),
+        ]];
     }
 
     /**
