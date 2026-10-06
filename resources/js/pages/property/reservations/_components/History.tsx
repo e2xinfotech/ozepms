@@ -102,7 +102,7 @@ export function DocumentsList({ h }: { h: H }) {
             {h.data.documents.map((d) => (
                 <li key={d.id} className="activity">
                     <span className="a-icon tone-slate"><Icon name="file-text" size={16} /></span>
-                    <div className="grow"><div className="a-title">{d.name}</div><div className="a-sub">{t(`guests.document_types.${d.type}`)} · {Math.max(1, Math.round(d.size / 1024))} KB</div></div>
+                    <div className="grow"><a className="a-title" href={propertyApiUrl(`/guests/${d.guest_id}/documents/${d.id}`)}>{d.name}</a><div className="a-sub">{t(`guests.document_types.${d.type}`)} · {Math.max(1, Math.round(d.size / 1024))} KB</div></div>
                     <span className="a-time">{dateTime(d.at)}</span>
                 </li>
             ))}

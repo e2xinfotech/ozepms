@@ -21,7 +21,7 @@ class InventoryDemoSeederTest extends TestCase
         $today = app(InventoryService::class)->today($property->id);
 
         $roomTypeId = (int) DB::table('room_types')->where('property_id', $property->id)->orderBy('sort_order')->value('id');
-        $this->assertSame(365, DB::table('inventory_daily')->where('room_type_id', $roomTypeId)->count());
+        $this->assertSame(365, DB::table('inventory_daily')->where('room_type_id', $roomTypeId)->where('stay_date', '>=', $today->toDateString())->count(), 'a year from today (demo stays that began earlier add past rows)');
 
         $bar = DB::table('room_type_rate_plans as p')->join('rate_plans as rp', 'rp.id', '=', 'p.rate_plan_id')
             ->where('p.room_type_id', $roomTypeId)->where('rp.code', 'BAR')->first(['p.id', 'p.default_price']);

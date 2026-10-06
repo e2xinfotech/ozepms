@@ -121,8 +121,7 @@ export function ReservationDialogs({ reservation: r, kind, roomId, idTypes, onCl
 
     if (kind === 'check_out') {
         const balance = Number(r.totals.balance);
-        const today = new Date().toISOString().slice(0, 10);
-        const early = r.check_out > today;
+        const early = r.check_out > r.today;
         const go = () => run('check-out', { note: form.note || null, override_balance: !!form.override });
         return (
             <Modal open title={t('reservations.dialogs.check_out_title', { guest: r.guest.name })} onClose={onClose} footer={footer(t('reservations.dialogs.check_out_confirm'), go)}>

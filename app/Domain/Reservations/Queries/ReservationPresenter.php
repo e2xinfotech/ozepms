@@ -208,6 +208,7 @@ class ReservationPresenter
             'updated_at' => $r->updated_at?->toIso8601String(),
             'confirmed_at' => $r->confirmed_at?->toIso8601String(),
             'actions' => $state,
+            'today' => $today,
         ]);
     }
 
@@ -240,10 +241,10 @@ class ReservationPresenter
             'events' => $events,
             'notes' => Note::query()->where('subject_type', 'reservation')->where('subject_id', $r->id)->with('user:id,name')
                 ->orderByDesc('id')->limit(100)->get()->map(fn (Note $n) => ['id' => $n->id, 'body' => $n->body, 'user' => $n->user?->name, 'at' => $n->created_at?->toIso8601String()])->all(),
-            'documents' => GuestDocument::query()->where(fn ($q) => $q->where('reservation_id', $r->id)->orWhere('guest_id', $r->primary_guest_id ?? 0))
+            'documents' => GuestDocument::query()->with('guest:id,public_id')->where(fn ($q) => $q->where('reservation_id', $r->id)->orWhere('guest_id', $r->primary_guest_id ?? 0))
                 ->orderByDesc('id')->limit(50)->get()->map(fn (GuestDocument $d) => [
                     'id' => $d->public_id, 'type' => $d->doc_type, 'name' => $d->file_name, 'size' => (int) $d->size_bytes, 'mime' => $d->mime,
-                    'at' => $d->created_at?->toIso8601String(),
+                    'at' => $d->created_at?->toIso8601String(), 'guest_id' => $d->guest?->public_id,
                 ])->all(),
         ];
     }

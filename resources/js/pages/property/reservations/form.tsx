@@ -254,7 +254,7 @@ function ReservationForm({ reservation: res, guest: presetGuest, options, defaul
                                 email: found.email ?? '', phone: found.phone ?? '', nationality_iso2: found.nationality ?? '', id_type: found.id_type ?? '', company_name: found.company_name ?? '' }));
                             setDirty(true);
                         }} />}>
-                            {guestId && <div className="span-12"><Alert tone="info">{t('reservations.form.guest_selected', { number: '' })}{' '}
+                            {guestId && <div className="span-12"><Alert tone="info">{t('reservations.form.guest_selected')}{' '}
                                 <button type="button" className="link-button" onClick={() => { setGuestId(null); setDirty(true); }}>{t('reservations.form.new_guest')}</button></Alert></div>}
                             <Select fieldClass="span-3" label={t('guests.fields.guest_type')} value={guest.guest_type} options={options.guest_types} onChange={(e) => setG('guest_type', e.target.value)} />
                             <Select fieldClass="span-2" label={t('guests.fields.title')} optional value={guest.title} placeholder="—" options={options.titles} onChange={(e) => setG('title', e.target.value)} />

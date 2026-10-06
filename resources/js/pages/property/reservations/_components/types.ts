@@ -83,13 +83,14 @@ export interface ReservationDetail extends Omit<ReservationRow, 'rooms'> {
     updated_at: string | null;
     confirmed_at: string | null;
     actions: ReservationActions;
+    today: string;
 }
 
 export interface HistoryData {
     events: ({ type: 'status'; at: string; user: string | null; from: string | null; to: string; room: number | null; note: string | null }
         | { type: 'change'; at: string; user: string | null; action: string; keys: string[]; after: Record<string, unknown> | null })[];
     notes: { id: number; body: string; user: string | null; at: string | null }[];
-    documents: { id: string; type: string; name: string; size: number; mime: string; at: string | null }[];
+    documents: { id: string; type: string; name: string; size: number; mime: string; at: string | null; guest_id: string | null }[];
 }
 
 /** What the billing components receive (contract with the billing module, see .handoff). */

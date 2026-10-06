@@ -101,7 +101,7 @@ return [
         'guest_info' => 'Guest Information',
         'search_guest' => 'Search Guest',
         'search_guest_placeholder' => 'Name, e-mail or phone…',
-        'guest_selected' => 'Existing guest :number — changes update the profile.',
+        'guest_selected' => 'Existing guest selected — changes update the profile.',
         'new_guest' => 'New guest',
         'stay_details' => 'Stay Details',
         'rooms_rates' => 'Room & Rate Plan',
