@@ -6,6 +6,7 @@ use App\Domain\Accommodation\Reference\AccommodationReference;
 use App\Domain\Audit\AuditLogger;
 use App\Models\Amenity;
 use App\Support\PropertyContext;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -30,7 +31,7 @@ class AmenityService
             'name' => $name,
             'category' => $data['category'],
             'icon' => $data['icon'] ?? null,
-            'applies_to' => 'room_type,unit',
+            'applies_to' => self::appliesTo($data['category']),
             'is_active' => true,
         ]);
         $this->audit->log('amenity.created', $amenity, ['after' => ['name' => $name, 'category' => $data['category']]], $propertyId);
@@ -47,6 +48,9 @@ class AmenityService
         }
 
         $amenity->fill(array_intersect_key($data, array_flip(['name', 'category', 'icon', 'is_active'])));
+        if ($amenity->isDirty('category')) {
+            $amenity->applies_to = self::appliesTo((string) $amenity->category);
+        }
         if ($amenity->isDirty()) {
             $diff = $this->audit->diff($amenity);
             $amenity->save();
@@ -54,6 +58,35 @@ class AmenityService
         }
 
         return $amenity;
+    }
+
+    /**
+     * Marks an amenity as a facility of the whole property (pool, parking, spa …), as opposed to
+     * something inside a room type. Only amenities that can apply to a property are accepted.
+     */
+    public function setPropertyFacility(Amenity $amenity, bool $offered): void
+    {
+        $propertyId = $this->context->id();
+        if (! in_array('property', explode(',', (string) $amenity->applies_to), true)) {
+            throw ValidationException::withMessages(['offered' => __('amenities.errors.not_a_facility')]);
+        }
+
+        $exists = DB::table('property_amenities')->where('property_id', $propertyId)->where('amenity_id', $amenity->id)->exists();
+        if ($exists === $offered) {
+            return;
+        }
+        if ($offered) {
+            DB::table('property_amenities')->insert(['property_id' => $propertyId, 'amenity_id' => $amenity->id]);
+        } else {
+            DB::table('property_amenities')->where('property_id', $propertyId)->where('amenity_id', $amenity->id)->delete();
+        }
+        $this->audit->log($offered ? 'amenity.facility_added' : 'amenity.facility_removed', $amenity, ['after' => ['amenity' => $amenity->code]], $propertyId);
+    }
+
+    /** Property-wide categories can be property facilities; the rest belong to rooms. */
+    private static function appliesTo(string $category): string
+    {
+        return in_array($category, ['property', 'service'], true) ? 'property,room_type' : 'room_type,unit';
     }
 
     private function assertCustom(Amenity $amenity): void

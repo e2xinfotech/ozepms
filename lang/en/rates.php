@@ -158,4 +158,10 @@ return [
         'policy_required' => 'Choose a cancellation policy.',
     ],
     'setup' => ['title' => 'Setup, step 2 of 3:', 'text' => 'create the rate plan your rooms are sold with. Next you add the room types and their PMS rooms.'],
+    'meal_plan_custom' => [
+        'button' => 'Custom', 'title' => 'Custom Meal Plan', 'save' => 'Add Meal Plan', 'includes' => 'Included Meals',
+        'breakfast' => 'Breakfast', 'lunch' => 'Lunch', 'dinner' => 'Dinner', 'all_inclusive' => 'All inclusive (food and drinks)',
+        'hint' => 'For packages the standard list does not cover. The code must differ from the standard codes (RO, BB, HB …).',
+        'taken' => 'A meal plan with this code or name already exists.', 'saved' => 'Meal plan added.',
+    ],
 ];

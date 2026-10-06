@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Alert, Badge, Button, DataTable, Icon, Input, Modal, PageHeader, Pagination, PillTabs, Select, Toggle, type Column, type Option, type PageMeta } from '@/components/ui';
+import { Alert, Badge, Button, Checkbox, DataTable, Icon, Input, Modal, PageHeader, Pagination, PillTabs, Select, Toggle, type Column, type Option, type PageMeta } from '@/components/ui';
 import { createPage } from '@/lib/boot';
 import { http, navigateWithQuery, type ApiError } from '@/lib/http';
 import { t } from '@/lib/i18n';
 import { propertyApiUrl, propertyUrl } from '@/lib/page';
 import { act, fieldError, labelOf } from '../_accommodation/shared';
 
-interface Row { id: string; name: string; raw_name: string; category: string; icon: string | null; custom: boolean; is_active: boolean; room_types_count: number }
+interface Row { id: string; name: string; raw_name: string; category: string; icon: string | null; custom: boolean; is_active: boolean; room_types_count: number; property_facility: boolean | null }
 interface Props {
     list: { rows: Row[]; meta: PageMeta; counts: { all: number; global: number; custom: number } };
     filters: { q?: string; category?: string; tab?: string };
@@ -20,12 +20,24 @@ const ICONS = ['check', 'sparkles', 'wifi', 'tv', 'coffee', 'wine', 'utensils', 
 function AmenitiesPage({ list, filters, options, can }: Props) {
     const [q, setQ] = useState(filters.q ?? '');
     const [editing, setEditing] = useState<Row | 'new' | null>(null);
+    const [rows, setRows] = useState(list.rows);
+
+    const setFacility = async (row: Row, offered: boolean) => {
+        const res = await act(() => http.post<{ message: string; amenity: Row }>(propertyApiUrl(`/amenities/${row.id}/facility`), { offered }));
+        if (res) setRows((l) => l.map((r) => (r.id === row.id ? { ...r, property_facility: res.amenity.property_facility } : r)));
+    };
 
     const columns: Column<Row>[] = [
         { key: 'name', header: t('amenities.columns.name'), render: (r) => <span className="row"><Icon name={r.icon ?? 'check'} size={18} /><span className="cell-main">{r.name}</span></span> },
         { key: 'category', header: t('amenities.columns.category'), render: (r) => labelOf(options.categories, r.category) },
         { key: 'source', header: t('amenities.columns.source'), render: (r) => <Badge size="sm" tone={r.custom ? 'violet' : 'slate'}>{r.custom ? t('amenities.custom') : t('amenities.global')}</Badge> },
         { key: 'used', header: t('amenities.columns.used'), align: 'right', render: (r) => r.room_types_count },
+        {
+            key: 'facility', header: t('amenities.columns.facility'), align: 'center', render: (r) => r.property_facility === null
+                ? <span className="muted">—</span>
+                : <Checkbox aria-label={t('amenities.columns.facility')} title={t('amenities.facility_hint')} checked={r.property_facility}
+                    disabled={!can.update || !r.is_active} onChange={(e) => setFacility(r, e.target.checked)} />,
+        },
         { key: 'status', header: t('amenities.columns.status'), render: (r) => <Badge size="sm" status={r.is_active ? 'active' : 'inactive'} /> },
         {
             key: 'actions', header: t('amenities.columns.actions'), className: 'col-actions', render: (r) => r.custom && can.update
@@ -46,7 +58,8 @@ function AmenitiesPage({ list, filters, options, can }: Props) {
             </form>
             <PillTabs active={filters.tab || 'all'} onChange={(k) => navigateWithQuery({ tab: k === 'all' ? null : k })}
                 items={(['all', 'global', 'custom'] as const).map((k) => ({ key: k, label: t(`amenities.tabs.${k}`), count: list.counts[k] }))} />
-            <DataTable columns={columns} rows={list.rows} rowKey={(r) => r.id} />
+            <p className="muted text-sm">{t('amenities.facility_hint')}</p>
+            <DataTable columns={columns} rows={rows} rowKey={(r) => r.id} />
             <Pagination meta={list.meta} label={t('amenities.item_plural')} />
             {editing && <AmenityModal amenity={editing === 'new' ? null : editing} categories={options.categories} onClose={() => setEditing(null)} />}
         </div>

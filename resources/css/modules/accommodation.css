@@ -86,3 +86,5 @@
 }
 @media (max-width: 1600px) { .panel-actions { grid-template-columns: 1fr; } }
 .panel-actions .dropdown, .panel-actions .dropdown > .btn { width: 100%; }
+.link-button { border: 0; background: none; padding: 0; color: var(--brand-600); font: inherit; font-weight: var(--weight-medium); cursor: pointer; }
+.link-button:hover { text-decoration: underline; }

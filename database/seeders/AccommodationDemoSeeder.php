@@ -111,8 +111,9 @@ class AccommodationDemoSeeder extends Seeder
                 'smoking_policy' => 'non_smoking', 'view_label' => ['DLX' => 'City view', 'SUP' => 'Garden view', 'FAM' => 'Sea view'][$code],
                 'beds' => $beds, 'amenities' => $amenities,
                 'products' => [
-                    ['rate_plan' => $plans['BAR'], 'enabled' => true, 'pricing_mode' => 'manual', 'default_price' => $roomOnly, 'is_default' => true, 'occupancy_rules' => $occupancy],
-                    ['rate_plan' => $plans['BB'], 'enabled' => true, 'pricing_mode' => 'manual', 'default_price' => (string) ((int) $roomOnly + (int) $breakfast), 'occupancy_rules' => $occupancy],
+                    ['rate_plan' => $plans['BAR'], 'enabled' => true, 'pricing_mode' => 'manual', 'default_price' => $roomOnly, 'is_default' => $code !== 'FAM', 'occupancy_rules' => $occupancy],
+                    // Families mostly book with breakfast, so that is the suite's default plan.
+                    ['rate_plan' => $plans['BB'], 'enabled' => true, 'pricing_mode' => 'manual', 'default_price' => (string) ((int) $roomOnly + (int) $breakfast), 'is_default' => $code === 'FAM', 'occupancy_rules' => $occupancy],
                     ['rate_plan' => $plans['NRF'], 'enabled' => true, 'pricing_mode' => 'derived', 'parent_rate_plan' => $plans['BAR'], 'adjust_type' => 'percent', 'adjust_value' => '-10'],
                 ],
             ]);
@@ -129,6 +130,14 @@ class AccommodationDemoSeeder extends Seeder
         foreach ([['Rooftop pool access', 'property', 'waves'], ['Welcome drink', 'service', 'wine']] as [$name, $category, $icon]) {
             if (! Amenity::query()->where('property_id', app(\App\Support\PropertyContext::class)->id())->where('name', $name)->exists()) {
                 $service->create(['name' => $name, 'category' => $category, 'icon' => $icon]);
+            }
+        }
+
+        // Facilities of the whole property (shown on the property profile).
+        foreach (['parking', 'swimming_pool', 'restaurant', 'fitness_center', 'wheelchair_accessible'] as $code) {
+            $amenity = Amenity::query()->whereNull('property_id')->where('code', $code)->first();
+            if ($amenity) {
+                $service->setPropertyFacility($amenity, true);
             }
         }
     }

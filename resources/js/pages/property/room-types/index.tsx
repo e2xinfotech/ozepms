@@ -60,7 +60,7 @@ function RoomTypesPage({ list, filters, options, can }: Props) {
         },
         { key: 'code', header: t('rooms.columns.code'), sortable: true, className: 'col-code', render: (r) => r.code },
         { key: 'category', header: t('rooms.columns.category'), sortable: true, render: (r) => labelOf(options.categories, r.category) },
-        { key: 'base', header: t('rooms.columns.base_occupancy'), align: 'center', className: 'th-wrap', render: (r) => <Occupancy adults={r.base_adults} /> },
+        { key: 'base', header: t('rooms.columns.base_occupancy'), align: 'center', className: 'th-wrap', render: (r) => <Occupancy adults={r.base_adults} label={t('rooms.columns.base_occupancy')} /> },
         { key: 'max', header: t('rooms.columns.max_occupancy'), align: 'center', className: 'th-wrap', render: (r) => <Occupancy adults={r.max_occupancy} /> },
         { key: 'total', header: t('rooms.columns.total_rooms'), align: 'right', className: 'th-wrap', render: (r) => r.total_rooms },
         { key: 'active', header: t('rooms.columns.active_rooms'), align: 'right', className: 'th-wrap', render: (r) => <a href={propertyUrl(`/rooms?room_type=${r.id}`)} title={t('rooms.manage_rooms')}>{r.active_rooms}</a> },
@@ -69,6 +69,7 @@ function RoomTypesPage({ list, filters, options, can }: Props) {
                 ? <span className="muted">{t('rooms.no_rate_plan')}</span>
                 : <span onClick={(e) => e.stopPropagation()}>
                     <Select size="sm" className="table-select" aria-label={t('rooms.columns.default_rate_plan')} disabled={!can.update}
+                        title={r.products.find((p) => p.id === r.default_product)?.label}
                         defaultValue={r.default_product ?? ''} options={r.products.map((p) => ({ value: p.id, label: p.label }))}
                         onChange={(e) => setDefault(r, e.target.value)} />
                 </span>,

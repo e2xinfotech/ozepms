@@ -14,7 +14,7 @@ return [
     'read_only' => 'Les équipements standard sont gérés par E2X et ne peuvent pas être modifiés.',
 
     'tabs' => ['all' => 'Tous', 'global' => 'Standard', 'custom' => 'Personnalisés'],
-    'columns' => ['name' => 'Équipement', 'category' => 'Catégorie', 'source' => 'Origine', 'used' => 'Utilisé par', 'status' => 'Statut', 'actions' => 'Actions'],
+    'columns' => ['name' => 'Équipement', 'category' => 'Catégorie', 'source' => 'Origine', 'used' => 'Utilisé par', 'status' => 'Statut', 'actions' => 'Actions', 'facility' => "Service de l'établissement"],
     'fields' => ['name' => 'Nom', 'category' => 'Catégorie', 'icon' => 'Icône', 'status' => 'Statut'],
 
     'categories' => [
@@ -38,9 +38,11 @@ return [
         'front_desk_24h' => 'Réception 24h/24',
     ],
 
-    'messages' => ['created' => 'Équipement ajouté.', 'updated' => 'Équipement enregistré.'],
+    'messages' => ['created' => 'Équipement ajouté.', 'updated' => 'Équipement enregistré.', 'facility_saved' => "Services de l'établissement enregistrés."],
 
+    'facility_hint' => "Cochez les services offerts par tout l'établissement ; ils apparaissent sur sa fiche. Les équipements des chambres se choisissent sur chaque type de chambre.",
     'errors' => [
+        'not_a_facility' => "Seuls les équipements de tout l'établissement (piscine, parking, spa …) peuvent être des services de l'établissement.",
         'duplicate' => 'Un équipement nommé « :name » existe déjà.',
         'global_read_only' => 'Les équipements standard ne peuvent pas être modifiés.',
     ],

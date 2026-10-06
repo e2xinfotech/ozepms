@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\WebApi\Property\CancellationPoliciesController;
+use App\Http\Controllers\WebApi\Property\MealPlansController;
 use App\Http\Controllers\WebApi\Property\RatePlansController;
 use Illuminate\Support\Facades\Route;
 
@@ -9,6 +10,7 @@ Route::get('/rate-plans/{ratePlan}', [RatePlansController::class, 'show'])->midd
 Route::middleware('can.do:rate_plans.create')->group(function () {
     Route::post('/rate-plans', [RatePlansController::class, 'store'])->name('rate-plans.store');
     Route::post('/rate-plans/{ratePlan}/copy', [RatePlansController::class, 'copy'])->name('rate-plans.copy');
+    Route::post('/meal-plans', [MealPlansController::class, 'store'])->name('meal-plans.store');
 });
 Route::middleware('can.do:rate_plans.update')->group(function () {
     Route::put('/rate-plans/{ratePlan}', [RatePlansController::class, 'update'])->name('rate-plans.update');

@@ -14,7 +14,7 @@ return [
     'read_only' => 'I servizi standard sono gestiti da E2X e non possono essere modificati.',
 
     'tabs' => ['all' => 'Tutti', 'global' => 'Standard', 'custom' => 'Personalizzati'],
-    'columns' => ['name' => 'Servizio', 'category' => 'Categoria', 'source' => 'Origine', 'used' => 'Usato da', 'status' => 'Stato', 'actions' => 'Azioni'],
+    'columns' => ['name' => 'Servizio', 'category' => 'Categoria', 'source' => 'Origine', 'used' => 'Usato da', 'status' => 'Stato', 'actions' => 'Azioni', 'facility' => 'Servizio della struttura'],
     'fields' => ['name' => 'Nome', 'category' => 'Categoria', 'icon' => 'Icona', 'status' => 'Stato'],
 
     'categories' => [
@@ -38,9 +38,11 @@ return [
         'front_desk_24h' => 'Reception 24 ore su 24',
     ],
 
-    'messages' => ['created' => 'Servizio aggiunto.', 'updated' => 'Servizio salvato.'],
+    'messages' => ['created' => 'Servizio aggiunto.', 'updated' => 'Servizio salvato.', 'facility_saved' => 'Servizi della struttura salvati.'],
 
+    'facility_hint' => "Seleziona i servizi offerti dall'intera struttura; compaiono nel profilo della struttura. I servizi delle camere si scelgono su ogni tipologia.",
     'errors' => [
+        'not_a_facility' => "Solo i servizi dell'intera struttura (piscina, parcheggio, spa …) possono essere servizi della struttura.",
         'duplicate' => 'Esiste già un servizio chiamato «:name».',
         'global_read_only' => 'I servizi standard non possono essere modificati.',
     ],

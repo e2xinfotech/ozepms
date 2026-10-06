@@ -158,4 +158,10 @@ return [
         'policy_required' => "Choisissez des conditions d'annulation.",
     ],
     'setup' => ['title' => 'Configuration, étape 2 sur 3 :', 'text' => 'créez le plan tarifaire avec lequel vos chambres sont vendues. Ensuite, vous ajoutez les types de chambres et leurs chambres PMS.'],
+    'meal_plan_custom' => [
+        'button' => 'Personnalisée', 'title' => 'Formule repas personnalisée', 'save' => 'Ajouter la formule', 'includes' => 'Repas inclus',
+        'breakfast' => 'Petit-déjeuner', 'lunch' => 'Déjeuner', 'dinner' => 'Dîner', 'all_inclusive' => 'Tout compris (repas et boissons)',
+        'hint' => "Pour les formules absentes de la liste standard. Le code doit différer des codes standard (RO, BB, HB …).",
+        'taken' => 'Une formule repas avec ce code ou ce nom existe déjà.', 'saved' => 'Formule repas ajoutée.',
+    ],
 ];

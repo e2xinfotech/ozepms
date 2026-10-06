@@ -42,4 +42,33 @@ class AmenitiesTest extends AccommodationTestCase
             ->assertOk()->assertJsonPath('amenity.name', 'Garden Hammock')->assertJsonPath('amenity.is_active', false);
         $this->actingAs($this->owner)->putJson($this->api('/amenities/wifi'), ['name' => 'Wi-Fi 6'])->assertStatus(422);
     }
+
+    public function test_property_facilities_can_be_ticked_per_property(): void
+    {
+        $this->actingAs($this->owner)->postJson($this->api('/amenities/swimming_pool/facility'), ['offered' => true])
+            ->assertOk()->assertJsonPath('amenity.property_facility', true);
+        // Idempotent, and private to the property.
+        $this->actingAs($this->owner)->postJson($this->api('/amenities/swimming_pool/facility'), ['offered' => true])->assertOk();
+        $this->assertSame(1, \Illuminate\Support\Facades\DB::table('property_amenities')->where('property_id', $this->property->id)->count());
+        $this->assertSame(0, \Illuminate\Support\Facades\DB::table('property_amenities')->where('property_id', $this->other->id)->count());
+        $this->actingAs($this->owner)->get($this->page('/amenities?category=property'))->assertOk()->assertSee('"property_facility":true', false);
+
+        $this->actingAs($this->owner)->postJson($this->api('/amenities/swimming_pool/facility'), ['offered' => false])
+            ->assertOk()->assertJsonPath('amenity.property_facility', false);
+
+        // In-room amenities are not property facilities; unknown codes and missing permission are refused.
+        $this->actingAs($this->owner)->postJson($this->api('/amenities/wifi/facility'), ['offered' => true])->assertStatus(422);
+        $this->actingAs($this->owner)->postJson($this->api('/amenities/nope/facility'), ['offered' => true])->assertNotFound();
+        $this->actingAs($this->owner)->postJson($this->api('/amenities/swimming_pool/facility'), [])->assertStatus(422);
+        $this->actingAs($this->member('front_desk'))->postJson($this->api('/amenities/swimming_pool/facility'), ['offered' => true])->assertForbidden();
+    }
+
+    public function test_custom_property_amenity_can_be_a_facility(): void
+    {
+        $code = $this->actingAs($this->owner)->postJson($this->api('/amenities'), ['name' => 'Kids Club', 'category' => 'service'])->json('amenity.id');
+        $this->actingAs($this->owner)->postJson($this->api("/amenities/{$code}/facility"), ['offered' => true])->assertOk();
+
+        $roomCode = $this->actingAs($this->owner)->postJson($this->api('/amenities'), ['name' => 'Bunk bed', 'category' => 'room'])->json('amenity.id');
+        $this->actingAs($this->owner)->postJson($this->api("/amenities/{$roomCode}/facility"), ['offered' => true])->assertStatus(422);
+    }
 }

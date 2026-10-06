@@ -41,9 +41,10 @@ export function errorsUnder(error: ApiError | null, prefix: string): string[] {
     return Object.entries(error.fields).filter(([k]) => k === prefix || k.startsWith(prefix + '.')).flatMap(([, v]) => v);
 }
 
-export function Occupancy({ adults, children }: { adults: number; children?: number }) {
+export function Occupancy({ adults, children, label }: { adults: number; children?: number; label?: string }) {
+    const text = `${label ?? t('rooms.columns.max_occupancy')}: ${adults}${children ? ` + ${children}` : ''}`;
     return (
-        <span className="occ" title={t('rooms.columns.max_occupancy')}>
+        <span className="occ" title={text} aria-label={text}>
             <Icon name="user" size={16} />{adults}
             {children ? <><Icon name="baby" size={15} />{children}</> : null}
         </span>

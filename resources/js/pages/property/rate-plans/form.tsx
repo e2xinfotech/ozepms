@@ -5,6 +5,7 @@ import { http, type ApiError } from '@/lib/http';
 import { t } from '@/lib/i18n';
 import { propertyApiUrl, propertyUrl } from '@/lib/page';
 import { act, currency, errorsUnder, fieldError, MoneyInput, OccupancyEditor, price, type OccupancyRule } from '../_accommodation/shared';
+import { MealPlanModal } from './_components/MealPlanModal';
 import { PolicyModal, type PolicyOption } from './_components/PolicyModal';
 import { PolicyBadge, PolicyRules } from './_components/RatePlanBits';
 import type { RatePlanDetail } from './_components/types';
@@ -38,6 +39,8 @@ function RatePlanForm({ rate_plan: rp, options }: Props) {
     });
     const set = <K extends keyof typeof data>(key: K, value: (typeof data)[K]) => setData((d) => ({ ...d, [key]: value }));
     const [policies, setPolicies] = useState(options.policies);
+    const [mealPlans, setMealPlans] = useState(options.meal_plans);
+    const [mealModal, setMealModal] = useState(false);
     const [policyModal, setPolicyModal] = useState<{ policy: PolicyOption | null } | null>(null);
     const [links, setLinks] = useState<Link[]>(() => options.room_types.map((r) => {
         const p = rp?.products.find((x) => x.room_type === r.value);
@@ -113,7 +116,8 @@ function RatePlanForm({ rate_plan: rp, options }: Props) {
                 </FormSection>
 
                 <FormSection title={t('rates.sections.policy')}>
-                    <Select fieldClass="span-4" label={t('rates.fields.meal_plan')} required value={data.meal_plan} options={options.meal_plans} onChange={(e) => set('meal_plan', e.target.value)} error={err('meal_plan')} />
+                    <Select fieldClass="span-4" label={t('rates.fields.meal_plan')} required value={data.meal_plan} options={mealPlans} onChange={(e) => set('meal_plan', e.target.value)} error={err('meal_plan')}
+                        hint={<button type="button" className="link-button" title={t('rates.meal_plan_custom.hint')} onClick={() => setMealModal(true)}>+ {t('rates.meal_plan_custom.title')}</button>} />
                     <Select fieldClass="span-5" label={t('rates.fields.policy')} required value={data.cancellation_policy} options={policies.map((p) => ({ value: p.value, label: p.label }))}
                         onChange={(e) => set('cancellation_policy', e.target.value)} error={err('cancellation_policy')} />
                     <div className="field span-3">
@@ -217,6 +221,8 @@ function RatePlanForm({ rate_plan: rp, options }: Props) {
                     <Button variant="primary" icon="save" loading={saving} onClick={save}>{editing ? t('ui.save_changes') : t('rates.add_rate_plan')}</Button>
                 </div>
             </div>
+            {mealModal && <MealPlanModal onClose={() => setMealModal(false)}
+                onSaved={(code, list) => { setMealPlans(list); set('meal_plan', code); setMealModal(false); }} />}
             {policyModal && <PolicyModal policy={policyModal.policy} onClose={() => setPolicyModal(null)}
                 onSaved={(code, list) => { setPolicies(list); set('cancellation_policy', code); setPolicyModal(null); }} />}
         </div>

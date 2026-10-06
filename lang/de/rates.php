@@ -158,4 +158,10 @@ return [
         'policy_required' => 'Wählen Sie Stornobedingungen.',
     ],
     'setup' => ['title' => 'Einrichtung, Schritt 2 von 3:', 'text' => 'Legen Sie den Ratenplan an, mit dem Ihre Zimmer verkauft werden. Danach fügen Sie die Zimmertypen und deren PMS-Zimmer hinzu.'],
+    'meal_plan_custom' => [
+        'button' => 'Eigene', 'title' => 'Eigene Verpflegungsart', 'save' => 'Verpflegungsart hinzufügen', 'includes' => 'Enthaltene Mahlzeiten',
+        'breakfast' => 'Frühstück', 'lunch' => 'Mittagessen', 'dinner' => 'Abendessen', 'all_inclusive' => 'All inclusive (Essen und Getränke)',
+        'hint' => 'Für Pakete, die die Standardliste nicht abdeckt. Der Code muss sich von den Standardcodes (RO, BB, HB …) unterscheiden.',
+        'taken' => 'Eine Verpflegungsart mit diesem Code oder Namen gibt es bereits.', 'saved' => 'Verpflegungsart hinzugefügt.',
+    ],
 ];

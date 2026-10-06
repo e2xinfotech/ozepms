@@ -158,4 +158,10 @@ return [
         'policy_required' => 'Scegli una politica di cancellazione.',
     ],
     'setup' => ['title' => 'Configurazione, passo 2 di 3:', 'text' => 'crea la tariffa con cui vendi le camere. Poi aggiungi le tipologie di camera e le relative camere PMS.'],
+    'meal_plan_custom' => [
+        'button' => 'Personalizzato', 'title' => 'Trattamento personalizzato', 'save' => 'Aggiungi trattamento', 'includes' => 'Pasti inclusi',
+        'breakfast' => 'Colazione', 'lunch' => 'Pranzo', 'dinner' => 'Cena', 'all_inclusive' => 'All inclusive (cibo e bevande)',
+        'hint' => 'Per i pacchetti non presenti nella lista standard. Il codice deve essere diverso dai codici standard (RO, BB, HB …).',
+        'taken' => 'Esiste già un trattamento con questo codice o nome.', 'saved' => 'Trattamento aggiunto.',
+    ],
 ];

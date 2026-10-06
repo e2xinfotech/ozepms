@@ -14,7 +14,7 @@ return [
     'read_only' => 'Standard amenities are maintained by E2X and cannot be edited.',
 
     'tabs' => ['all' => 'All', 'global' => 'Standard', 'custom' => 'Custom'],
-    'columns' => ['name' => 'Amenity', 'category' => 'Category', 'source' => 'Source', 'used' => 'Used By', 'status' => 'Status', 'actions' => 'Actions'],
+    'columns' => ['name' => 'Amenity', 'category' => 'Category', 'source' => 'Source', 'used' => 'Used By', 'status' => 'Status', 'actions' => 'Actions', 'facility' => 'Property Facility'],
     'fields' => ['name' => 'Name', 'category' => 'Category', 'icon' => 'Icon', 'status' => 'Status'],
 
     'categories' => [
@@ -38,9 +38,11 @@ return [
         'front_desk_24h' => '24-hour front desk',
     ],
 
-    'messages' => ['created' => 'Amenity added.', 'updated' => 'Amenity saved.'],
+    'messages' => ['created' => 'Amenity added.', 'updated' => 'Amenity saved.', 'facility_saved' => 'Property facilities saved.'],
 
+    'facility_hint' => "Tick the facilities the whole property offers; they are shown on the property profile. Room amenities are chosen on each room type.",
     'errors' => [
+        'not_a_facility' => "Only property-wide amenities (pool, parking, spa …) can be property facilities.",
         'duplicate' => 'An amenity called ":name" already exists.',
         'global_read_only' => 'Standard amenities cannot be changed.',
     ],

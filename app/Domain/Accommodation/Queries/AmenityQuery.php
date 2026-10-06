@@ -42,7 +42,10 @@ class AmenityQuery
             ->whereColumn('room_type_amenities.amenity_id', 'amenities.id')
             ->selectRaw('COUNT(*)');
 
-        $rows = (clone $filtered)->select('amenities.*')->selectSub($usage, 'room_types_count')
+        $facility = DB::table('property_amenities')->where('property_amenities.property_id', $propertyId)
+            ->whereColumn('property_amenities.amenity_id', 'amenities.id')->selectRaw('COUNT(*)');
+
+        $rows = (clone $filtered)->select('amenities.*')->selectSub($usage, 'room_types_count')->selectSub($facility, 'is_facility')
             ->when($tab === 'global', fn (Builder $q) => $q->whereNull('property_id'))
             ->when($tab === 'custom', fn (Builder $q) => $q->whereNotNull('property_id'))
             ->orderBy('category')->orderByRaw('property_id IS NULL DESC')->orderBy('id');
@@ -66,7 +69,11 @@ class AmenityQuery
             'icon' => $a->icon,
             'custom' => $a->isCustom(),
             'is_active' => $a->is_active,
-            'room_types_count' => (int) ($a->room_types_count ?? 0),
+            'room_types_count' => (int) ($a->getAttributes()['room_types_count'] ?? 0),
+            // null: the amenity belongs in rooms and cannot be a property facility.
+            'property_facility' => in_array('property', explode(',', (string) $a->applies_to), true)
+                ? (array_key_exists('is_facility', $a->getAttributes()) ? (int) $a->getAttributes()['is_facility'] > 0 : DB::table('property_amenities')->where('property_id', $this->context->id())->where('amenity_id', $a->id)->exists())
+                : null,
         ];
     }
 }

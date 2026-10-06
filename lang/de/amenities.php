@@ -14,7 +14,7 @@ return [
     'read_only' => 'Standardausstattung wird von E2X gepflegt und kann nicht bearbeitet werden.',
 
     'tabs' => ['all' => 'Alle', 'global' => 'Standard', 'custom' => 'Eigene'],
-    'columns' => ['name' => 'Ausstattung', 'category' => 'Kategorie', 'source' => 'Herkunft', 'used' => 'Verwendet bei', 'status' => 'Status', 'actions' => 'Aktionen'],
+    'columns' => ['name' => 'Ausstattung', 'category' => 'Kategorie', 'source' => 'Herkunft', 'used' => 'Verwendet bei', 'status' => 'Status', 'actions' => 'Aktionen', 'facility' => 'Einrichtung der Unterkunft'],
     'fields' => ['name' => 'Name', 'category' => 'Kategorie', 'icon' => 'Symbol', 'status' => 'Status'],
 
     'categories' => [
@@ -38,9 +38,11 @@ return [
         'front_desk_24h' => 'Rezeption rund um die Uhr',
     ],
 
-    'messages' => ['created' => 'Ausstattung hinzugefügt.', 'updated' => 'Ausstattung gespeichert.'],
+    'messages' => ['created' => 'Ausstattung hinzugefügt.', 'updated' => 'Ausstattung gespeichert.', 'facility_saved' => 'Einrichtungen der Unterkunft gespeichert.'],
 
+    'facility_hint' => "Haken Sie an, was die ganze Unterkunft bietet; es erscheint im Profil der Unterkunft. Zimmerausstattung wählen Sie beim jeweiligen Zimmertyp.",
     'errors' => [
+        'not_a_facility' => "Nur Ausstattung der ganzen Unterkunft (Pool, Parkplatz, Spa …) kann eine Einrichtung der Unterkunft sein.",
         'duplicate' => 'Eine Ausstattung namens „:name“ gibt es bereits.',
         'global_read_only' => 'Standardausstattung kann nicht geändert werden.',
     ],
