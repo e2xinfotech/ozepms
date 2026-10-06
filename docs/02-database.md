@@ -226,3 +226,11 @@ Rules kept by `ReservationService`: `inventory_daily.sold` = number of active `r
 * Frozen on the booking: `reservation_room_nights.discount` per night, `reservation_rooms.discount_total`, and `offer_applications` (one row per room and offer, `snapshot` = offer terms + nightly amounts + the code that was entered). Editing an offer later never changes existing bookings; editing a booking keeps the discounts of unchanged nights (a changed promo code re-works them).
 * Redemptions: counted with one guarded `UPDATE … SET redemptions = redemptions + 1 WHERE redemptions < max_redemptions` inside the booking transaction (parallel bookings cannot exceed the limit); a cancelled booking gives its redemption back (`ReleaseOfferRedemptions` listener).
 * Offers used by a booking are deactivated instead of deleted (history stays readable).
+
+## Phase 6 additions (booking engine & API)
+
+* No new booking tables: the public booking engine writes through `ReservationService::create()` (channel `booking_engine`, source `booking_engine`), so inventory guards, offers, taxes and folios are the same as in the PMS.
+* Online advance payment: the booking is `pending` with `reservations.hold_expires_at` = now + `config('ozepms.booking_engine.hold_minutes')`; index `ix_res_hold_expiry (status, hold_expires_at)` serves `booking:expire-holds` (every 5 minutes) which cancels unpaid holds and frees the rooms; a verified payment confirms the booking and clears the hold.
+* Settings: `property_settings` key `booking_engine` (`enabled`, `intro`, `terms`).
+* Search results are cached per property, keyed by `properties.ari_version` and the latest `offers.updated_at`, so any calendar or offer change invalidates them at once.
+* `api_keys` (migration `2026_10_06_000001`): `public_id`, `property_id`, `name`, `prefix` CHAR(12) UNIQUE (lookup), `key_hash` CHAR(64) (SHA-256 of the whole key — the key itself is never stored), `abilities` JSON, `last_used_at`, `last_used_ip`, `expires_at`, `revoked_at`, `created_by`. Max 20 active keys per property; `last_used_at` is written at most once a minute.

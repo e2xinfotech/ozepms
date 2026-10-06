@@ -178,7 +178,7 @@ return [
         'never' => 'Mai',
         'none' => 'Ancora nessuna chiave API.',
         'docs' => 'Endpoint: GET /api/v1/property · GET /api/v1/availability · POST /api/v1/reservations · GET /api/v1/reservations/{ref}. Invia la chiave come "Authorization: Bearer …".',
-        'ability' => ['availability' => 'Leggere disponibilità e prezzi', 'reservations.create' => 'Creare prenotazioni', 'reservations.read' => 'Leggere prenotazioni'],
+        'ability' => ['availability' => 'Leggere disponibilità e prezzi', 'reservations_create' => 'Creare prenotazioni', 'reservations_read' => 'Leggere prenotazioni'],
         'errors' => ['abilities' => 'Scegli almeno un permesso.', 'limit' => 'Una struttura può avere fino a :max chiavi attive.', 'invalid' => 'Chiave API mancante, non valida, scaduta o revocata.', 'ability' => 'Questa chiave API non è autorizzata (:ability).', 'property' => 'La struttura non è disponibile per le prenotazioni online.'],
     ],
 ];

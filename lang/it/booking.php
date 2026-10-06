@@ -11,7 +11,7 @@ return [
         'adults' => 'Adulti',
         'children' => 'Bambini',
         'infants' => 'Neonati',
-        'per_room' => 'Ospiti per camera',
+        'per_room' => 'Adulti, bambini e neonati si intendono per camera.',
         'rooms' => 'Camere',
         'promo' => 'Codice promo',
         'button' => 'Verifica disponibilità',

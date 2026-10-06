@@ -20,9 +20,11 @@ body.layout-booking { background: var(--page); }
 .be-hero p { color: var(--ink-2); margin: 4px 0 0; }
 
 /* Search bar: one row on desktop, two columns on phones. */
-.be-search { display: grid; grid-template-columns: 1.3fr 1.3fr .8fr .8fr .8fr .8fr 1.2fr auto; gap: 12px; align-items: end; padding: 16px; }
+.be-search { display: grid; grid-template-columns: 1.3fr 1.3fr .8fr .8fr .8fr .8fr 1.6fr auto; gap: 12px; align-items: end; padding: 16px; }
 .be-search .field { margin: 0; }
+.be-search .field-label { white-space: nowrap; }
 .be-search-go .btn { height: var(--control-h); white-space: nowrap; }
+.be-search-note { grid-column: 1 / -1; margin-top: -4px; }
 @media (max-width: 1100px) { .be-search { grid-template-columns: repeat(4, minmax(0, 1fr)); } .be-search-go { grid-column: span 4; } .be-search-go .btn { width: 100%; } }
 @media (max-width: 600px) { .be-search { grid-template-columns: repeat(2, minmax(0, 1fr)); } .be-search-go { grid-column: span 2; } }
 

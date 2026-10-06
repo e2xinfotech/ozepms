@@ -178,7 +178,7 @@ return [
         'never' => 'Never',
         'none' => 'No API keys yet.',
         'docs' => 'Endpoints: GET /api/v1/property · GET /api/v1/availability · POST /api/v1/reservations · GET /api/v1/reservations/{ref}. Send the key as "Authorization: Bearer …".',
-        'ability' => ['availability' => 'Read availability and prices', 'reservations.create' => 'Create bookings', 'reservations.read' => 'Read bookings'],
+        'ability' => ['availability' => 'Read availability and prices', 'reservations_create' => 'Create bookings', 'reservations_read' => 'Read bookings'],
         'errors' => ['abilities' => 'Choose at least one permission.', 'limit' => 'A property can have up to :max active keys.', 'invalid' => 'Missing, invalid, expired or revoked API key.', 'ability' => 'This API key is not allowed to do this (:ability).', 'property' => 'The property is not available for online bookings.'],
     ],
 ];

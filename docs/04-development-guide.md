@@ -139,6 +139,7 @@ Never return internal ids; resources expose `public_id` as `id`.
 | **Phase 3 — inventory & calendar** | migrations `2026_10_03_*`; models `InventoryDay, AriDay, AriDayOccupancy, AriChangeLog`; `app/Domain/{Inventory,Availability,Pricing}` (`InventoryService, AriService, AriCopyBuilder, InventoryArchiver, AvailabilityService, PricingService, RestrictionEvaluator, CalendarQuery, CalendarYearQuery`); scheduled horizon and archive jobs; page `property/calendar`; `lang/*/calendar.php` | Phase 1–2 models (by class name above) |
 | **Phase 4 — reservations & billing** | migrations `2026_10_04_*`; models `BookingSource, Guest, Reservation, ReservationRoom, ReservationRoomNight, UnitNight, ReservationGuest, ReservationStatusHistory, Service, Folio, FolioLine, FolioLineTax, Payment, PaymentGatewayEvent, Invoice`; `app/Domain/{Reservations,Guests,Billing}`; pages `property/{reservations,guests,front-desk}`; global search endpoint; `lang/*/{reservations,guests,billing}.php` | Phase 1–3 services (`AvailabilityService::search()`, `PricingService::quote()`, `TaxService::calculate()`, `InventoryService::reserve()/release()`) |
 | **Phase 5 — offers** | migrations `2026_10_05_*`; models `Offer, OfferScope, OfferCondition, OfferApplication`; `app/Domain/Offers` (OfferService, OfferAdminService, OfferContext, OfferResult, Queries/*); listener `Listeners/Offers/ReleaseOfferRedemptions`; pages `property/offers/*`; `lang/*/offers.php`; `OfferDemoSeeder` | Pricing interfaces; `StayPricer` applies offers; `ReservationService` freezes them (offer_applications) |
+| **Phase 6 — booking engine & API** | `routes/booking.php`, `routes/api.php`; `app/Domain/BookingEngine` (BookingEngineService, BookingPresenter); `app/Domain/Api/ApiKeyService`; `Http/Controllers/Booking/*`, `Http/Controllers/Api/V1/*`, `WebApi/Property/{BookingEngineSettingsController, ApiKeysController}`; middleware `AuthenticateApiKey`; `Http/Requests/Booking/*`; model `ApiKey`; command `booking:expire-holds`; pages `booking/*` (layout `booking`); `components/booking/*`, `components/property/{BookingEngineCard, ApiKeysCard}`; `css/modules/booking.css`; `lang/*/booking.php`; docs `07-api.md` | Uses `AvailabilityService`, `StayPricer`, `OfferService`, `ReservationService`, `PaymentService` unchanged in role; never duplicates their rules |
 
 Cross-module contracts (method signatures agreed up front — implement exactly these):
 
@@ -163,6 +164,10 @@ public function syncUnitCount(int $roomTypeId): void;  // called by Phase 2 when
 public function evaluate(Property $property, OfferContext $context, array $rooms): OfferResult;   // context: booked on, channel pms|booking_engine, promo, source, guest country
 public function redeem(array $offerIds): void;   // inside the booking transaction, guarded by max_redemptions
 public function release(array $offerIds): void;  // cancelled booking
+
+// Phase 6 — App\Domain\BookingEngine\BookingEngineService (public booking engine and /api/v1)
+public function search(Property $property, array $query): array;  // rooms + rate plans that pass every rule (availability, restrictions, min/max stay, occupancy), with offers, tax lines, policy lines
+public function book(Property $property, array $data): array;     // ['reservation', 'payment', 'due'] via ReservationService::create (channel booking_engine)
 ```
 
 Shared value objects and events already exist (do not rename): `App\Domain\Pricing\Quote`,

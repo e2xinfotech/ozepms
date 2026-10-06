@@ -11,7 +11,7 @@ return [
         'adults' => 'Erwachsene',
         'children' => 'Kinder',
         'infants' => 'Kleinkinder',
-        'per_room' => 'Gäste pro Zimmer',
+        'per_room' => 'Erwachsene, Kinder und Kleinkinder gelten pro Zimmer.',
         'rooms' => 'Zimmer',
         'promo' => 'Aktionscode',
         'button' => 'Verfügbarkeit prüfen',

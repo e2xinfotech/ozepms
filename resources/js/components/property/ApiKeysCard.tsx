@@ -80,7 +80,7 @@ export function ApiKeysCard({ disabled }: { disabled: boolean }) {
                             <tbody>
                                 {keys.map((k) => <tr key={k.id}>
                                     <td><strong>{k.name}</strong><div className="muted text-xs mono">{k.prefix}</div></td>
-                                    <td className="text-sm">{k.abilities.map((a) => t(`property.api_keys.ability.${a}`)).join(', ')}</td>
+                                    <td className="text-sm">{k.abilities.map((a) => t(`property.api_keys.ability.${a.replace('.', '_')}`)).join(', ')}</td>
                                     <td className="text-sm">{k.last_used_at ? dateTime(k.last_used_at) : t('property.api_keys.never')}</td>
                                     {!disabled && <td className="right"><Button variant="ghost" size="sm" icon="trash" onClick={() => setRevoke(k)}>{t('property.api_keys.revoke')}</Button></td>}
                                 </tr>)}
@@ -94,7 +94,7 @@ export function ApiKeysCard({ disabled }: { disabled: boolean }) {
                         onChange={(e) => setForm({ ...form, name: e.target.value })} error={error?.field('name')} />
                     <div className="field span-6">
                         <span className="field-label">{t('property.api_keys.abilities')}</span>
-                        {ABILITIES.map((a) => <Checkbox key={a} checked={form.abilities.includes(a)} onChange={(e) => toggle(a, e.target.checked)} label={t(`property.api_keys.ability.${a}`)} />)}
+                        {ABILITIES.map((a) => <Checkbox key={a} checked={form.abilities.includes(a)} onChange={(e) => toggle(a, e.target.checked)} label={t(`property.api_keys.ability.${a.replace('.', '_')}`)} />)}
                         {error?.field('abilities') && <div className="field-error">{error.field('abilities')}</div>}
                     </div>
                     <p className="span-12 muted text-xs">{t('property.api_keys.docs')}</p>

@@ -11,7 +11,7 @@ return [
         'adults' => 'Adults',
         'children' => 'Children',
         'infants' => 'Infants',
-        'per_room' => 'Guests per room',
+        'per_room' => 'Adults, children and infants are counted per room.',
         'rooms' => 'Rooms',
         'promo' => 'Promo code',
         'button' => 'Check availability',

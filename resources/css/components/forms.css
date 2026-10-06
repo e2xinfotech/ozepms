@@ -18,6 +18,7 @@
 .control input, .control select, .control textarea {
     flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; padding: 0 12px; font-size: var(--text-md);
 }
+input.control { padding: 0 12px; min-width: 0; }
 .control input::placeholder, .control textarea::placeholder { color: var(--subtle); }
 .control select { appearance: none; padding-right: 34px; cursor: pointer; }
 .control .control-chevron { position: absolute; right: 10px; pointer-events: none; color: var(--muted); }

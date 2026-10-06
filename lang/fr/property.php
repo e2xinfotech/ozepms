@@ -178,7 +178,7 @@ return [
         'never' => 'Jamais',
         'none' => 'Aucune clé API pour l\'instant.',
         'docs' => 'Points d\'accès : GET /api/v1/property · GET /api/v1/availability · POST /api/v1/reservations · GET /api/v1/reservations/{ref}. Envoyez la clé en « Authorization: Bearer … ».',
-        'ability' => ['availability' => 'Lire les disponibilités et les prix', 'reservations.create' => 'Créer des réservations', 'reservations.read' => 'Lire les réservations'],
+        'ability' => ['availability' => 'Lire les disponibilités et les prix', 'reservations_create' => 'Créer des réservations', 'reservations_read' => 'Lire les réservations'],
         'errors' => ['abilities' => 'Choisissez au moins une autorisation.', 'limit' => 'Un établissement peut avoir jusqu\'à :max clés actives.', 'invalid' => 'Clé API absente, invalide, expirée ou révoquée.', 'ability' => 'Cette clé API n\'est pas autorisée à faire cela (:ability).', 'property' => 'L\'établissement n\'est pas disponible pour les réservations en ligne.'],
     ],
 ];

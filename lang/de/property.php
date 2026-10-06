@@ -178,7 +178,7 @@ return [
         'never' => 'Nie',
         'none' => 'Noch keine API-Schlüssel.',
         'docs' => 'Endpunkte: GET /api/v1/property · GET /api/v1/availability · POST /api/v1/reservations · GET /api/v1/reservations/{ref}. Senden Sie den Schlüssel als „Authorization: Bearer …“.',
-        'ability' => ['availability' => 'Verfügbarkeit und Preise lesen', 'reservations.create' => 'Buchungen anlegen', 'reservations.read' => 'Buchungen lesen'],
+        'ability' => ['availability' => 'Verfügbarkeit und Preise lesen', 'reservations_create' => 'Buchungen anlegen', 'reservations_read' => 'Buchungen lesen'],
         'errors' => ['abilities' => 'Wählen Sie mindestens eine Berechtigung.', 'limit' => 'Eine Unterkunft kann bis zu :max aktive Schlüssel haben.', 'invalid' => 'API-Schlüssel fehlt, ist ungültig, abgelaufen oder widerrufen.', 'ability' => 'Dieser API-Schlüssel darf das nicht (:ability).', 'property' => 'Die Unterkunft ist für Online-Buchungen nicht verfügbar.'],
     ],
 ];
