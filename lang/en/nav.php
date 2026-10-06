@@ -5,6 +5,7 @@ return [
     'menu' => 'Menu',
     'dashboard' => 'Dashboard',
     'reservations' => 'Reservations',
+    'front_desk' => 'Front Desk',
     'calendar' => 'Calendar',
     'properties' => 'Properties',
     'room_types' => 'Room Types',

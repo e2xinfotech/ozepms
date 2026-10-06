@@ -11,6 +11,7 @@ return [
     'property' => [
         ['key' => 'dashboard',   'label' => 'nav.dashboard',   'icon' => 'house',          'route' => 'property.dashboard', 'permission' => 'property.view'],
         ['key' => 'reservations','label' => 'nav.reservations','icon' => 'calendar-check', 'route' => 'property.reservations', 'permission' => 'reservations.view'],
+        ['key' => 'front_desk',  'label' => 'nav.front_desk',  'icon' => 'concierge-bell', 'route' => 'property.front-desk', 'permission' => 'reservations.view'],
         ['key' => 'calendar',    'label' => 'nav.calendar',    'icon' => 'calendar-days',  'route' => 'property.calendar', 'permission' => 'calendar.view'],
         ['key' => 'properties',  'label' => 'nav.properties',  'icon' => 'hotel',          'route' => 'property.properties', 'permission' => 'property.view'],
         ['key' => 'room_types',  'label' => 'nav.room_types',  'icon' => 'bed-double',     'route' => 'property.room-types', 'permission' => 'rooms.view'],

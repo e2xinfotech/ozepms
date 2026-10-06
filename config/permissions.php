@@ -26,7 +26,7 @@ return [
         'rate_plans'   => ['rate_plans.view', 'rate_plans.create', 'rate_plans.update'],
         'calendar'     => ['calendar.view', 'calendar.update'],
         'reservations' => ['reservations.view', 'reservations.create', 'reservations.update', 'reservations.cancel'],
-        'front_desk'   => ['checkin.perform', 'checkout.perform', 'housekeeping.update'],
+        'front_desk'   => ['checkin.perform', 'checkout.perform', 'checkout.override_balance', 'housekeeping.update'],
         'guests'       => ['guests.view', 'guests.update'],
         'billing'      => ['folio.view', 'folio.post', 'payments.manage', 'invoices.manage'],
         'offers'       => ['offers.manage'],

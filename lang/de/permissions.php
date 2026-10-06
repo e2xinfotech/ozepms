@@ -21,7 +21,7 @@ return [
         'calendar.view' => 'Kalender ansehen', 'calendar.update' => 'Preise & Verfügbarkeit ändern',
         'reservations.view' => 'Reservierungen ansehen', 'reservations.create' => 'Reservierungen anlegen',
         'reservations.update' => 'Reservierungen ändern', 'reservations.cancel' => 'Reservierungen stornieren',
-        'checkin.perform' => 'Gäste einchecken', 'checkout.perform' => 'Gäste auschecken', 'housekeeping.update' => 'Housekeeping aktualisieren',
+        'checkin.perform' => 'Gäste einchecken', 'checkout.perform' => 'Gäste auschecken', 'checkout.override_balance' => 'Auschecken mit offenem Saldo', 'housekeeping.update' => 'Housekeeping aktualisieren',
         'guests.view' => 'Gäste ansehen', 'guests.update' => 'Gäste bearbeiten',
         'folio.view' => 'Folios ansehen', 'folio.post' => 'Kosten buchen', 'payments.manage' => 'Zahlungen & Erstattungen erfassen',
         'invoices.manage' => 'Rechnungen ausstellen',

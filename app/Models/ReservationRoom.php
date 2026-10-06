@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToProperty;
+use App\Models\Concerns\HasPublicId;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,7 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** One room of a reservation (room type × rate plan for a stay). The PMS room is in unit_nights. */
 class ReservationRoom extends Model
 {
-    use BelongsToProperty;
+    use BelongsToProperty, HasPublicId;
+
+    protected $hidden = ['id'];
 
     protected $table = 'reservation_rooms';
 

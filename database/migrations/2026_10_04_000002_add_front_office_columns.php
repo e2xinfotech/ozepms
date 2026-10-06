@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Schema;
 |    channel reference, last modifier; index for the "Group" tab
 |  * notes (reservation and guest notes, history tab) and guest_documents (metadata of
 |    uploaded ID scans etc.)
+|  * reservation_rooms.public_id (rooms are addressed from pages)
 |  * system booking sources
 */
 
@@ -43,6 +44,9 @@ ALTER TABLE reservations
   ADD KEY ix_res_rooms (property_id, room_count, check_in),
   ADD KEY ix_res_checkin_date (property_id, check_in, check_out)
 SQL);
+
+        // Rooms are addressed from pages (assign, check in one room) without exposing internal ids.
+        DB::statement('ALTER TABLE reservation_rooms ADD COLUMN public_id CHAR(26) NULL AFTER id, ADD UNIQUE KEY uq_rr_public (public_id)');
 
         DB::statement(<<<'SQL'
 CREATE TABLE notes (
@@ -97,6 +101,7 @@ SQL);
     {
         Schema::dropIfExists('guest_documents');
         Schema::dropIfExists('notes');
+        DB::statement('ALTER TABLE reservation_rooms DROP KEY uq_rr_public, DROP COLUMN public_id');
         DB::statement('ALTER TABLE reservations DROP KEY ix_res_rooms, DROP KEY ix_res_checkin_date, DROP COLUMN arrival_time, DROP COLUMN departure_time, DROP COLUMN purpose, DROP COLUMN market, DROP COLUMN travel_agent, DROP COLUMN company_name, DROP COLUMN channel_ref, DROP COLUMN updated_by');
         DB::statement('ALTER TABLE guests DROP KEY uq_guests_no, DROP KEY ix_guests_created, DROP COLUMN guest_no, DROP COLUMN title, DROP COLUMN guest_type, DROP COLUMN tags, DROP COLUMN preferences');
     }
