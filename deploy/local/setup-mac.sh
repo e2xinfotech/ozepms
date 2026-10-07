@@ -37,23 +37,25 @@ if ! php_ok; then
     export PATH="$BREW/opt/php@8.3/bin:$PATH"
 fi
 php_ok || fail "PHP 8.3 or newer is not on the PATH. Open a new Terminal window and run the script again."
+PHP_MODULES="$(php -m | tr '[:upper:]' '[:lower:]')"
 for ext in bcmath intl mbstring pdo_mysql sodium; do
-    php -m | grep -qi "^$ext$" || fail "PHP extension '$ext' is missing (Homebrew PHP includes it; check 'which php')."
+    grep -qx "$ext" <<< "$PHP_MODULES" || fail "PHP extension '$ext' is missing (Homebrew PHP includes it; check 'which php')."
 done
 ok "PHP $(php -r 'echo PHP_VERSION;')"
 
 if ! command -v composer >/dev/null 2>&1; then need_brew "Composer"; say "Installing Composer"; brew install composer; fi
 ok "Composer $(composer --version 2>/dev/null | awk '{print $3}')"
 
-node_ok() { command -v node >/dev/null 2>&1 && [ "$(node -p 'process.versions.node.split(".")[0]')" -ge 20 ]; }
+# The screen build (Vite 7) needs Node 20.19+ or 22.12+.
+node_ok() { command -v node >/dev/null 2>&1 && node -e 'const [a,b]=process.versions.node.split(".").map(Number); process.exit(a>22||(a===22&&b>=12)||(a===20&&b>=19)||a===21?0:1)'; }
+if ! node_ok && [ -n "$BREW" ] && [ -x "$BREW/opt/node@22/bin/node" ]; then export PATH="$BREW/opt/node@22/bin:$PATH"; fi
 if ! node_ok; then
-    need_brew "Node.js 20+"
-    say "Installing Node.js 22"
+    need_brew "Node.js 22"
+    say "Installing Node.js 22 (used for this project only; your current Node stays as it is)"
     brew install node@22
-    brew link --force --overwrite node@22 || true
     export PATH="$BREW/opt/node@22/bin:$PATH"
 fi
-node_ok || fail "Node.js 20 or newer is not on the PATH. Open a new Terminal window and run the script again."
+node_ok || fail "Node.js 20.19+ / 22.12+ is needed. Install it ('brew install node@22') and run the script again."
 ok "Node $(node -v)"
 
 # ---------------------------------------------------------------- MySQL
