@@ -50,7 +50,8 @@ use Illuminate\Validation\ValidationException;
  * Room spec (create / modify), internal models already resolved by the controller:
  *   ['id' => ?int (existing room, modify), 'product' => Product, 'check_in' => CarbonImmutable,
  *    'check_out' => CarbonImmutable, 'adults' => int, 'children' => int, 'infants' => int,
- *    'child_ages' => ?list<int>, 'rate' => ?string (price per night), 'unit' => ?PhysicalUnit]
+ *    'child_ages' => ?list<int>, 'rate' => ?string (price per night), 'nightly' => ?array<date, price>
+ *    (channel imports: the channel's price of each night), 'unit' => ?PhysicalUnit]
  */
 class ReservationService
 {
@@ -105,7 +106,10 @@ class ReservationService
                 throw ValidationException::withMessages(["rooms.$i.check_in" => __('reservations.errors.past_arrival')]);
             }
         }
-        $this->assertSellable($property, $rooms, array_keys(array_filter($rooms, fn ($r) => $r['check_in']->greaterThanOrEqualTo($today))), (string) ($data['channel'] ?? 'pms'));
+        // 'skip_restrictions' is internal (channel imports): the channel already sold the stay; only inventory is enforced.
+        if (empty($data['skip_restrictions'])) {
+            $this->assertSellable($property, $rooms, array_keys(array_filter($rooms, fn ($r) => $r['check_in']->greaterThanOrEqualTo($today))), (string) ($data['channel'] ?? 'pms'));
+        }
         $context = $allowPast ? null : $this->offerContext($property, $data, null);
         $offers = null;
         $priced = $this->pricer->price($property, $rooms, $context, $offers);
@@ -233,7 +237,7 @@ class ReservationService
                     }
                 }
                 // Keep the prices of nights that stay the same (same product and guests, no manual rate).
-                if ($old !== null && $sameProduct && $sameGuests && $spec['rate'] === null) {
+                if ($old !== null && $sameProduct && $sameGuests && $spec['rate'] === null && $spec['nightly'] === null) {
                     $spec['keep'] = $this->keptPrices($old);
                 }
                 $spec['old'] = $old;
@@ -242,7 +246,9 @@ class ReservationService
             if ($rooms === [] && $existing->whereNotIn('status', ['cancelled', 'no_show', 'checked_out'])->isNotEmpty()) {
                 throw ValidationException::withMessages(['rooms' => __('reservations.errors.rooms_required')]);
             }
-            $this->assertSellable($property, $rooms, $check);
+            if (empty($data['skip_restrictions'])) {
+                $this->assertSellable($property, $rooms, $check);
+            }
         }
 
         $offers = null;
@@ -852,6 +858,7 @@ class ReservationService
                 'id' => isset($r['id']) ? (int) $r['id'] : null, 'product' => $product, 'check_in' => $in, 'check_out' => $outDate,
                 'adults' => (int) ($r['adults'] ?? 1), 'children' => $children, 'infants' => $infants, 'child_ages' => array_map('intval', $childAges),
                 'rate' => isset($r['rate']) && $r['rate'] !== '' && $r['rate'] !== null ? (string) $r['rate'] : null,
+                'nightly' => isset($r['nightly']) && is_array($r['nightly']) && $r['nightly'] !== [] ? array_map('strval', $r['nightly']) : null,
                 'unit' => $unit, 'keep' => [], 'old' => null,
             ];
         }

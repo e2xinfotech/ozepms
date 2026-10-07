@@ -52,3 +52,16 @@ Schedule::command('reports:refresh')
     ->name('reports:refresh')
     ->withoutOverlapping(120)
     ->onOneServer();
+
+// Channel manager: pending availability / rate / restriction changes go to the channels every
+// minute (with back-off after failures); polled channels deliver their bookings.
+Schedule::command('channels:sync')
+    ->everyMinute()
+    ->name('channels:sync')
+    ->withoutOverlapping(10)
+    ->onOneServer();
+
+// Channel sync logs older than config('channels.log_retention_days').
+Schedule::call(fn () => \App\Models\ChannelSyncLog::query()->where('created_at', '<', now()->subDays((int) config('channels.log_retention_days', 90)))->limit(50000)->delete())
+    ->dailyAt('03:40')
+    ->name('channels:prune-logs');

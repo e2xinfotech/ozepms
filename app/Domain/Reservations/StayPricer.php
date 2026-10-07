@@ -21,7 +21,7 @@ use Illuminate\Validation\ValidationException;
  *
  * Room spec: ['product' => Product, 'check_in' => CarbonImmutable, 'check_out' => CarbonImmutable,
  *   'adults' => int, 'child_ages' => list<int> (children and infants), 'rate' => ?string (manual
- *   price for every night), 'keep' => array<date, price> (nights whose price is kept, modify)].
+ *   price for every night), 'nightly' => ?array<date, price> (channel price per night), 'keep' => array<date, price> (nights whose price is kept, modify)].
  *
  * Result per room: ['nights' => [date => [base_price, occupancy_adjust, discount, price, net_price,
  *   tax_amount]], 'room_total' (taxable), 'discount_total' (offers), 'tax_total', 'grand_total', 'components' => [code => amount]].
@@ -59,7 +59,7 @@ class StayPricer
         if ($context !== null) {
             $offerRooms = [];
             foreach ($rooms as $key => $spec) {
-                if (($spec['rate'] ?? null) !== null || $nightsOf[$key] === []) {
+                if (($spec['rate'] ?? null) !== null || ! empty($spec['nightly']) || $nightsOf[$key] === []) {
                     continue;
                 }
                 $offerRooms[$key] = [
@@ -133,6 +133,17 @@ class StayPricer
         $keep = $spec['keep'] ?? [];
         $rate = $spec['rate'] ?? null;
         $out = [];
+
+        // Channel imports: the channel's own price per night (a missing night falls back to 'rate' or the first night).
+        if (! empty($spec['nightly'])) {
+            $fallback = Money::round((string) ($rate ?? reset($spec['nightly'])), $places);
+            foreach ($dates as $date) {
+                $p = isset($spec['nightly'][$date]) ? Money::round((string) $spec['nightly'][$date], $places) : $fallback;
+                $out[$date] = ['base_price' => $p, 'occupancy_adjust' => '0.00', 'discount' => '0.00', 'price' => $p];
+            }
+
+            return $out;
+        }
 
         if ($rate !== null) {
             $rate = Money::round((string) $rate, $places);
