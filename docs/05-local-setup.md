@@ -1,5 +1,22 @@
 # OzePMS — Local Setup (macOS)
 
+## Quick start (one command)
+
+```bash
+cd ~/Downloads/ozepms            # the project folder
+bash deploy/local/setup-mac.sh   # first time and after every update (keeps your data)
+bash deploy/local/start-mac.sh   # starts the site and opens http://127.0.0.1:8000/login
+```
+
+The setup script uses the PHP, Composer, Node.js and MySQL you already have (it installs only what is
+missing, through Homebrew), keeps working database settings already in `.env`, otherwise creates the
+database `ozepms` with the user `ozepms`, then installs dependencies, creates tables and demo hotels on
+the first run, applies new database changes on later runs, builds the screens and prints the sign-in
+details. Local only: two-step verification is off and e-mails are written to `storage/logs`.
+If your MySQL root user has a password: `MYSQL_ROOT_PASSWORD='…' bash deploy/local/setup-mac.sh`.
+
+The sections below describe the same steps by hand.
+
 This guide sets up OzePMS on a Mac for development at `http://ozepms.test`.
 It takes about 20 minutes on a fresh machine.
 
