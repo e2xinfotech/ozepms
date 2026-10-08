@@ -1,0 +1,149 @@
+name: Deploy (blue/green)
+
+# Push to main = build, check, ship to the idle colour, health check, switch, smoke test.
+# Manual run with "rollback" = switch back to the previous colour.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'deploy or rollback'
+        type: choice
+        options: [deploy, rollback]
+        default: deploy
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+env:
+  APP_DIR: ~/ozepms   # on the server (Docker project folder, see docs/06-deployment.md)
+
+jobs:
+  build:
+    if: ${{ github.event_name == 'push' || inputs.action == 'deploy' }}
+    runs-on: ubuntu-24.04
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: ozepms_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot" --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: bcmath, intl, mbstring, xml, curl, zip, gd, pdo_mysql
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Dependencies for the checks (with dev packages)
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: PHP syntax
+        run: find app config database routes lang -name '*.php' -print0 | xargs -0 -n1 -P4 php -l > /dev/null
+
+      - name: Tests (when the tests folder is part of the repository)
+        env:
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: ozepms_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          if [ -d tests ]; then
+            cp .env.example .env && php artisan key:generate --no-interaction
+            php artisan test
+            rm -f .env
+          else
+            echo "No tests folder in this repository; skipping."
+          fi
+
+      - name: Front end type check and build
+        run: npm ci && npm run build
+
+      - name: Production PHP dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts
+
+      - name: Package the release
+        run: |
+          mkdir -p dist
+          tar --exclude='./.git' --exclude='./.github' --exclude='./node_modules' --exclude='./tests' --exclude='./phpunit.xml' \
+              --exclude='./.env' --exclude='./storage/logs/*' --exclude='./storage/framework/*/*' --exclude='./dist' \
+              -czf dist/release.tar.gz .
+          ls -lh dist/release.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release
+          path: dist/release.tar.gz
+          retention-days: 7
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment: production      # add required reviewers in GitHub > Settings > Environments for a manual approval step
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release
+
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: deploy/docker
+          path: scripts
+
+      - name: SSH setup
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<CFG
+          Host server
+            HostName ${{ secrets.DEPLOY_HOST }}
+            User ${{ secrets.DEPLOY_USER }}
+            Port ${{ secrets.DEPLOY_PORT || 22 }}
+            IdentityFile ~/.ssh/id_deploy
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+          CFG
+
+      - name: Upload release and scripts
+        run: |
+          ssh server "mkdir -p $APP_DIR/incoming"
+          scp release.tar.gz "server:$APP_DIR/incoming/release-${GITHUB_SHA}.tar.gz"
+          scp scripts/deploy/docker/compose.yml scripts/deploy/docker/router.conf.tpl scripts/deploy/docker/deploy.sh scripts/deploy/docker/rollback.sh scripts/deploy/docker/backup.sh "server:$APP_DIR/"
+
+      - name: Blue/green deploy (Docker)
+        run: ssh server "bash $APP_DIR/deploy.sh $APP_DIR/incoming/release-${GITHUB_SHA}.tar.gz ${GITHUB_SHA} && rm -f $APP_DIR/incoming/release-${GITHUB_SHA}.tar.gz"
+
+  rollback:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.action == 'rollback' }}
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - name: SSH setup
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<CFG
+          Host server
+            HostName ${{ secrets.DEPLOY_HOST }}
+            User ${{ secrets.DEPLOY_USER }}
+            Port ${{ secrets.DEPLOY_PORT || 22 }}
+            IdentityFile ~/.ssh/id_deploy
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+          CFG
+      - name: Switch back to the previous colour
+        run: ssh server "bash $APP_DIR/rollback.sh"

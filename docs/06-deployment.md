@@ -296,3 +296,41 @@ Set `OZ_BOOKING_DOMAIN=book.ozepms.e2xinfotech.in` in `.env` (host only), add a 
 and `php artisan route:cache`. Hotels then share `https://book.ozepms.e2xinfotech.in/P1002`; `/book/P1002` on the PMS host redirects there.
 The PMS and platform screens answer 404 on the booking host, and `SESSION_DOMAIN` must stay empty so the PMS sign-in cookie is not shared.
 The "Settings → Booking engine" link and the `booking_url` of `/api/v1` follow the setting automatically.
+
+## Docker deployment with CI/CD and blue/green releases
+
+Used on a server that already runs other Docker applications behind a shared `jwilder/nginx-proxy` (+ letsencrypt companion on the
+external Docker network `proxy`). OzePMS is its own Compose project (`ozepms`) in `~/ozepms`; nothing on the host is installed or changed
+and no host port is used. Files: `deploy/docker/*`, `.github/workflows/{ci,deploy}.yml`.
+
+```
+nginx-proxy (shared, ports 80/443, TLS)  --Host: ozepms.… / book.ozepms.…-->  ozepms-router (nginx)
+                                                                                |-- ozepms-web-blue   (nginx + PHP-FPM)  \ one is live,
+                                                                                '-- ozepms-web-green  (nginx + PHP-FPM)  / one is the previous release
+ozepms-db (MySQL 8.4, volume)   ozepms-queue-<live colour>   ozepms-scheduler-<live colour>   volume ozepms_storage (shared by both colours)
+```
+Both host names reach the same app; the app answers the booking engine on `OZ_BOOKING_DOMAIN` and the PMS on the other (see "Booking engine on its own host name").
+
+**Each deployment (push to `main`):** checks and build in GitHub → release archive uploaded over SSH → image built on the server → database dump →
+`migrate` → idle colour started and health checked → router switched → queue/scheduler moved to the new colour → public smoke test → automatic
+switch back on any failure. The previous colour keeps running for instant rollback (`bash ~/ozepms/rollback.sh` or the "rollback" run in GitHub Actions).
+Migrations must keep the previous release working (both colours share the database).
+
+### One-time server setup
+1. DNS: `ozepms.e2xinfotech.in` and `book.ozepms.e2xinfotech.in` point to the server (done).
+2. Copy `deploy/docker/` to the server and run the bootstrap (creates `~/ozepms`, random database passwords and APP_KEY, starts only the database and router):
+   `bash bootstrap.sh ozepms.e2xinfotech.in book.ozepms.e2xinfotech.in you@e2xinfotech.in`
+3. Edit `~/ozepms/app.env`: `MAIL_*` (SMTP), optionally the first Super Admin / Admin e-mails and passwords.
+4. Make sure the shared proxy allows uploads up to 12 MB for these hosts (if its default is smaller): add a file named after each host in the proxy's `vhost.d`
+   containing `client_max_body_size 12m;` (an added file, nothing existing is edited).
+5. GitHub secrets (Settings → Secrets → Actions): `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT` (this server: 2026), `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`;
+   environment `production` (optionally with required reviewers). The deploy user must be in the `docker` group.
+6. Nightly backup: crontab line `0 2 * * * bash /home/ubuntu/ozepms/backup.sh >> /home/ubuntu/ozepms/backups/backup.log 2>&1`.
+
+The first deployment installs reference data, roles, plans and the first Super Admin / Admin accounts; their generated passwords are printed in the deployment log
+and saved (owner-only) in `~/ozepms/state/first-seed.log`.
+
+### Notes
+* The `tests` folder is not in the repository, so CI prints "skipping" for tests. Commit `tests/` and `phpunit.xml` to run the suite before every deployment.
+* Logs: `docker logs ozepms-web-blue`, application logs inside the `ozepms_storage` volume (`storage/logs`).
+* Everything is namespaced `ozepms-*`; remove the project with `docker compose -p ozepms down` (add `-v` only to delete the data).
