@@ -15,11 +15,13 @@ class StorePropertyRequest extends FormRequest
     {
         return $this->propertyRules() + [
             'status' => ['required', Rule::in(['onboarding', 'active'])],
-            'owner' => ['required', 'array'],
-            'owner.name' => ['required', 'string', 'max:120'],
-            'owner.email' => ['required', 'string', 'email', 'max:190'],
-            'owner.phone_e164' => ['nullable', 'string', 'regex:/^\+[1-9]\d{6,14}$/'],
-            'plan_id' => ['nullable', 'integer', Rule::exists('subscription_plans', 'id')->where('is_active', true)],
+            // Either an owner created earlier (owner_id) or, for older callers, the owner's details.
+            'owner_id' => ['nullable', 'string', 'size:26', Rule::exists('users', 'public_id')->where('is_platform_user', false)],
+            'owner' => ['required_without:owner_id', 'nullable', 'array', 'max:10'],
+            'owner.name' => ['required_with:owner', 'string', 'max:120'],
+            'owner.email' => ['required_with:owner', 'string', 'email', 'max:190'],
+            'owner.phone_e164' => ['nullable', 'string', 'max:20', 'regex:/^\+[1-9]\d{6,14}$/'],
+            'plan_id' => ['nullable', 'integer', Rule::exists('subscription_plans', 'id')->where('is_active', true)->where('approval_status', 'approved')],
         ];
     }
 

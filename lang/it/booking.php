@@ -10,6 +10,7 @@ return [
         'check_out' => 'Partenza',
         'adults' => 'Adulti',
         'children' => 'Bambini',
+        'years' => ':min–:max anni',
         'infants' => 'Neonati',
         'per_room' => 'Adulti, bambini e neonati si intendono per camera.',
         'rooms' => 'Camere',

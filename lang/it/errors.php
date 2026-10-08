@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'invalid_input' => 'La richiesta contiene caratteri o valori non consentiti.',
     'validation' => 'Controlla i campi evidenziati.',
     'reference' => 'Riferimento',
     'back_home' => 'Torna a OzePMS',

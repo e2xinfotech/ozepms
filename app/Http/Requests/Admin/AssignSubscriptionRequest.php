@@ -10,7 +10,7 @@ class AssignSubscriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'plan_id' => ['required', 'integer', Rule::exists('subscription_plans', 'id')->where('is_active', true)],
+            'plan_id' => ['required', 'integer', Rule::exists('subscription_plans', 'id')->where('is_active', true)->where('approval_status', 'approved')],
             'starts_on' => ['required', 'date_format:Y-m-d'],
             'ends_on' => ['required', 'date_format:Y-m-d', 'after:starts_on'],
             'price' => ['nullable', 'regex:/^\d{1,12}(\.\d{1,2})?$/'],

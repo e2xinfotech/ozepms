@@ -10,6 +10,7 @@ return [
         'check_out' => 'Abreise',
         'adults' => 'Erwachsene',
         'children' => 'Kinder',
+        'years' => ':min–:max J.',
         'infants' => 'Kleinkinder',
         'per_room' => 'Erwachsene, Kinder und Kleinkinder gelten pro Zimmer.',
         'rooms' => 'Zimmer',

@@ -49,6 +49,7 @@ class AccountController extends Controller
             $request->user(),
             (string) $request->validated('current_password'),
             (string) $request->validated('password'),
+            $request->session()->getId(),
         );
 
         // Keep this browser signed in; other sessions lose their remember-me cookie.

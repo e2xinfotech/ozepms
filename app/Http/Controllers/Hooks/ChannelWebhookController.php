@@ -21,6 +21,8 @@ class ChannelWebhookController extends Controller
     {
         $c = ChannelConnection::acrossProperties()->where('public_id', $connection)->where('provider', $provider)->first();
         abort_if($c === null || ! $registry->available($provider), 404);
+        // Unapproved or suspended connections receive nothing (checked before the body is read).
+        abort_unless($c->isApproved(), 403, 'Connection is not approved');
         $bookings = $registry->provider($c)->parseWebhook($c, $request);
         abort_unless(in_array($c->status, ['active', 'error'], true), 409, 'Connection is not active');
 

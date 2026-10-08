@@ -63,6 +63,9 @@ return [
             'property_owners' => (bool) env('OZ_REQUIRE_2FA_OWNERS', true),
         ],
         'password_confirm_seconds' => 900,
+        // "Log in as": how long a session may act as someone else, and the shortest reason accepted.
+        'impersonation_minutes' => 60,
+        'impersonation_reason_min' => 5,
         'hsts_max_age' => 31536000,
         // Name of the "keep me signed in" cookie.
         'remember_cookie' => env('OZ_REMEMBER_COOKIE', 'oz_rm'),
@@ -83,6 +86,8 @@ return [
         'slow_query_ms' => (int) env('OZ_SLOW_QUERY_MS', 200),
         'client_errors_per_minute' => 30,
         'client_error_max_chars' => 4000,
+        // Days the per-request change trail is kept (the audit log is kept for ever).
+        'request_trail_days' => 730,
         // Keys whose values are never written to logs or audit trails.
         'redact_keys' => [
             'password', 'password_confirmation', 'current_password', 'token', '_token',
@@ -127,6 +132,10 @@ return [
     ],
 
     'booking_engine' => [
+        // Own address for the public booking engine, e.g. "book.ozepms.e2xinfotech.in" (host name only).
+        // Empty: the engine lives under the PMS address at /book/{code}. When set, it is served at
+        // https://{domain}/{code}, the PMS screens answer 404 on that host and /book/... on the PMS host redirects there.
+        'domain' => env('OZ_BOOKING_DOMAIN') ?: null,
         // Minutes a booking waiting for online payment holds its rooms.
         'hold_minutes' => (int) env('OZ_BE_HOLD_MINUTES', 15),
         // Search results are cached per property, ARI version, offers and query.

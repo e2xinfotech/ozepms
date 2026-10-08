@@ -118,7 +118,7 @@ class OfferAdminService
     public function storeImage(Offer $offer, UploadedFile $file): Offer
     {
         $dir = 'properties/'.$this->context->property()->code.'/offers/'.$offer->public_id;
-        $path = $file->storeAs($dir, Str::lower((string) Str::ulid()).'.'.($file->guessExtension() ?: 'jpg'), self::DISK);
+        $path = \App\Support\SafeUpload::image($file, self::DISK, $dir, '', ['min_w' => 200, 'min_h' => 150]);
         if ($offer->image_path) {
             Storage::disk(self::DISK)->delete($offer->image_path);
         }

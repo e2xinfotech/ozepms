@@ -5,7 +5,7 @@ import { payload } from '@/lib/page';
 
 export interface BookingProperty {
     code: string; name: string; tagline: string | null; description: string | null; address: string; phone: string | null; email: string | null;
-    website: string | null; logo: string | null; stars: number | null; currency: string; check_in_time: string; check_out_time: string; today: string;
+    website: string | null; logo: string | null; stars: number | null; currency: string; check_in_time: string; check_out_time: string; today: string; age_bands: { infant: { min: number; max: number }; child: { min: number; max: number } };
     limits: { max_nights: number; max_days_ahead: number; max_rooms: number }; online_payments: boolean; enabled: boolean; intro: string | null; terms: string | null;
 }
 

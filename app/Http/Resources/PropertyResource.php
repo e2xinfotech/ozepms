@@ -83,6 +83,8 @@ class PropertyResource extends JsonResource
                 'name' => $owner->name,
                 'email' => $owner->email,
                 'phone' => $owner->phone_e164,
+                'can_impersonate' => $request->user() !== null && $request->user()->id !== $owner->id
+                    && app(\App\Domain\Platform\ImpersonationService::class)->canImpersonate($request->user(), $owner),
             ] : null,
             'subscription' => app(SubscriptionService::class)->state($p),
             'plan_id' => $p->currentSubscription?->plan_id,

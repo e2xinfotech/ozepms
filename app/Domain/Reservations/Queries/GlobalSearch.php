@@ -31,7 +31,7 @@ class GlobalSearch
         $guestIds = [];
 
         if ($term->kind === 'email' || $term->kind === 'phone' || $term->kind === 'name') {
-            $q = DB::table('guests')->where('property_id', $pid)->whereNull('anonymized_at');
+            $q = DB::table('guests')->where('property_id', $pid)->whereNull('anonymized_at')->where('is_companion', 0);
             match ($term->kind) {
                 'email' => $q->where('email_lc', 'like', SearchTerm::prefix($term->value)),
                 'phone' => $q->where('phone_rev', 'like', SearchTerm::prefix(strrev($term->value))),

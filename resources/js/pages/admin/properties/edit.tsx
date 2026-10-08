@@ -3,6 +3,7 @@ import { Alert, Badge, Button, Card, ConfirmDialog, FormSection, Input, KeyValue
 import { PropertyForm, propertyPayload, propertyValues } from '@/components/property/PropertyForm';
 import { PropertyMedia } from '@/components/property/PropertyMedia';
 import type { PlanOption, PropertyDetail, PropertyLookups } from '@/components/property/types';
+import { ImpersonateDialog } from '@/components/platform/ImpersonateDialog';
 import { createPage } from '@/lib/boot';
 import { date } from '@/lib/format';
 import { http, type ApiError } from '@/lib/http';
@@ -29,6 +30,7 @@ function EditPropertyPage({ property, lookups, plans, can_manage_subscription }:
     const [ownerBusy, setOwnerBusy] = useState(false);
     const [ownerError, setOwnerError] = useState<ApiError | null>(null);
     const [ownerConfirm, setOwnerConfirm] = useState(false);
+    const [asOwner, setAsOwner] = useState(false);
 
     const changeOwner = async () => {
         setOwnerBusy(true);
@@ -101,6 +103,16 @@ function EditPropertyPage({ property, lookups, plans, can_manage_subscription }:
             {error && Object.keys(error.fields).length > 0 && <Alert tone="danger">{t('errors.validation')}</Alert>}
             <PropertyForm value={values} onChange={setValues} lookups={lookups} error={error}
                 media={<PropertyMedia endpoint={`/web-api/admin/properties/${property.code}/media`} logo={property.logo} image={property.image} />} />
+
+            {property.owner?.can_impersonate && (
+                <Card title={t('impersonation.log_in_as')}>
+                    <div className="row" style={{ justifyContent: 'space-between' }}>
+                        <span>{property.owner.name} ({property.owner.email})</span>
+                        <Button variant="outline" icon="log-in" onClick={() => setAsOwner(true)}>{t('impersonation.log_in_as')}</Button>
+                    </div>
+                    <ImpersonateDialog userId={property.owner.id} name={property.owner.name} open={asOwner} onClose={() => setAsOwner(false)} />
+                </Card>
+            )}
 
             <Card title={t('property.sections.subscription')}>
                 <KeyValue items={[

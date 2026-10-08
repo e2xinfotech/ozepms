@@ -54,6 +54,15 @@ class ResolveProperty
             abort(403, __('property.suspended'));
         }
 
+        // A self-registered property can only show its "waiting for approval" page until it is approved.
+        if (! $supportMode && in_array($property->status, ['pending_approval', 'rejected'], true) && ! $request->routeIs('property.pending')) {
+            if ($request->expectsJson() || $request->is('web-api/*')) {
+                abort(403, __($property->status === 'rejected' ? 'approvals.property_rejected' : 'approvals.property_pending'));
+            }
+
+            return redirect()->route('property.pending', $property->code);
+        }
+
         $this->context->set($property, $membership, $supportMode);
         $request->route()->setParameter('property', $property);
 

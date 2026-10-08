@@ -24,7 +24,7 @@ class ApiKeysController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:80'],
-            'abilities' => ['required', 'array', 'min:1'], 'abilities.*' => [Rule::in(ApiKey::ABILITIES)],
+            'abilities' => ['required', 'array', 'min:1', 'max:10'], 'abilities.*' => [Rule::in(ApiKey::ABILITIES)],
         ]);
         [$key, $plain] = $this->keys->create($context->property(), $data['name'], $data['abilities'], $request->user());
 

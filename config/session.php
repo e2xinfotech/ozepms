@@ -165,7 +165,8 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // The session cookie is HTTPS-only everywhere except local development.
+    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV', 'production') !== 'local' && env('APP_ENV') !== 'testing'),
 
     /*
     |--------------------------------------------------------------------------

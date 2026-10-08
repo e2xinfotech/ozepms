@@ -43,9 +43,15 @@ class ChannelConnection extends Model
         return $this->hasMany(ChannelSyncLog::class, 'connection_id');
     }
 
+    public function isApproved(): bool
+    {
+        return $this->approval_status === 'approved';
+    }
+
+    /** Sends and receives only when the connection is approved and working. */
     public function isSyncing(): bool
     {
-        return in_array($this->status, ['active', 'error'], true);
+        return $this->isApproved() && in_array($this->status, ['active', 'error'], true);
     }
 
     public function setting(string $key, mixed $default = null): mixed

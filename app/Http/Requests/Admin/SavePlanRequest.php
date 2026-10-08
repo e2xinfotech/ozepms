@@ -26,7 +26,7 @@ class SavePlanRequest extends FormRequest
             'max_room_types' => ['nullable', 'integer', 'min:1', 'max:65000'],
             'max_units' => ['nullable', 'integer', 'min:1', 'max:65000'],
             'max_users' => ['nullable', 'integer', 'min:1', 'max:65000'],
-            'features' => ['present', 'array'],
+            'features' => ['present', 'array', 'max:20'],
             'features.*' => ['boolean'],
             'is_active' => ['required', 'boolean'],
         ];

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Alert, Badge, Button, LinkButton, PageHeader } from '@/components/ui';
 import { createPage } from '@/lib/boot';
 import { date, money } from '@/lib/format';
@@ -7,7 +7,7 @@ import { propertyUrl } from '@/lib/page';
 import { CancelModal } from '../reservations/_components/billing/InvoiceList';
 
 interface Party { name: string; legal_name?: string; address?: string[] | string | null; tax_no: string | null; state: string | null; state_code: string | null; phone?: string | null; email?: string | null; country?: string | null }
-interface Line { date: string; type: string; description: string; sac: string | null; quantity: string; unit_price: string; taxable: string; taxes: { component: string; rate: string; fixed?: boolean; amount: string }[]; tax_total: string; total: string }
+interface Line { date: string; type: string; department?: string | null; reference?: string | null; description: string; sac: string | null; quantity: string; unit_price: string; taxable: string; taxes: { component: string; rate: string; fixed?: boolean; amount: string }[]; tax_total: string; total: string }
 interface Snapshot {
     type: 'tax_invoice' | 'credit_note'; number: string; date: string; financial_year: string; currency: string;
     parties: { supplier: Party; bill_to: Party & { guest_name: string }; place_of_supply: { code: string | null; name: string | null } };
@@ -30,12 +30,20 @@ function InvoicePage({ invoice, reservation, can }: Props) {
     const m = (v: string) => money(v, cur);
     const [cancelling, setCancelling] = useState(false);
     const credit = s.type === 'credit_note';
+    // Lines grouped by outlet (room, restaurant, bar …) with a subtotal each; one group prints as a plain list.
+    const groups = s.lines.reduce<{ key: string; items: { l: Line; n: number }[] }[]>((acc, l, i) => {
+        const key = l.department ?? (l.type === 'room' ? 'room' : 'other_charges');
+        const g = acc.find((x) => x.key === key);
+        g ? g.items.push({ l, n: i + 1 }) : acc.push({ key, items: [{ l, n: i + 1 }] });
+        return acc;
+    }, []);
     const components = Array.from(new Set(s.lines.flatMap((l) => l.taxes.map((x) => x.component))));
     const comp = (l: Line, c: string) => l.taxes.filter((x) => x.component === c).reduce((a, x) => a + Number(x.amount), 0);
     const rate = (l: Line, c: string) => l.taxes.find((x) => x.component === c)?.rate;
     const fixedTax = (l: Line, c: string) => !!l.taxes.find((x) => x.component === c)?.fixed;
     // SAC/HSN codes belong to Indian GST invoices only.
     const showSac = s.parties.supplier.country === 'IN';
+    const cols = 6 + (showSac ? 1 : 0) + components.length;
     const supplierAddress = Array.isArray(s.parties.supplier.address) ? s.parties.supplier.address : [];
     const paid = s.payments.reduce((a, p) => a + (p.kind === 'refund' ? -Number(p.amount) : Number(p.amount)), 0);
 
@@ -99,17 +107,28 @@ function InvoicePage({ invoice, reservation, can }: Props) {
                         {components.map((c) => <th key={c} className="num">{c}</th>)}
                         <th className="num">{t('billing.fields.total')}</th>
                     </tr></thead>
-                    <tbody>{s.lines.map((l, i) => (
-                        <tr key={i}>
-                            <td>{i + 1}</td>
-                            <td>{l.description}<span className="cell-sub">{date(l.date)}</span></td>
-                            {showSac && <td>{l.sac ?? '—'}</td>}
-                            <td className="num">{Number(l.quantity)}</td>
-                            <td className="num">{m(l.unit_price)}</td>
-                            <td className="num">{m(l.taxable)}</td>
-                            {components.map((c) => <td key={c} className="num">{rate(l, c) ? <>{m(String(comp(l, c)))}{!fixedTax(l, c) && <span className="cell-sub">{Number(rate(l, c))}%</span>}</> : '—'}</td>)}
-                            <td className="num">{m(l.total)}</td>
-                        </tr>
+                    <tbody>{groups.map((g) => (
+                        <Fragment key={g.key}>
+                            {groups.length > 1 && <tr className="inv-group"><td colSpan={cols} className="strong">{g.key === 'room' ? t('billing.invoice.group_room') : g.key === 'other_charges' ? t('billing.invoice.group_other') : t(`billing.departments.${g.key}`)}</td></tr>}
+                            {g.items.map(({ l, n }) => (
+                                <tr key={n}>
+                                    <td>{n}</td>
+                                    <td>{l.description}<span className="cell-sub">{date(l.date)}{l.reference ? ` · #${l.reference}` : ''}</span></td>
+                                    {showSac && <td>{l.sac ?? '—'}</td>}
+                                    <td className="num">{Number(l.quantity)}</td>
+                                    <td className="num">{m(l.unit_price)}</td>
+                                    <td className="num">{m(l.taxable)}</td>
+                                    {components.map((c) => <td key={c} className="num">{rate(l, c) ? <>{m(String(comp(l, c)))}{!fixedTax(l, c) && <span className="cell-sub">{Number(rate(l, c))}%</span>}</> : '—'}</td>)}
+                                    <td className="num">{m(l.total)}</td>
+                                </tr>
+                            ))}
+                            {groups.length > 1 && <tr className="inv-subtotal">
+                                <td colSpan={cols - components.length - 2} className="num muted">{t('billing.invoice.group_subtotal')}</td>
+                                <td className="num">{m(String(g.items.reduce((a, x) => a + Number(x.l.taxable), 0)))}</td>
+                                {components.map((c) => <td key={c} className="num">{m(String(g.items.reduce((a, x) => a + comp(x.l, c), 0)))}</td>)}
+                                <td className="num strong">{m(String(g.items.reduce((a, x) => a + Number(x.l.total), 0)))}</td>
+                            </tr>}
+                        </Fragment>
                     ))}</tbody>
                 </table>
 

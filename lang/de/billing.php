@@ -49,7 +49,19 @@ return [
         'per_person' => 'Pro Person',
         'per_person_night' => 'Pro Person und Nacht',
     ],
+    'departments' => [
+        'restaurant' => 'Restaurant',
+        'bar' => 'Bar',
+        'room_service' => 'Zimmerservice',
+        'spa' => 'Spa & Wellness',
+        'laundry' => 'Wäscherei',
+        'transport' => 'Transport',
+        'other' => 'Sonstiges',
+    ],
+    'bill' => ['title' => 'Outlet-Rechnung', 'hint' => 'Restaurant- oder Barrechnung buchen: mehrere Positionen unter einer Rechnungsnummer. Jede Position wird nach ihrer Kategorie besteuert (Speisen, Getränke, Alkohol …).', 'post' => 'Rechnung buchen', 'add_item' => 'Position hinzufügen'],
     'tax_categories' => [
+        'beverage' => 'Getränke',
+        'alcohol' => 'Alkohol & Spirituosen',
         'accommodation' => 'Beherbergung',
         'food' => 'Speisen & Getränke',
         'service' => 'Sonstige Leistungen',
@@ -97,6 +109,10 @@ return [
         'not_invoice' => 'Dieses Folio ist ein Kontoauszug, keine Steuerrechnung.',
     ],
     'charge' => [
+        'department' => 'Outlet',
+        'department_auto' => 'Wie die Leistung',
+        'reference' => 'Rechnungs-/Bon-Nr.',
+        'reference_hint' => 'Erscheint auf Folio und Rechnung.',
         'title' => 'Position hinzufügen',
         'post' => 'Buchen',
         'service' => 'Leistung',
@@ -142,6 +158,9 @@ return [
         'refund_gateway' => 'Die Erstattung wird an Razorpay gesendet und auf das ursprüngliche Zahlungsmittel des Gastes zurückgezahlt.',
     ],
     'invoice' => [
+        'group_room' => 'Zimmerleistungen',
+        'group_other' => 'Sonstige Leistungen',
+        'group_subtotal' => 'Zwischensumme',
         'fixed' => 'Fest',
         'list_title' => 'Rechnungen & Gutschriften',
         'types' => [
@@ -191,6 +210,7 @@ return [
         'back' => 'Zurück zur Reservierung',
     ],
     'services' => [
+        'department_hint' => 'Wo diese Position verkauft wird. Reservierung und Rechnung zeigen jedes Outlet getrennt.',
         'title' => 'Leistungen & Extras',
         'description' => 'Extras, die auf das Folio eines Gastes gebucht werden können, mit Preis, Steuerkategorie und Abrechnungsart.',
         'add' => 'Leistung hinzufügen',
@@ -201,6 +221,7 @@ return [
         'none_hint' => 'Fügen Sie Extras wie Zustellbett, Flughafentransfer oder Wäscherei hinzu, um sie mit einem Klick zu buchen.',
         'posting_hint' => 'Legt die vorgeschlagene Menge beim Buchen fest (Nächte und Gäste des Aufenthalts).',
         'columns' => [
+            'department' => 'Outlet',
             'name' => 'Leistung',
             'code' => 'Code',
             'price' => 'Preis',
@@ -210,6 +231,7 @@ return [
             'status' => 'Status',
         ],
         'fields' => [
+            'department' => 'Outlet',
             'name' => 'Name',
             'code' => 'Code',
             'price' => 'Preis',
@@ -221,6 +243,7 @@ return [
         ],
     ],
     'errors' => [
+        'bill_empty' => 'Mindestens eine Position hinzufügen.',
         'invalid_type' => 'Wählen Sie eine gültige Positionsart.',
         'quantity' => 'Die Menge muss größer als null sein.',
         'amount_zero' => 'Der Betrag darf nicht null sein.',
@@ -246,6 +269,7 @@ return [
         'key_reused' => 'Diese Anfrage wurde bereits für eine andere Reservierung verwendet. Laden Sie die Seite neu und versuchen Sie es erneut.',
     ],
     'messages' => [
+        'bill_posted' => '{1} 1 Position auf das Folio gebucht.|[2,*] :count Positionen auf das Folio gebucht.',
         'charge_posted' => 'Position auf das Folio gebucht.',
         'line_voided' => 'Zeile storniert.',
         'payment_recorded' => 'Zahlung erfasst.',

@@ -16,6 +16,8 @@ final class TaxReference
     public const CATEGORIES = [
         'accommodation' => ['Accommodation', '9963'],
         'food' => ['Food & Beverage', '996331'],
+        'beverage' => ['Beverages', '996331'],
+        'alcohol' => ['Alcohol & liquor', '996332'],
         'service' => ['Other Services', null],
         'other' => ['Other', null],
     ];
@@ -24,6 +26,8 @@ final class TaxReference
     public const CATEGORY_APPLY_TO = [
         'accommodation' => 'room_charges',
         'food' => 'fnb',
+        'beverage' => 'beverage',
+        'alcohol' => 'liquor',
         'service' => 'add_ons',
         'other' => 'add_ons',
     ];
@@ -32,6 +36,8 @@ final class TaxReference
     public const APPLY_TO_CATEGORY = [
         'room_charges' => 'accommodation',
         'fnb' => 'food',
+        'beverage' => 'beverage',
+        'liquor' => 'alcohol',
         'add_ons' => 'service',
         'events' => 'other',
     ];

@@ -21,7 +21,8 @@ return [
     'support_mode' => 'E2X-Support',
     'delete_confirm' => 'Rolle „:name“ löschen?',
     'descriptions' => [
-        'super_admin' => 'Vollständiger Systemzugriff einschließlich Verwaltung aller Unterkünfte, Benutzer und Einstellungen.',
+        'super_admin' => 'Höchste Stufe: alles, einschließlich Admins und Tarifgenehmigung.',
+        'admin' => 'Laufender Plattformzugriff: Unterkünfte, Eigentümer, Tarife, Support. Verwaltet keine Admins.',
         'it_support' => 'Plattformüberwachung, Prüfprotokoll und Systemzustand.',
         'owner' => 'Eigentümer der Unterkunft. Voller Zugriff einschließlich Benutzer und Abrechnung.',
         'hotel_manager' => 'Leitet den täglichen Betrieb mit vollem Zugriff.',
@@ -40,6 +41,7 @@ return [
     ],
     'names' => [
         'super_admin' => 'Super-Admin',
+        'admin' => 'Admin',
         'it_support' => 'IT-Support',
         'owner' => 'Eigentümer',
         'hotel_manager' => 'Hotelmanager',
@@ -51,4 +53,5 @@ return [
         'guest_relations' => 'Gästebetreuung',
         'sales_marketing' => 'Vertrieb & Marketing',
     ],
+    'beyond_your_access' => 'Eine Rolle darf keine Berechtigungen enthalten, die Sie selbst nicht haben.',
 ];

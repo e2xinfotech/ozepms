@@ -15,6 +15,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AuthController extends Controller
 {
@@ -31,7 +32,8 @@ class AuthController extends Controller
             LoginResult::Success => response()->json(['redirect' => $this->intended($request)]),
             LoginResult::TwoFactorRequired => response()->json(['redirect' => route('two-factor.challenge'), 'two_factor' => true]),
             LoginResult::Throttled => $this->error(429, 'THROTTLED', __('auth.throttled')),
-            LoginResult::Locked => $this->error(423, 'ACCOUNT_LOCKED', __('auth.locked')),
+            // A locked account answers like a throttled sign-in, so a stranger cannot tell which e-mails have accounts.
+            LoginResult::Locked => $this->error(429, 'THROTTLED', __('auth.throttled')),
             LoginResult::Disabled => $this->error(403, 'ACCOUNT_DISABLED', __('auth.disabled')),
             // Unknown e-mail and wrong password share one answer so accounts cannot be discovered.
             LoginResult::InvalidCredentials => $this->error(422, 'INVALID_CREDENTIALS', __('auth.invalid')),
@@ -56,7 +58,16 @@ class AuthController extends Controller
             return $this->error(419, 'TWO_FACTOR_EXPIRED', __('auth.two_factor_expired'), ['redirect' => route('login')]);
         }
 
+        // Wrong codes are counted per person across sign-ins, so starting over does not give fresh guesses.
+        $limiterKey = 'two-factor:'.$user->id;
+        if (RateLimiter::tooManyAttempts($limiterKey, 10)) {
+            $session->forget(LoginService::SESSION_PENDING_2FA);
+
+            return $this->error(429, 'THROTTLED', __('auth.throttled'), ['redirect' => route('login')]);
+        }
+
         if (! $twoFactor->verify($user, (string) $request->validated('code'))) {
+            RateLimiter::hit($limiterKey, 900);
             $attempts = (int) ($pending['attempts'] ?? 0) + 1;
             Log::channel('security')->notice('Two-factor code rejected', ['user_id' => $user->id, 'attempts' => $attempts]);
 
@@ -70,6 +81,7 @@ class AuthController extends Controller
             return $this->error(422, 'VALIDATION_FAILED', __('errors.validation'), ['fields' => ['code' => [__('auth.two_factor_invalid')]]]);
         }
 
+        RateLimiter::clear($limiterKey);
         $login->completeLogin($request, $user, (bool) ($pending['remember'] ?? false));
 
         return response()->json(['redirect' => $this->intended($request)]);
@@ -92,8 +104,15 @@ class AuthController extends Controller
         return response()->json(['message' => __('auth.reset_done'), 'redirect' => route('login')]);
     }
 
-    public function logout(Request $request, LoginService $login): JsonResponse
+    public function logout(Request $request, LoginService $login, \App\Domain\Platform\ImpersonationService $impersonation): JsonResponse
     {
+        // Signing out while acting as someone only returns to the real account.
+        if ($impersonation->state($request) !== null) {
+            $actor = $impersonation->stop($request);
+
+            return response()->json(['redirect' => $actor ? route('admin.dashboard') : route('login')]);
+        }
+
         $login->logout($request);
 
         return response()->json(['redirect' => route('login')]);

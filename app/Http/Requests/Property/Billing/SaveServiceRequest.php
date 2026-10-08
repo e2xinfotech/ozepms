@@ -18,6 +18,7 @@ class SaveServiceRequest extends FormRequest
             'tax_category' => ['required', 'string', Rule::exists('tax_categories', 'code')],
             'sac_hsn_code' => ['nullable', 'string', 'max:10', 'regex:/^[0-9A-Za-z]*$/'],
             'posting_rule' => ['required', Rule::in(Service::POSTING_RULES)],
+            'department' => ['nullable', Rule::in(Service::DEPARTMENTS)],
             'is_active' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ];

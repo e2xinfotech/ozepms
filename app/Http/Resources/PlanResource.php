@@ -32,6 +32,7 @@ class PlanResource extends JsonResource
             'max_users' => $plan->max_users,
             'features' => collect(PlanService::FEATURES)->mapWithKeys(fn ($f) => [$f => $plan->hasFeature($f)])->all(),
             'is_active' => $plan->is_active,
+            'approval_status' => $plan->approval_status,
             'properties' => (int) ($plan->properties_count ?? 0),
         ];
     }

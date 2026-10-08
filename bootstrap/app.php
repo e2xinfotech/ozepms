@@ -7,6 +7,7 @@ use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\PreventRequestForgery;
 use App\Http\Middleware\RequirePermission;
 use App\Http\Middleware\ResolveProperty;
+use App\Http\Middleware\SanitizeInput;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Infrastructure\Logging\ErrorRecorder;
@@ -34,7 +35,16 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::prefix('api/v1')->name('api.v1.')->middleware('throttle:api-key')->group(base_path('routes/api.php'));
 
             // Public booking engine (no login): /book/{property code}.
-            Route::middleware('web')->prefix('book')->name('booking.')->where(['code' => '[A-Za-z0-9]{2,12}'])->group(base_path('routes/booking.php'));
+            // With OZ_BOOKING_DOMAIN set it gets its own host (/{code}) and /book/{code} on the PMS host redirects there.
+            $bookingDomain = config('ozepms.booking_engine.domain');
+            if ($bookingDomain) {
+                Route::domain($bookingDomain)->middleware('web')->name('booking.')->where(['code' => '[A-Za-z0-9]{2,12}'])->group(base_path('routes/booking.php'));
+                Route::get('/book/{code}/{rest?}', fn (string $code, ?string $rest = null) => redirect()->away(
+                    'https://'.config('ozepms.booking_engine.domain').'/'.$code.($rest !== null ? '/'.$rest : '').(request()->getQueryString() ? '?'.request()->getQueryString() : ''), 301,
+                ))->where(['code' => '[A-Za-z0-9]{2,12}', 'rest' => '.*'])->name('booking.legacy');
+            } else {
+                Route::middleware('web')->prefix('book')->name('booking.')->where(['code' => '[A-Za-z0-9]{2,12}'])->group(base_path('routes/booking.php'));
+            }
 
             // Payment gateway callbacks: stateless (no session / CSRF), signature-checked by the handler.
             Route::prefix('hooks')->name('hooks.')->group(base_path('routes/hooks.php'));
@@ -52,10 +62,13 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prepend(\App\Http\Middleware\BookingHostOnly::class);
         $middleware->prepend(AssignRequestId::class);
+        $middleware->prepend(SanitizeInput::class);
         $middleware->append(SecurityHeaders::class);
+        $middleware->append(\App\Http\Middleware\RecordRequestTrail::class);
         $middleware->web(
-            append: [SetLocale::class, EnsureUserIsActive::class],
+            append: [SetLocale::class, EnsureUserIsActive::class, \App\Http\Middleware\GuardImpersonation::class],
             replace: [\Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class => PreventRequestForgery::class],
         );
 

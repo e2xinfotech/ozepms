@@ -53,6 +53,7 @@ class ServiceQuery
             'tax_category' => $s->taxCategory?->code,
             'sac_hsn_code' => $s->sac_hsn_code,
             'posting_rule' => $s->posting_rule,
+            'department' => $s->department,
             'is_active' => $s->is_active,
             'sort_order' => (int) $s->sort_order,
             'updated_at' => $s->updated_at?->toIso8601String(),

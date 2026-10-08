@@ -51,7 +51,8 @@ class TwoFactorService
             return false;
         }
         if (Totp::verify($user->two_factor_secret, $code)) {
-            return true;
+            // A code works once: seen again within its window (a copied or shoulder-surfed code) it is refused.
+            return \Illuminate\Support\Facades\Cache::add('totp-used:'.$user->id.':'.preg_replace('/\D/', '', $code), 1, 120);
         }
 
         return $this->useRecoveryCode($user, $code);

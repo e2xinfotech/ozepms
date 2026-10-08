@@ -45,6 +45,10 @@ class PlatformUserResource extends JsonResource
             'role_color' => $role?->color,
             'role_description' => $description,
             'status' => $user->status,
+            'can_manage' => $request->user() !== null && app(\App\Domain\Users\PlatformHierarchy::class)->canManage($request->user(), $user),
+            'can_reset_password' => $request->user() !== null && app(\App\Domain\Users\PlatformHierarchy::class)->canManage($request->user(), $user)
+                && app(\App\Domain\Platform\ImpersonationService::class)->state($request) === null,
+            'can_impersonate' => $request->user() !== null && app(\App\Domain\Platform\ImpersonationService::class)->canImpersonate($request->user(), $user),
             'two_factor' => $user->hasTwoFactorEnabled(),
             'last_login_at' => $user->last_login_at?->toIso8601String(),
             'created_at' => $user->created_at?->toIso8601String(),

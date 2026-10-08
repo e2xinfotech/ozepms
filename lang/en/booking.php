@@ -10,6 +10,7 @@ return [
         'check_out' => 'Check-out',
         'adults' => 'Adults',
         'children' => 'Children',
+        'years' => ':min–:max yrs',
         'infants' => 'Infants',
         'per_room' => 'Adults, children and infants are counted per room.',
         'rooms' => 'Rooms',

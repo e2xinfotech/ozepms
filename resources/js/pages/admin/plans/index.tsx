@@ -8,14 +8,15 @@ import { t } from '@/lib/i18n';
 interface Plan {
     id: number; code: string; name: string; description: string | null; price: string; currency_code: string; billing_cycle: string;
     trial_days: number; grace_days: number; max_room_types: number | null; max_units: number | null; max_users: number | null;
-    features: Record<string, boolean>; is_active: boolean; properties: number;
+    features: Record<string, boolean>; is_active: boolean; approval_status: string; properties: number;
 }
-interface Props { rows: Plan[]; meta: PageMeta; counts: { all: number; active: number; inactive: number }; filters: { status: string }; features: string[]; currencies: Option[] }
+interface Props { rows: Plan[]; meta: PageMeta; counts: { all: number; active: number; inactive: number }; filters: { status: string }; features: string[]; currencies: Option[]; can_approve: boolean }
 
 const limit = (v: number | null) => (v === null ? t('subscription.unlimited') : number(v));
 const str = (v: number | null) => (v === null ? '' : String(v));
 
-function PlanDrawer({ plan, features, currencies, onClose }: { plan: Plan | null; features: string[]; currencies: Option[]; onClose: () => void }) {
+function PlanDrawer({ plan, features, currencies, canApprove, onClose }: { plan: Plan | null; features: string[]; currencies: Option[]; canApprove: boolean; onClose: () => void }) {
+    const locked = !!plan && plan.approval_status === 'approved' && !canApprove;
     const [d, setD] = useState({
         code: plan?.code ?? '', name: plan?.name ?? '', description: plan?.description ?? '', price: plan?.price ?? '0.00',
         currency_code: plan?.currency_code ?? String(currencies[0]?.value ?? 'INR'), billing_cycle: plan?.billing_cycle ?? 'monthly',
@@ -52,8 +53,10 @@ function PlanDrawer({ plan, features, currencies, onClose }: { plan: Plan | null
     return (
         <Drawer open title={plan ? t('subscription.edit_plan') : t('subscription.add_plan')} onClose={onClose} footer={<>
             <Button onClick={onClose}>{t('ui.cancel')}</Button>
-            <Button variant="primary" icon="save" loading={busy} onClick={save}>{t('ui.save_changes')}</Button>
+            <Button variant="primary" icon="save" loading={busy} disabled={locked} onClick={save}>{t('ui.save_changes')}</Button>
         </>}>
+            {locked && <Alert tone="warn">{t('approvals.plan_locked')}</Alert>}
+            {!plan && !canApprove && <Alert tone="info">{t('approvals.plan_submitted')}</Alert>}
             {error && !Object.keys(error.fields).length && <Alert tone="danger">{error.message}</Alert>}
             <FormSection title={t('subscription.section_plan')}>
                 <Input fieldClass="span-4" label={t('subscription.code')} required disabled={!!plan} value={d.code} onChange={(e) => set('code', e.target.value)} error={error?.field('code')} hint={plan ? undefined : t('subscription.code_hint')} />
@@ -83,10 +86,10 @@ function PlanDrawer({ plan, features, currencies, onClose }: { plan: Plan | null
 }
 
 /** Super Admin → subscription plans. */
-function PlansPage({ rows, meta, counts, filters, features, currencies }: Props) {
+function PlansPage({ rows, meta, counts, filters, features, currencies, can_approve }: Props) {
     const [editing, setEditing] = useState<{ plan: Plan | null } | null>(null);
     const columns: Column<Plan>[] = [
-        { key: 'name', header: t('subscription.name'), render: (p) => <div><div className="cell-main">{p.name}</div><div className="cell-sub">{p.code}</div></div> },
+        { key: 'name', header: t('subscription.name'), render: (p) => <div><div className="cell-main">{p.name} {p.approval_status !== 'approved' && <Badge size="sm" status={p.approval_status === 'pending' ? 'pending_approval' : 'rejected'} />}</div><div className="cell-sub">{p.code}</div></div> },
         { key: 'price', header: t('subscription.price'), align: 'right', render: (p) => <><span className="nowrap">{money(p.price, p.currency_code)}</span><div className="cell-sub">{t(`subscription.cycles.${p.billing_cycle}`)}</div></> },
         { key: 'trial', header: t('subscription.trial_days'), align: 'right', render: (p) => number(p.trial_days) },
         { key: 'rt', header: t('subscription.max_room_types'), align: 'right', render: (p) => limit(p.max_room_types) },
@@ -109,7 +112,7 @@ function PlansPage({ rows, meta, counts, filters, features, currencies }: Props)
             ]} />
             <DataTable columns={columns} rows={rows} rowKey={(p) => p.code} onRowClick={(p) => setEditing({ plan: p })} />
             <Pagination meta={meta} label={t('subscription.plans_lc')} />
-            {editing && <PlanDrawer plan={editing.plan} features={features} currencies={currencies} onClose={() => setEditing(null)} />}
+            {editing && <PlanDrawer plan={editing.plan} features={features} currencies={currencies} canApprove={can_approve} onClose={() => setEditing(null)} />}
         </div>
     );
 }

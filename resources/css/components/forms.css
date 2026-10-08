@@ -8,7 +8,7 @@
 
 .control {
     position: relative; display: flex; align-items: center; height: var(--control-h); width: 100%;
-    background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius);
+    background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius-control);
     transition: border-color .12s, box-shadow .12s;
 }
 .control:hover { border-color: var(--input-hover); }
@@ -16,18 +16,18 @@
 .control.invalid { border-color: var(--red-solid); }
 .control.disabled { background: var(--surface-2); color: var(--muted); }
 .control input, .control select, .control textarea {
-    flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; padding: 0 12px; font-size: var(--text-md);
+    flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; padding: 0 16px; font-size: var(--text-md);
 }
-input.control { padding: 0 12px; min-width: 0; }
+input.control { padding: 0 16px; min-width: 0; }
 .control input::placeholder, .control textarea::placeholder { color: var(--subtle); }
-.control select { appearance: none; padding-right: 34px; cursor: pointer; }
-.control .control-chevron { position: absolute; right: 10px; pointer-events: none; color: var(--muted); }
-.control .control-icon { margin-left: 12px; color: var(--muted); flex: none; }
+.control select { appearance: none; padding-right: 38px; cursor: pointer; border-radius: var(--radius-control); }
+.control .control-chevron { position: absolute; right: 14px; pointer-events: none; color: var(--muted); }
+.control .control-icon { margin-left: 16px; color: var(--muted); flex: none; }
 .control .control-icon + input { padding-left: 10px; }
-.control .control-suffix { padding: 0 12px; color: var(--muted); font-size: var(--text-sm); white-space: nowrap; }
+.control .control-suffix { padding: 0 16px 0 4px; color: var(--muted); font-size: var(--text-sm); white-space: nowrap; }
 .control .control-action { border: 0; background: none; width: 36px; height: 100%; display: grid; place-items: center; color: var(--muted); cursor: pointer; }
-.control.textarea { height: auto; align-items: stretch; }
-.control.textarea textarea { padding: 10px 12px; resize: vertical; min-height: 84px; }
+.control.textarea { height: auto; align-items: stretch; border-radius: var(--radius-textarea); }
+.control.textarea textarea { padding: 12px 16px; border-radius: var(--radius-textarea); resize: vertical; min-height: 84px; }
 .control-sm { height: var(--control-h-sm); }
 .control-sm input, .control-sm select { font-size: var(--text-sm); }
 

@@ -22,8 +22,7 @@ class RoomTypeImageService
     {
         $property = $this->context->property();
         $dir = 'properties/'.$property->code.'/room-types/'.$roomType->public_id;
-        $name = Str::lower((string) Str::ulid()).'.'.($file->guessExtension() ?: 'jpg');
-        $path = $file->storeAs($dir, $name, RoomTypeImage::DISK);
+        $path = \App\Support\SafeUpload::image($file, RoomTypeImage::DISK, $dir, '', ['min_w' => 200, 'min_h' => 150]);
 
         $image = RoomTypeImage::query()->create([
             'room_type_id' => $roomType->id,

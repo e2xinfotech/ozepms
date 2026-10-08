@@ -15,7 +15,7 @@ class SaveRoleRequest extends FormRequest
             'name' => ['required', 'string', 'max:80'],
             'description' => ['nullable', 'string', 'max:255'],
             'color' => ['required', Rule::in(self::COLORS)],
-            'permissions' => ['present', 'array'],
+            'permissions' => ['present', 'array', 'max:300'],
             'permissions.*' => ['string', 'distinct', Rule::exists('permissions', 'key')->where('scope', 'property')],
         ];
     }

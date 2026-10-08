@@ -14,6 +14,9 @@ class Service extends Model
 
     public const POSTING_RULES = ['once', 'per_night', 'per_person', 'per_person_night'];
 
+    /** Outlets / departments a charge belongs to (shown separately on the reservation and the invoice). */
+    public const DEPARTMENTS = ['restaurant', 'bar', 'room_service', 'spa', 'laundry', 'transport', 'other'];
+
     protected $table = 'services';
 
     protected $guarded = ['id'];

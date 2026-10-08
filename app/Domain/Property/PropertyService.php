@@ -13,6 +13,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class PropertyService
 {
@@ -210,6 +211,10 @@ class PropertyService
         if ($before === $status) {
             return $property;
         }
+        if (in_array($before, ['pending_approval', 'rejected'], true)) {
+            // Registrations are decided on the Approvals screen, which also records who decided.
+            throw ValidationException::withMessages(['status' => __('approvals.use_approvals')]);
+        }
         $property->status = $status;
         $property->save();
         $this->audit->log('property.status_changed', $property, [
@@ -221,7 +226,8 @@ class PropertyService
 
     private function uniqueSlug(string $name): string
     {
-        $base = Str::slug($name) ?: 'property';
+        // The slug column holds 80 characters: a long name is cut, leaving room for the "-2", "-3" … suffix.
+        $base = rtrim(mb_substr(Str::slug($name), 0, 60), '-') ?: 'property';
         $slug = $base;
         $i = 2;
         while (Property::withTrashed()->where('slug', $slug)->exists()) {

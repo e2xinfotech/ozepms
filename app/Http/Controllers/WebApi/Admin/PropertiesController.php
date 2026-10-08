@@ -36,12 +36,11 @@ class PropertiesController extends Controller
     public function store(StorePropertyRequest $request): JsonResponse
     {
         $planId = $request->validated('plan_id');
-        $property = $this->properties->register(
-            $request->propertyFields(),
-            $request->owner(),
-            $planId ? SubscriptionPlan::query()->find($planId) : null,
-            $request->user(),
-        );
+        $plan = $planId ? SubscriptionPlan::query()->find($planId) : null;
+        $ownerId = $request->validated('owner_id');
+        $property = $ownerId
+            ? $this->properties->createWithLanguages($request->propertyFields(), \App\Models\User::query()->where('public_id', $ownerId)->firstOrFail(), $plan, $request->user())
+            : $this->properties->register($request->propertyFields(), $request->owner(), $plan, $request->user());
 
         $request->session()->flash('success', __('property.created'));
 
@@ -76,7 +75,7 @@ class PropertiesController extends Controller
         $codes = (array) $request->validated('codes');
 
         $changed = Tx::run(fn () => Property::query()->whereIn('code', $codes)->get()
-            ->filter(fn (Property $p) => $p->status !== $status)
+            ->filter(fn (Property $p) => $p->status !== $status && ! in_array($p->status, ['pending_approval', 'rejected'], true))
             ->each(fn (Property $p) => $this->properties->changeStatus($p, $status, $request->validated('reason')))
             ->count());
 

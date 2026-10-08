@@ -55,6 +55,20 @@ Why the URL rather than only the session: with two browser tabs open on two prop
 7. Public IDs (ULID / property code) only; internal numeric IDs never leave the server.
 8. Automated tests attempt cross-property access on every route.
 
+### Platform levels, "log in as" and the audit trail
+
+* **Levels:** Super Admin (the platform owner, created only from the server console) > Admin > IT Support (read-only) > property users.
+  Admins cannot create, change, disable or reset Admins or Super Admins; the last Super Admin cannot be disabled.
+* **Log in as:** Super Admin may act as Admins, IT Support and every property user; Admin may act as property users. Nobody acts as a
+  Super Admin, as themselves, or while already acting as someone. A reason is required, the session ends after 60 minutes, a banner
+  shows who is acting, and password / two-factor / profile changes are refused meanwhile. Start, stop and expiry are audited.
+* **Approvals:** self-registered properties, plans created by an Admin (a Super Admin approves) and connections to real channels
+  (an Admin enters the credentials and approves; suspend at any time) wait for a decision on **Approvals**; deciders and requesters are e-mailed.
+* **Audit:** `audit_logs` records business changes with `user_id` and `impersonator_id`; `request_trail` records every
+  POST/PUT/PATCH/DELETE (user, impersonator, property, route, field names only, status, IP), so a change can be traced even where a
+  service wrote no audit entry. The audit log is never pruned; the request trail is kept 730 days.
+* **Staff below an owner:** nobody gives a role, creates a role or changes a member holding more rights than they hold themselves.
+
 ## 4. Login and password security
 
 * HTTPS only, HSTS (preload). The password travels inside TLS; it is never sent in a URL, never logged, never stored in plain text. (Hashing in the browser adds no protection — the hash simply becomes the password — so we rely on TLS + server hashing, which is the industry standard.)

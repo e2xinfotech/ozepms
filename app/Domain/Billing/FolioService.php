@@ -319,6 +319,8 @@ class FolioService
                     'service_id' => $service?->id,
                     'tax_category_id' => $category?->id,
                     'description' => mb_substr($description, 0, 190),
+                    'department' => $this->departmentOf($type, $service, $data['department'] ?? null),
+                    'reference' => isset($data['reference']) && trim((string) $data['reference']) !== '' ? mb_substr(trim((string) $data['reference']), 0, 40) : null,
                     'sac_hsn_code' => $service?->sac_hsn_code ?: $category?->default_sac_hsn,
                     'quantity' => $quantity,
                     'unit_price' => Money::round($unit, 4),
@@ -341,6 +343,44 @@ class FolioService
             }
             throw $e;
         }
+    }
+
+    /** Outlet of a charge: chosen, else the service's own; adjustments and discounts belong to no outlet. */
+    private function departmentOf(string $type, ?Service $service, mixed $given): ?string
+    {
+        if ($type !== 'service') {
+            return null;
+        }
+        $given = is_string($given) ? $given : null;
+
+        return in_array($given, Service::DEPARTMENTS, true) ? $given : ($service?->department ?? 'other');
+    }
+
+    /**
+     * A bill from an outlet (restaurant, bar …): several items posted together under one bill number,
+     * each taxed by its own category. All items are posted or none.
+     *
+     * @param  array{department?: ?string, reference?: ?string, idempotency_key: string, lines: list<array<string, mixed>>}  $data
+     * @return list<FolioLine>
+     */
+    public function postBill(Reservation $reservation, array $data, ?User $by = null): array
+    {
+        $lines = array_values($data['lines'] ?? []);
+        if ($lines === []) {
+            throw ValidationException::withMessages(['lines' => __('billing.errors.bill_empty')]);
+        }
+
+        return Tx::run(function () use ($reservation, $data, $lines, $by) {
+            $out = [];
+            foreach ($lines as $i => $line) {
+                $out[] = $this->postCharge($reservation, $line + [
+                    'type' => 'service', 'department' => $data['department'] ?? null, 'reference' => $data['reference'] ?? null,
+                    'idempotency_key' => $data['idempotency_key'].':'.$i,
+                ], $by);
+            }
+
+            return $out;
+        });
     }
 
     /** Cancellation / no-show fee from the reservations module (posted once per kind). */

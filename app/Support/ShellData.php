@@ -40,15 +40,17 @@ final class ShellData
         $inProperty = $this->context->has();
         $property = $inProperty ? $this->context->property() : null;
 
-        $menu = $inProperty
+        $awaiting = $inProperty && in_array($property->status, ['pending_approval', 'rejected'], true) && ! $this->context->isSupportMode();
+        $menu = $awaiting ? [] : ($inProperty
             ? $this->menu('property', fn ($perm) => $this->access->allows($user, $perm), ['property' => $property->code])
-            : $this->menu('platform', fn ($perm) => in_array($perm, $platformPerms, true));
+            : $this->menu('platform', fn ($perm) => in_array($perm, $platformPerms, true)));
 
         $role = $inProperty
             ? (\App\Support\RoleLabel::name($this->context->membership()?->role?->code, $this->context->membership()?->role?->name) ?? __('roles.support_mode'))
             : \App\Support\RoleLabel::name($user->platformRoles->first()?->code, $user->platformRoles->first()?->name);
 
         return self::guest() + [
+            'impersonation' => $this->impersonation($user),
             'menu' => $menu,
             'is_platform' => count($platformPerms) > 0,
             'admin_url' => in_array('platform.dashboard', $platformPerms, true) ? route('admin.dashboard') : null,
@@ -76,6 +78,22 @@ final class ShellData
             ] : null,
             'properties' => $this->switcher($user->id),
             'current_route' => Route::currentRouteName(),
+        ];
+    }
+
+    /** Set while platform staff act as this user: who they really are and when the session ends. */
+    private function impersonation(\App\Models\User $user): ?array
+    {
+        $state = app(\App\Domain\Platform\ImpersonationService::class)->state(request());
+        if ($state === null) {
+            return null;
+        }
+
+        return [
+            'actor' => \App\Models\User::query()->whereKey($state['actor_id'])->value('name'),
+            'target' => $user->name,
+            'expires_at' => date('c', $state['expires_at']),
+            'minutes_left' => max(0, (int) ceil(($state['expires_at'] - now()->timestamp) / 60)),
         ];
     }
 

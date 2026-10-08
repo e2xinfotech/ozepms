@@ -54,3 +54,9 @@ a.link { color: var(--brand-600); font-weight: var(--weight-semibold); }
 .pay-compact th:last-child, .pay-compact td:last-child { padding-right: 0; }
 .pay-compact .cell-clip { display: inline-block; max-width: 70px; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
 .cell-sub.block { display: block; color: var(--muted); font-size: var(--text-xs); margin-top: 2px; }
+
+/* Invoice and bill entry: outlet groups */
+.inv-table tr.inv-group td { background: var(--surface-2, #f8fafc); padding-top: 8px; padding-bottom: 8px; border-top: 1px solid var(--line); }
+.inv-table tr.inv-subtotal td { border-top: 1px dashed var(--line); font-size: var(--text-sm); }
+.bill-row { align-items: end; grid-template-columns: repeat(12, minmax(0, 1fr)); position: relative; margin-bottom: 6px; }
+.bill-row > .btn { position: absolute; right: -6px; top: 0; }

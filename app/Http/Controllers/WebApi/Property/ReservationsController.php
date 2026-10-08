@@ -86,7 +86,8 @@ class ReservationsController extends Controller
             }
             $r['check_in'] = CarbonImmutable::parse($r['check_in']);
             $r['check_out'] = CarbonImmutable::parse($r['check_out']);
-            $r['child_ages'] = $r['child_ages'] ?? [...array_fill(0, (int) ($r['children'] ?? 0), 8), ...array_fill(0, (int) ($r['infants'] ?? 0), 0)];
+            $ages ??= app(\App\Domain\Property\AgeBandService::class)->representativeAges(app(\App\Support\PropertyContext::class)->id());
+            $r['child_ages'] = $r['child_ages'] ?? [...array_fill(0, (int) ($r['children'] ?? 0), $ages['child']), ...array_fill(0, (int) ($r['infants'] ?? 0), $ages['infant'])];
         }
         unset($r);
         $v = $request->validated();
@@ -183,6 +184,74 @@ class ReservationsController extends Controller
         return $this->done($request, $r, __('reservations.messages.checked_in', ['guest' => $r->guest_name]));
     }
 
+    /** People staying besides the main guest, with the head counts to fill and the option lists. */
+    public function occupants(Request $request, \App\Domain\Reservations\OccupantService $occupants, \App\Domain\Access\AccessService $access, mixed $property, string $reservation): JsonResponse
+    {
+        $r = $this->reservationOr404($reservation);
+        $showIds = $access->allows($request->user(), 'guests.update');
+
+        return response()->json([
+            'rooms' => $occupants->forReservation($r, $showIds),
+            'bands' => app(\App\Domain\Property\AgeBandService::class)->bands($r->property_id),
+            'countries' => array_map(fn ($c) => ['value' => $c['value'], 'label' => $c['label']], \App\Support\Lookups::countries()),
+        ]);
+    }
+
+    public function saveOccupants(Request $request, \App\Domain\Reservations\OccupantService $occupants, mixed $property, string $reservation): JsonResponse
+    {
+        $r = $this->reservationOr404($reservation);
+        $data = $request->validate([
+            'room_id' => ['required', 'string', 'size:26'],
+            'occupants' => ['present', 'array', 'max:20'],
+            'occupants.*.id' => ['nullable', 'string', 'size:26'],
+            'occupants.*.person_type' => ['nullable', 'in:adult,child,infant'],
+            'occupants.*.age' => ['nullable', 'integer', 'min:0', 'max:120'],
+            'occupants.*.first_name' => ['nullable', 'string', 'max:80'],
+            'occupants.*.last_name' => ['nullable', 'string', 'max:80'],
+            'occupants.*.date_of_birth' => ['nullable', 'date_format:Y-m-d', 'before:today'],
+            'occupants.*.gender' => ['nullable', 'in:female,male,other'],
+            'occupants.*.nationality_iso2' => ['nullable', 'string', 'size:2', 'exists:countries,iso2'],
+            'occupants.*.id_type' => ['nullable', \Illuminate\Validation\Rule::in(\App\Models\Guest::ID_TYPES)],
+            'occupants.*.id_number' => ['nullable', 'string', 'max:40'],
+        ]);
+        $room = $this->roomOr404($r, $data['room_id']);
+        $saved = $occupants->save($r, $room, $data['occupants'], $request->user());
+
+        return response()->json(['message' => __('reservations.occupants.saved'), 'people' => $saved]);
+    }
+
+    /** CSV of everyone staying (the police / guest register): one row per person. */
+    public function guestRegister(Request $request, \App\Domain\Reservations\OccupantService $occupants, \App\Domain\Access\AccessService $access, mixed $property, string $reservation): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $r = $this->reservationOr404($reservation);
+        abort_unless($access->allows($request->user(), 'guests.update'), 403);
+        $r->loadMissing('primaryGuest', 'rooms.roomType');
+        $rows = [];
+        $primary = $r->primaryGuest;
+        $first = true;
+        foreach ($occupants->forReservation($r, true) as $room) {
+            $stay = $r->rooms->firstWhere('public_id', $room['room_id']);
+            if ($first && $primary !== null) {
+                $rows[] = [$r->booking_ref, $room['index'], $room['room_type'], __('reservations.occupants.main_guest'), $primary->first_name, $primary->last_name, $primary->date_of_birth?->toDateString(), '', $primary->gender, $primary->nationality_iso2, $primary->id_type, $primary->id_number_enc, $stay?->check_in?->toDateString(), $stay?->check_out?->toDateString()];
+                $first = false;
+            }
+            foreach ($room['people'] as $p) {
+                $rows[] = [$r->booking_ref, $room['index'], $room['room_type'], __('reservations.occupants.type_'.$p['person_type']), $p['first_name'], $p['last_name'], $p['date_of_birth'], $p['age'], $p['gender'], $p['nationality_iso2'], $p['id_type'], $p['id_number'], $stay?->check_in?->toDateString(), $stay?->check_out?->toDateString()];
+            }
+        }
+        $head = ['Booking', 'Room', 'Room type', 'Role', 'First name', 'Last name', 'Date of birth', 'Age', 'Gender', 'Nationality', 'ID type', 'ID number', 'Check-in', 'Check-out'];
+
+        return response()->streamDownload(function () use ($head, $rows) {
+            $out = fopen('php://output', 'w');
+            \App\Support\Csv::put($out, $head);
+            foreach ($rows as $row) {
+                // Cells starting with = + - @ would be run as formulas by spreadsheets.
+                \App\Support\Csv::put($out, $row);
+            }
+            fclose($out);
+        }, 'guest-register-'.$r->booking_ref.'.csv', ['Content-Type' => 'text/csv']);
+    }
+
     public function checkOut(ActionRequest $request, AccessService $access, mixed $property, string $reservation): JsonResponse
     {
         $r = $this->reservationOr404($reservation);
@@ -198,7 +267,9 @@ class ReservationsController extends Controller
         $room = $this->roomOr404($r, (string) $request->validated('room_id'));
         $unitId = $request->validated('unit_id');
         $unit = $unitId ? $this->unitField($unitId, 'unit_id') : null;
-        $this->service->assignUnit($r, $room, $unit, $request->user());
+        $from = $request->validated('from');
+        $to = $request->validated('to');
+        $this->service->assignUnit($r, $room, $unit, $request->user(), $from ? CarbonImmutable::parse($from) : null, $to ? CarbonImmutable::parse($to) : null);
 
         return $this->done($request, $r->fresh(), $unit ? __('reservations.messages.assigned', ['room' => $unit->name]) : __('reservations.messages.unassigned'));
     }
@@ -237,10 +308,10 @@ class ReservationsController extends Controller
 
         return response()->streamDownload(function () use ($rows) {
             $out = fopen('php://output', 'w');
-            fputcsv($out, array_map(fn ($k) => __('reservations.export_columns.'.$k), ['ref', 'status', 'guest', 'phone', 'check_in', 'check_out', 'nights', 'rooms', 'room_type', 'rate_plan', 'adults', 'children', 'total', 'paid', 'balance', 'currency', 'source', 'created']));
+            \App\Support\Csv::put($out, array_map(fn ($k) => __('reservations.export_columns.'.$k), ['ref', 'status', 'guest', 'phone', 'check_in', 'check_out', 'nights', 'rooms', 'room_type', 'rate_plan', 'adults', 'children', 'total', 'paid', 'balance', 'currency', 'source', 'created']));
             $rows->chunk(500, function ($chunk) use ($out) {
                 foreach ($chunk as $r) {
-                    fputcsv($out, [
+                    \App\Support\Csv::put($out, [
                         $r->booking_ref, __('reservations.status.'.$r->status), $r->guest_name, $r->guest_phone, $r->check_in->toDateString(), $r->check_out->toDateString(),
                         $r->nights, $r->room_count, $r->rooms->map(fn ($x) => $x->roomType?->name)->unique()->implode(', '),
                         $r->rooms->map(fn ($x) => $x->ratePlan?->name)->unique()->implode(', '), $r->adults, $r->children,

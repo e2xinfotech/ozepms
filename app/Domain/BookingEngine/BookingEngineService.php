@@ -115,6 +115,7 @@ class BookingEngineService
             'stars' => $property->star_rating, 'currency' => $property->currency_code,
             'check_in_time' => substr((string) $property->check_in_time, 0, 5), 'check_out_time' => substr((string) $property->check_out_time, 0, 5),
             'today' => $this->today($property)->toDateString(),
+            'age_bands' => app(\App\Domain\Property\AgeBandService::class)->bands($property->id),
             'online_payments' => $this->razorpay->enabled(),
             'limits' => ['max_nights' => (int) config('ozepms.booking_engine.max_nights'), 'max_days_ahead' => (int) config('ozepms.booking_engine.max_days_ahead'), 'max_rooms' => (int) config('ozepms.booking_engine.max_rooms')],
         ] + $this->settings($property);
@@ -156,7 +157,7 @@ class BookingEngineService
         $count = max(1, min((int) ($data['rooms'] ?? 1), (int) config('ozepms.booking_engine.max_rooms')));
 
         return InProperty::run($property, function () use ($property, $data, $in, $out, $count) {
-            $roomType = RoomType::query()->where('public_id', $data['room_type_id'])->where('is_active', true)->first();
+            $roomType = RoomType::query()->where('public_id', $data['room_type_id'])->where('is_active', true)->where('show_on_booking_engine', true)->first();
             $plan = RatePlan::query()->where('public_id', $data['rate_plan_id'])->where('is_active', true)->where('sell_on_booking_engine', true)->first();
             $product = $roomType && $plan ? Product::query()->where('room_type_id', $roomType->id)->where('rate_plan_id', $plan->id)->where('is_active', true)->first() : null;
             if ($product === null) {
@@ -165,9 +166,10 @@ class BookingEngineService
             $product->setRelation('ratePlan', $plan);
             $children = (int) ($data['children'] ?? 0);
             $infants = (int) ($data['infants'] ?? 0);
+            $ages = app(\App\Domain\Property\AgeBandService::class)->representativeAges($property->id);
             $spec = [
                 'id' => null, 'product' => $product, 'check_in' => $in, 'check_out' => $out, 'adults' => (int) $data['adults'],
-                'children' => $children, 'infants' => $infants, 'child_ages' => [...array_fill(0, $children, 8), ...array_fill(0, $infants, 0)],
+                'children' => $children, 'infants' => $infants, 'child_ages' => [...array_fill(0, $children, $ages['child']), ...array_fill(0, $infants, $ages['infant'])],
                 'rate' => null, 'unit' => null,
             ];
             $online = $plan->payment_type !== 'pay_at_property' && $this->razorpay->enabled();
@@ -310,7 +312,7 @@ class BookingEngineService
 
         foreach ($result->roomTypes as $rt) {
             $type = $types[$rt['room_type_id']] ?? null;
-            if ($type === null) {
+            if ($type === null || ! $type->show_on_booking_engine) {
                 continue;
             }
             $rates = [];

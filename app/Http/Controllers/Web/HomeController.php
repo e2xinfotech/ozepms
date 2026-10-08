@@ -26,7 +26,7 @@ class HomeController extends Controller
             ->where('property_users.user_id', $user->id)
             ->where('property_users.status', 'active')
             ->whereNull('properties.deleted_at')
-            ->whereIn('properties.status', ['onboarding', 'active'])
+            ->whereIn('properties.status', ['pending_approval', 'rejected', 'onboarding', 'active'])
             ->pluck('properties.code', 'properties.id');
 
         if ($user->last_property_id && $codes->has($user->last_property_id)) {

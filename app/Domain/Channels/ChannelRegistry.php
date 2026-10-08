@@ -14,10 +14,16 @@ class ChannelRegistry
     {
         $out = [];
         foreach ((array) config('channels.providers', []) as $key => $p) {
-            $out[$key] = ['key' => $key, 'available' => ! empty($p['class'])];
+            $out[$key] = ['key' => $key, 'available' => ! empty($p['class']), 'requires_approval' => $this->requiresApproval($key)];
         }
 
         return $out;
+    }
+
+    /** Connections to real channels need approval; E2X enters the credentials. */
+    public function requiresApproval(string $key): bool
+    {
+        return (bool) config("channels.providers.{$key}.requires_approval", true);
     }
 
     public function available(string $key): bool

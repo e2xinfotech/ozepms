@@ -62,6 +62,7 @@ return [
     'range_too_long' => 'Choisissez une période de :n jours maximum.',
     'unsaved_changes' => 'Vous avez des modifications non enregistrées.',
     'status' => [
+        'pending_approval' => 'En attente d’approbation', 'approved' => 'Approuvé', 'rejected' => 'Refusé',
         'active' => 'Actif', 'inactive' => 'Inactif', 'disabled' => 'Désactivé', 'invited' => 'Invité', 'locked' => 'Verrouillé',
         'onboarding' => 'Configuration', 'suspended' => 'Suspendu', 'setup' => 'Configuration',
         'trial' => 'Essai', 'grace' => 'Période de grâce', 'expired' => 'Expiré', 'cancelled' => 'Annulé', 'none' => 'Aucun forfait',

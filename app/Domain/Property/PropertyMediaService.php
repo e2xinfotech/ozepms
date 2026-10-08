@@ -23,8 +23,7 @@ class PropertyMediaService
     public function store(Property $property, string $kind, UploadedFile $file): Property
     {
         $column = self::COLUMNS[$kind];
-        $name = $kind.'-'.Str::lower((string) Str::ulid()).'.'.($file->guessExtension() ?: 'jpg');
-        $path = $file->storeAs('properties/'.$property->code, $name, self::DISK);
+        $path = \App\Support\SafeUpload::image($file, self::DISK, 'properties/'.$property->code, $kind.'-', ['min_w' => 64, 'min_h' => 64]);
 
         $old = $property->{$column};
         $property->forceFill([$column => $path])->save();

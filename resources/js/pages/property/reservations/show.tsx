@@ -7,6 +7,7 @@ import { t } from '@/lib/i18n';
 import { propertyApiUrl, propertyUrl } from '@/lib/page';
 import { BillingSlot, hasBilling } from './_components/BillingSlot';
 import { GuestCount, Money, StatusBadge } from './_components/bits';
+import { OccupantsCard } from './_components/Occupants';
 import { DocumentsList, HistoryList, NotesBox, useHistory } from './_components/History';
 import { ReservationDialogs, type DialogKind } from './_components/ReservationDialogs';
 import { billingRef, type ReservationDetail, type ReservationRoomDetail } from './_components/types';
@@ -150,6 +151,7 @@ function ReservationShow({ reservation, tab: initialTab }: Props) {
                         <div className="price-summary">
                             <div className="ps-row"><span>{t('reservations.form.room_charges', { count: r.nights })}</span><Money value={r.totals.room_total} currency={cur} /></div>
                             <div className="ps-row"><span>{t('reservations.form.extra_charges')}</span><Money value={r.totals.extras_total} currency={cur} /></div>
+                            {(r.extras_by_department ?? []).map((x) => <div key={x.department} className="ps-row sub" title={`${t('billing.fields.tax')}: ${money(x.tax, cur)}`}><span>{t(`billing.departments.${x.department}`)}</span><Money value={x.amount} currency={cur} /></div>)}
                             <div className="ps-row"><span>{t('reservations.form.discount')}</span><Money value={r.totals.discount_total} currency={cur} /></div>
                             {r.offers.map((o, i) => <div key={o.id ?? i} className="ps-row sub"><span>{o.name}{o.promo_code ? ` (${o.promo_code})` : ''}</span><Money value={o.amount} currency={cur} /></div>)}
                             <div className="ps-row strong"><span>{t('reservations.form.subtotal')}</span><Money value={r.totals.subtotal} currency={cur} strong /></div>
@@ -203,7 +205,7 @@ function ReservationShow({ reservation, tab: initialTab }: Props) {
                     </div> : <p className="muted">—</p>}
                 </Card>
                 <Card title={t('reservations.detail.other_guests')}>
-                    {r.companions.length === 0 ? <p className="muted">—</p> : <ul className="list-plain">{r.companions.map((c) => <li key={c.id} className="row"><Flag code={c.nationality} />{c.name}</li>)}</ul>}
+                    <OccupantsCard reservationId={r.id} canRegister={!!r.can_see_ids} />
                 </Card>
             </div>}
 
@@ -212,7 +214,9 @@ function ReservationShow({ reservation, tab: initialTab }: Props) {
                     <Card key={x.id} title={`${t('reservations.detail.room_n', { n: i + 1 })} · ${x.room_type?.name ?? ''}`} actions={<StatusBadge size="sm" status={x.status} />}>
                         <div className="res-grid-2">
                             <KeyValue items={[
-                                { label: t('reservations.fields.unit'), value: x.unit?.name ?? t('reservations.not_assigned') },
+                                { label: t('reservations.fields.unit'), value: x.units.length > 1
+                                    ? <span className="stack" style={{ gap: 2 }}>{x.units.map((u) => <span key={u.from + u.id}><strong>{u.name}</strong> <span className="muted num">{date(u.from)} – {date(addNight(u.to))}</span></span>)}<Badge size="sm" tone="blue">{t('reservations.split_badge', { count: x.units.length })}</Badge></span>
+                                    : (x.unit?.name ?? t('reservations.not_assigned')) },
                                 { label: t('reservations.fields.rate_plan'), value: `${x.rate_plan.name ?? ''}${x.rate_plan.code ? ` (${x.rate_plan.code})` : ''}` },
                                 { label: t('reservations.fields.meal_plan'), value: x.meal_plan },
                                 { label: t('reservations.fields.policy'), value: <span className="row">{x.policy.name}<Badge size="sm" status={x.policy.refundable ? 'refundable' : 'non_refundable'} /></span> },
@@ -307,3 +311,10 @@ function DocumentsTab({ r }: { r: ReservationDetail }) {
 }
 
 createPage(ReservationShow);
+
+/** Last night + 1 day: the day the guest leaves that PMS room. */
+function addNight(iso: string): string {
+    const d = new Date(`${iso}T00:00:00`);
+    d.setDate(d.getDate() + 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}

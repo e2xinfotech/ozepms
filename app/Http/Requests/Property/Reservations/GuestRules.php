@@ -19,6 +19,7 @@ final class GuestRules
             $prefix.'phone' => ['nullable', 'string', 'max:25', 'regex:/^[+\d][\d\s().-]{5,24}$/'],
             $prefix.'country_iso2' => ['nullable', 'string', 'size:2', 'exists:countries,iso2'],
             $prefix.'nationality_iso2' => ['nullable', 'string', 'size:2', 'exists:countries,iso2'],
+            $prefix.'gender' => ['nullable', Rule::in(['female', 'male', 'other'])],
             $prefix.'date_of_birth' => ['nullable', 'date_format:Y-m-d', 'before:today'],
             $prefix.'address_line1' => ['nullable', 'string', 'max:190'],
             $prefix.'address_line2' => ['nullable', 'string', 'max:190'],

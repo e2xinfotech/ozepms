@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
             ->name('property.')
             ->group(function () {
                 Route::get('/', fn ($property) => redirect()->route('property.dashboard', $property));
+                Route::get('/pending-approval', Property\PendingApprovalController::class)->name('pending');
                 Route::get('/dashboard', Property\DashboardController::class)->middleware('can.do:property.view')->name('dashboard');
                 Route::get('/properties', [Property\PropertiesController::class, 'index'])->middleware('can.do:property.view')->name('properties');
                 Route::get('/settings', [Property\SettingsController::class, 'edit'])->middleware('can.do:property.view')->name('settings');
@@ -60,6 +61,7 @@ Route::middleware('auth')->group(function () {
                 Route::get('/properties/new', [Admin\PropertiesController::class, 'create'])->middleware('can.do:platform.properties.manage')->name('properties.create');
                 Route::get('/properties/{code}/edit', [Admin\PropertiesController::class, 'edit'])->middleware('can.do:platform.properties.manage')->name('properties.edit');
                 Route::get('/users', [Admin\UsersController::class, 'index'])->middleware('can.do:platform.users.manage')->name('users');
+                Route::get('/approvals', [Admin\ApprovalsController::class, 'index'])->middleware('can.do:platform.approvals.manage')->name('approvals');
                 Route::get('/plans', [Admin\PlansController::class, 'index'])->middleware('can.do:platform.plans.manage')->name('plans');
                 Route::get('/audit', [Admin\AuditController::class, 'index'])->middleware('can.do:platform.audit.view')->name('audit');
                 Route::get('/system', [Admin\SystemController::class, 'index'])->middleware('can.do:platform.system.view')->name('system');

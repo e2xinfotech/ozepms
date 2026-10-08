@@ -1,6 +1,6 @@
 /** Shapes returned by CalendarQuery (app/Domain/Inventory/Queries/CalendarQuery.php). Short keys keep the payload small. */
 
-export interface Day { date: string; day: number; dow: number; weekend: boolean }
+export interface Day { date: string; day: number; dow: number; weekend: boolean; past?: boolean }
 
 /** Availability of a room type for one night. */
 export interface InvDay {

@@ -46,8 +46,8 @@ class SubscriptionService
     {
         $code = config('ozepms.subscription.default_plan');
 
-        return SubscriptionPlan::query()->where('is_active', true)->where('code', $code)->first()
-            ?? SubscriptionPlan::query()->where('is_active', true)->orderBy('sort_order')->first();
+        return SubscriptionPlan::query()->where('is_active', true)->where('approval_status', 'approved')->where('code', $code)->first()
+            ?? SubscriptionPlan::query()->where('is_active', true)->where('approval_status', 'approved')->orderBy('sort_order')->first();
     }
 
     public function suspend(Subscription $subscription, ?string $reason = null): void

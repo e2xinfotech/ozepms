@@ -73,8 +73,8 @@ function BookingSearch({ property, query }: Props) {
                 <Input type="date" label={t('booking.search.check_out')} min={addDays(form.check_in, 1)} max={addDays(form.check_in, property.limits.max_nights)}
                     value={form.check_out} onChange={(e) => set('check_out', e.target.value)} error={error?.field('check_out')} />
                 <Select label={t('booking.search.adults')} value={form.adults} options={range(1, 10)} onChange={(e) => set('adults', e.target.value)} />
-                <Select label={t('booking.search.children')} value={form.children} options={range(0, 6)} onChange={(e) => set('children', e.target.value)} />
-                <Select label={t('booking.search.infants')} value={form.infants} options={range(0, 4)} onChange={(e) => set('infants', e.target.value)} />
+                <Select label={`${t('booking.search.children')} (${t('booking.search.years', property.age_bands.child)})`} value={form.children} options={range(0, 6)} onChange={(e) => set('children', e.target.value)} />
+                <Select label={`${t('booking.search.infants')} (${t('booking.search.years', property.age_bands.infant)})`} value={form.infants} options={range(0, 4)} onChange={(e) => set('infants', e.target.value)} />
                 <Select label={t('booking.search.rooms')} value={form.rooms} options={range(1, property.limits.max_rooms)} onChange={(e) => set('rooms', e.target.value)} />
                 <Input label={t('booking.search.promo')} optional maxLength={30} value={form.promo_code} onChange={(e) => set('promo_code', e.target.value.toUpperCase())} />
                 <div className="be-search-go"><Button type="submit" variant="primary" icon="search" loading={busy}>{t('booking.search.button')}</Button></div>

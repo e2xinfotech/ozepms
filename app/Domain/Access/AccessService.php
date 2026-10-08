@@ -84,6 +84,12 @@ class AccessService
             ->all());
     }
 
+    /** True when every permission of the role is also held by the user in this property (nobody hands out more than they have). */
+    public function covers(User $user, int $roleId): bool
+    {
+        return array_diff($this->rolePermissions($roleId), $this->propertyPermissions($user)) === [];
+    }
+
     public function forgetRole(int $roleId): void
     {
         Cache::forget("role_permissions:$roleId");

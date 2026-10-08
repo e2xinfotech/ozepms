@@ -25,7 +25,7 @@ class TaxRule extends Model
 
     public const CALC_TYPES = ['percent', 'fixed_per_night', 'fixed_per_person_night', 'fixed_per_stay', 'fixed_per_booking'];
 
-    public const APPLY_TO = ['room_charges', 'add_ons', 'fnb', 'events'];
+    public const APPLY_TO = ['room_charges', 'add_ons', 'fnb', 'events', 'beverage', 'liquor'];
 
     protected $table = 'tax_rules';
 

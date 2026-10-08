@@ -8,7 +8,7 @@ const tones: Record<string, Tone> = {
     // generic
     active: 'green', inactive: 'slate', disabled: 'slate', invited: 'amber', locked: 'red',
     // property
-    onboarding: 'amber', suspended: 'red', setup: 'amber',
+    onboarding: 'amber', suspended: 'red', setup: 'amber', pending_approval: 'amber', approved: 'green', rejected: 'red',
     // subscription
     trial: 'blue', grace: 'amber', expired: 'red', cancelled: 'slate', none: 'red', scheduled: 'blue',
     // reservation

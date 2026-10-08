@@ -41,6 +41,8 @@ return [
         'web' => [
             'driver' => 'oz-session',
             'provider' => 'users',
+            // "Keep me signed in" lasts 30 days (minutes), not the framework default of five years.
+            'remember' => (int) env('OZ_REMEMBER_MINUTES', 43200),
         ],
     ],
 

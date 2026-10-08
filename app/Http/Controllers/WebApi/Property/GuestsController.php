@@ -111,14 +111,14 @@ class GuestsController extends Controller
     {
         $property = $this->context->property();
         $name = 'guests-'.$property->code.'-'.now($property->timezone)->format('Ymd-His').'.csv';
-        $query = Guest::query()->whereNull('anonymized_at')->orderBy('guest_no');
+        $query = Guest::query()->whereNull('anonymized_at')->where('is_companion', 0)->orderBy('guest_no');
 
         return response()->streamDownload(function () use ($query) {
             $out = fopen('php://output', 'w');
-            fputcsv($out, array_map(fn ($k) => __('guests.fields.'.$k), ['number', 'first_name', 'last_name', 'email', 'phone', 'nationality_iso2', 'guest_type', 'company_name', 'is_vip', 'created_at']));
+            \App\Support\Csv::put($out, array_map(fn ($k) => __('guests.fields.'.$k), ['number', 'first_name', 'last_name', 'email', 'phone', 'nationality_iso2', 'guest_type', 'company_name', 'is_vip', 'created_at']));
             $query->chunk(500, function ($chunk) use ($out) {
                 foreach ($chunk as $g) {
-                    fputcsv($out, [$g->number(), $g->first_name, $g->last_name, $g->email, $g->phone_e164, $g->nationality_iso2,
+                    \App\Support\Csv::put($out, [$g->number(), $g->first_name, $g->last_name, $g->email, $g->phone_e164, $g->nationality_iso2,
                         __('guests.types.'.$g->guest_type), $g->company_name, $g->is_vip ? __('ui.yes') : __('ui.no'), $g->created_at?->toDateTimeString()]);
                 }
             });

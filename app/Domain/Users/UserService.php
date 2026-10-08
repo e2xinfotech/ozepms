@@ -19,6 +19,7 @@ class UserService
     public function __construct(
         private readonly AuditLogger $audit,
         private readonly AccessService $access,
+        private readonly PlatformHierarchy $hierarchy,
     ) {}
 
     /**
@@ -53,10 +54,29 @@ class UserService
         return $user;
     }
 
+    /**
+     * Platform staff create a property owner first (no property yet); the owner gets an e-mail to set a password
+     * and is then chosen when a property is registered. An existing e-mail is reused, never a platform account.
+     *
+     * @param  array{name: string, email: string, job_title?: ?string, phone_e164?: ?string, locale?: ?string}  $data
+     */
+    public function createOwner(array $data, User $by): User
+    {
+        $existing = User::query()->where('email', Str::lower(trim($data['email'])))->first();
+        if ($existing !== null && $existing->is_platform_user) {
+            throw ValidationException::withMessages(['email' => __('users.owner_is_staff')]);
+        }
+        $user = $this->findOrInvite($data);
+        $this->audit->log('owner.created', $user, ['after' => ['email' => $user->email, 'existing' => $existing !== null]], null, $by->id);
+
+        return $user;
+    }
+
     /** Adds a user to the property selected in the request context. */
     public function addToProperty(Property $property, array $data, Role $role, User $by): PropertyUser
     {
         $this->assertRoleUsable($role, $property);
+        $this->assertWithinReach($by, $role);
         app(\App\Domain\Subscription\SubscriptionService::class)->assertCanAddUser($property);
 
         return Tx::run(function () use ($property, $data, $role, $by) {
@@ -89,9 +109,21 @@ class UserService
             throw ValidationException::withMessages(['status' => __('users.cannot_change_self')]);
         }
 
+        if ($by && $membership->user_id !== $by->id) {
+            // Nobody changes the access of a person who holds more rights than they do.
+            $this->assertWithinReach($by, $membership->role);
+        }
+        if ($by && $role) {
+            $this->assertWithinReach($by, $role);
+        }
+
         return Tx::run(function () use ($membership, $userData, $role, $status) {
             $user = $membership->user;
             $user->fill(array_filter($userData, fn ($v) => $v !== null));
+            if ($user->isDirty() && ! $this->belongsOnlyTo($membership)) {
+                // The account is shared with other hotels or the platform: only the person can change their own details.
+                throw ValidationException::withMessages(['name' => __('users.shared_account')]);
+            }
             if ($user->isDirty()) {
                 $diff = $this->audit->diff($user);
                 $user->save();
@@ -128,6 +160,9 @@ class UserService
         if ($by && $membership->user_id === $by->id) {
             throw ValidationException::withMessages(['user' => __('users.cannot_remove_self')]);
         }
+        if ($by) {
+            $this->assertWithinReach($by, $membership->role);
+        }
         if ($membership->is_owner) {
             throw ValidationException::withMessages(['user' => __('users.owner_cannot_remove')]);
         }
@@ -140,6 +175,10 @@ class UserService
         if ($user->id === $by->id) {
             throw ValidationException::withMessages(['status' => __('users.cannot_change_self')]);
         }
+        $this->hierarchy->assertCanManage($by, $user);
+        if ($status !== 'active') {
+            $this->hierarchy->assertNotLastSuperAdmin($user);
+        }
         $before = $user->status;
         $user->forceFill(['status' => $status])->save();
         if ($status === 'disabled') {
@@ -148,8 +187,11 @@ class UserService
         $this->audit->log('user.status_changed', $user, ['before' => ['status' => $before], 'after' => ['status' => $status]]);
     }
 
-    public function sendPasswordLink(User $user): void
+    public function sendPasswordLink(User $user, ?User $by = null): void
     {
+        if ($by !== null) {
+            $this->hierarchy->assertCanManage($by, $user);
+        }
         Password::broker()->sendResetLink(['email' => $user->email]);
         $this->audit->log('user.password_link_sent', $user);
     }
@@ -168,9 +210,15 @@ class UserService
      * @param  array{name: string, email: string, job_title?: ?string, phone_e164?: ?string, locale?: ?string}  $data
      * @param  array<int, string>  $roleCodes
      */
-    public function createPlatformUser(array $data, array $roleCodes): User
+    public function createPlatformUser(array $data, array $roleCodes, User $by): User
     {
-        return Tx::run(function () use ($data, $roleCodes) {
+        $this->hierarchy->assertCanAssign($by, $roleCodes);
+
+        return Tx::run(function () use ($data, $roleCodes, $by) {
+            $existing = User::query()->where('email', Str::lower(trim($data['email'])))->first();
+            if ($existing !== null) {
+                $this->hierarchy->assertCanManage($by, $existing);
+            }
             $user = $this->findOrInvite($data, true);
             $this->syncPlatformRoles($user, $this->platformRoleIds($roleCodes));
 
@@ -184,6 +232,21 @@ class UserService
      */
     public function updatePlatformUser(User $user, array $data, ?array $roleCodes, User $by): User
     {
+        $this->hierarchy->assertCanManage($by, $user);
+        if ($roleCodes !== null && $user->id === $by->id) {
+            // Sending back your own unchanged roles is not a change.
+            $current = $user->platformRoles()->pluck('code')->sort()->values()->all();
+            if (collect($roleCodes)->sort()->values()->all() === $current) {
+                $roleCodes = null;
+            }
+        }
+        if ($roleCodes !== null) {
+            $this->hierarchy->assertCanAssign($by, $roleCodes);
+            if ($user->id !== $by->id) {
+                $this->hierarchy->assertNotLastSuperAdmin($user);
+            }
+        }
+
         return Tx::run(function () use ($user, $data, $roleCodes, $by) {
             $this->updateProfile($user, $data);
 
@@ -224,6 +287,22 @@ class UserService
     {
         return Role::query()->whereNull('property_id')->where('scope', 'platform')
             ->whereIn('code', $codes)->pluck('id')->map(fn ($id) => (int) $id)->all();
+    }
+
+    /** The account has no other hotel and is not platform staff, so this hotel may edit its details. */
+    private function belongsOnlyTo(PropertyUser $membership): bool
+    {
+        return ! $membership->user->is_platform_user
+            && ! PropertyUser::query()->withoutGlobalScope('property')
+                ->where('user_id', $membership->user_id)->where('property_id', '!=', $membership->property_id)->exists();
+    }
+
+    /** The role must not hold anything the acting user does not hold (no promoting beyond one's own rights). */
+    private function assertWithinReach(User $by, ?Role $role): void
+    {
+        if ($role !== null && ! $this->access->covers($by, $role->id)) {
+            throw ValidationException::withMessages(['role' => __('users.beyond_your_access')]);
+        }
     }
 
     private function assertRoleUsable(Role $role, Property $property): void

@@ -14,8 +14,8 @@ class ClientErrorRequest extends FormRequest
         return [
             'message' => ['required', 'string', 'max:1000'],
             'source' => ['nullable', 'string', 'max:500'],
-            'line' => ['nullable', 'integer', 'min:0'],
-            'column' => ['nullable', 'integer', 'min:0'],
+            'line' => ['nullable', 'integer', 'min:0', 'max:100000000'],
+            'column' => ['nullable', 'integer', 'min:0', 'max:100000000'],
             'stack' => ['nullable', 'string', 'max:'.$max],
             'component' => ['nullable', 'string', 'max:'.$max],
             'url' => ['nullable', 'string', 'max:500'],

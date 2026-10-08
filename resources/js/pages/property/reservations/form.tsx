@@ -18,7 +18,7 @@ interface Props {
         sources: Option[]; room_types: RoomTypeOption[]; rate_plans: RatePlanOption[]; products: Record<string, string[]>;
         countries: (Option & { phone: string | null })[]; purposes: Option[]; markets: Option[]; titles: Option[]; guest_types: Option[]; id_types: Option[];
     };
-    defaults: { today: string; check_in_time: string; check_out_time: string };
+    defaults: { today: string; check_in_time: string; check_out_time: string; age_bands: { infant: { min: number; max: number }; child: { min: number; max: number } } };
 }
 
 interface GuestForm {
@@ -227,8 +227,8 @@ function ReservationForm({ reservation: res, guest: presetGuest, options, defaul
                             <Input fieldClass="span-3" type="date" label={t('reservations.fields.check_out')} required value={stay.check_out} min={addDays(stay.check_in, 1)}
                                 onChange={(e) => e.target.value && changeDates({ check_out: e.target.value })} error={err('rooms.0.check_out')} />
                             <Input fieldClass="span-2" type="number" min={1} max={20} label={t('reservations.fields.adults')} value={stay.adults} onChange={(e) => setS('adults', Math.max(1, Number(e.target.value) || 1))} />
-                            <Input fieldClass="span-2" type="number" min={0} max={10} label={t('reservations.fields.children')} value={stay.children} onChange={(e) => setS('children', Math.max(0, Number(e.target.value) || 0))} />
-                            <Input fieldClass="span-2" type="number" min={0} max={10} label={t('reservations.fields.infants')} value={stay.infants} onChange={(e) => setS('infants', Math.max(0, Number(e.target.value) || 0))} />
+                            <Input fieldClass="span-2" type="number" min={0} max={10} label={`${t('reservations.fields.children')} (${t('property.age_bands.years', defaults.age_bands.child)})`} value={stay.children} onChange={(e) => setS('children', Math.max(0, Number(e.target.value) || 0))} />
+                            <Input fieldClass="span-2" type="number" min={0} max={10} label={`${t('reservations.fields.infants')} (${t('property.age_bands.years', defaults.age_bands.infant)})`} value={stay.infants} onChange={(e) => setS('infants', Math.max(0, Number(e.target.value) || 0))} />
                             <div className="span-12 row-between">
                                 <span className="muted text-sm">{t('reservations.nights_count', { count: nights })}</span>
                                 <Button variant="primary" icon="search" loading={searching} onClick={search}>{t('reservations.form.search_availability')}</Button>

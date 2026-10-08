@@ -49,7 +49,19 @@ return [
         'per_person' => 'Per person',
         'per_person_night' => 'Per person per night',
     ],
+    'departments' => [
+        'restaurant' => 'Restaurant',
+        'bar' => 'Bar',
+        'room_service' => 'Room service',
+        'spa' => 'Spa & wellness',
+        'laundry' => 'Laundry',
+        'transport' => 'Transport',
+        'other' => 'Other',
+    ],
+    'bill' => ['title' => 'Outlet bill', 'hint' => 'Post a restaurant or bar bill: several items under one bill number. Each item is taxed by its own category (food, beverages, alcohol …).', 'post' => 'Post bill', 'add_item' => 'Add item'],
     'tax_categories' => [
+        'beverage' => 'Beverages',
+        'alcohol' => 'Alcohol & liquor',
         'accommodation' => 'Accommodation',
         'food' => 'Food & beverage',
         'service' => 'Other services',
@@ -97,6 +109,10 @@ return [
         'not_invoice' => 'This folio is a statement of account, not a tax invoice.',
     ],
     'charge' => [
+        'department' => 'Outlet',
+        'department_auto' => 'Same as the service',
+        'reference' => 'Bill / check number',
+        'reference_hint' => 'Shown on the folio and the invoice.',
         'title' => 'Add charge',
         'post' => 'Post charge',
         'service' => 'Service',
@@ -142,6 +158,9 @@ return [
         'refund_gateway' => 'The refund is sent to Razorpay and returned to the guest\'s original payment method.',
     ],
     'invoice' => [
+        'group_room' => 'Room charges',
+        'group_other' => 'Other charges',
+        'group_subtotal' => 'Subtotal',
         'fixed' => 'Fixed',
         'list_title' => 'Invoices & credit notes',
         'types' => [
@@ -191,6 +210,7 @@ return [
         'back' => 'Back to the reservation',
     ],
     'services' => [
+        'department_hint' => 'Where this item is sold. Reservation and invoice show each outlet separately.',
         'title' => 'Services & Extras',
         'description' => 'Extras that can be posted to a guest folio, with their price, tax category and how they are charged.',
         'add' => 'Add service',
@@ -201,6 +221,7 @@ return [
         'none_hint' => 'Add extras such as an extra bed, airport pickup or laundry to post them to folios in one click.',
         'posting_hint' => 'Sets the suggested quantity when the service is posted (nights and guests of the stay).',
         'columns' => [
+            'department' => 'Outlet',
             'name' => 'Service',
             'code' => 'Code',
             'price' => 'Price',
@@ -210,6 +231,7 @@ return [
             'status' => 'Status',
         ],
         'fields' => [
+            'department' => 'Outlet',
             'name' => 'Name',
             'code' => 'Code',
             'price' => 'Price',
@@ -221,6 +243,7 @@ return [
         ],
     ],
     'errors' => [
+        'bill_empty' => 'Add at least one item.',
         'invalid_type' => 'Choose a valid charge type.',
         'quantity' => 'The quantity must be greater than zero.',
         'amount_zero' => 'The amount must not be zero.',
@@ -246,6 +269,7 @@ return [
         'key_reused' => 'This request was already used for another reservation. Reload the page and try again.',
     ],
     'messages' => [
+        'bill_posted' => '{1} 1 item posted to the folio.|[2,*] :count items posted to the folio.',
         'charge_posted' => 'Charge posted to the folio.',
         'line_voided' => 'Line voided.',
         'payment_recorded' => 'Payment recorded.',

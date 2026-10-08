@@ -15,14 +15,14 @@ class PlansController extends Controller
 
     public function store(SavePlanRequest $request): JsonResponse
     {
-        $plan = $this->plans->create($request->planData());
+        $plan = $this->plans->create($request->planData(), $request->user());
 
-        return response()->json(['message' => __('ui.created'), 'plan' => (new PlanResource($plan))->resolve($request)], 201);
+        return response()->json(['message' => $plan->approval_status === 'pending' ? __('approvals.plan_submitted') : __('ui.created'), 'plan' => (new PlanResource($plan))->resolve($request)], 201);
     }
 
     public function update(SavePlanRequest $request, string $plan): JsonResponse
     {
-        $model = $this->plans->update(SubscriptionPlan::query()->where('code', $plan)->firstOrFail(), $request->planData());
+        $model = $this->plans->update(SubscriptionPlan::query()->where('code', $plan)->firstOrFail(), $request->planData(), $request->user());
 
         return response()->json(['message' => __('ui.saved'), 'plan' => (new PlanResource($model))->resolve($request)]);
     }

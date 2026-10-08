@@ -21,7 +21,8 @@ return [
     'support_mode' => 'Assistenza E2X',
     'delete_confirm' => 'Eliminare il ruolo ":name"?',
     'descriptions' => [
-        'super_admin' => 'Accesso completo al sistema con gestione di tutte le strutture, gli utenti e le impostazioni.',
+        'super_admin' => 'Livello più alto: tutto, inclusi gli amministratori e l’approvazione dei piani.',
+        'admin' => 'Accesso operativo alla piattaforma: strutture, proprietari, piani, assistenza. Non gestisce gli amministratori.',
         'it_support' => 'Monitoraggio della piattaforma, registro attività e stato del sistema.',
         'owner' => 'Proprietario della struttura. Accesso completo, inclusi utenti e fatturazione.',
         'hotel_manager' => 'Gestisce l\'operatività quotidiana con accesso completo.',
@@ -40,6 +41,7 @@ return [
     ],
     'names' => [
         'super_admin' => 'Super amministratore',
+        'admin' => 'Amministratore',
         'it_support' => 'Supporto IT',
         'owner' => 'Proprietario',
         'hotel_manager' => 'Direttore d’albergo',
@@ -51,4 +53,5 @@ return [
         'guest_relations' => 'Relazioni con gli ospiti',
         'sales_marketing' => 'Vendite e marketing',
     ],
+    'beyond_your_access' => 'Un ruolo non può contenere permessi che non possiedi tu stesso.',
 ];

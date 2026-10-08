@@ -81,7 +81,7 @@ export interface PropertyDetail {
     rooms: number;
     rate_plans: number;
     users: number;
-    owner: { id: string; name: string; email: string; phone: string | null } | null;
+    owner: { id: string; name: string; email: string; phone: string | null; can_impersonate?: boolean } | null;
     subscription: SubscriptionState;
     plan_id: number | null;
     created_at: string | null;

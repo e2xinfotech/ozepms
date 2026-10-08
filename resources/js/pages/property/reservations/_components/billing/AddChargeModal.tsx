@@ -12,7 +12,7 @@ export default function AddChargeModal({ reservation, open = true, onClose, onSa
     const [options, setOptions] = useState<BillingOptions | null>(null);
     const [failed, setFailed] = useState<string | null>(null);
     const [type, setType] = useState<Kind>('service');
-    const [form, setForm] = useState({ service_id: '', description: '', quantity: '1', unit_price: '', tax_category: '', discount_mode: 'amount', discount_percent: '', note: '' });
+    const [form, setForm] = useState({ service_id: '', description: '', quantity: '1', unit_price: '', tax_category: '', discount_mode: 'amount', discount_percent: '', note: '', department: '', reference: '' });
     const [error, setError] = useState<ApiError | null>(null);
     const [busy, setBusy] = useState(false);
     const key = useRef(newKey());
@@ -27,7 +27,7 @@ export default function AddChargeModal({ reservation, open = true, onClose, onSa
     const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
     const pickService = (id: string) => {
         const s = options?.services.find((x) => x.id === id);
-        setForm((f) => ({ ...f, service_id: id, description: s ? '' : f.description, unit_price: s ? s.price : f.unit_price, quantity: s ? s.quantity : f.quantity, tax_category: s?.tax_category ?? f.tax_category }));
+        setForm((f) => ({ ...f, service_id: id, description: s ? '' : f.description, unit_price: s ? s.price : f.unit_price, quantity: s ? s.quantity : f.quantity, tax_category: s?.tax_category ?? f.tax_category, department: s?.department ?? f.department }));
     };
     const switchType = (k: string) => {
         setType(k as Kind);
@@ -47,6 +47,7 @@ export default function AddChargeModal({ reservation, open = true, onClose, onSa
         const body: Record<string, unknown> = {
             type, idempotency_key: key.current, description: form.description || null, note: form.note || null,
             tax_category: form.tax_category || null,
+            department: type === 'service' ? (form.department || null) : null, reference: form.reference || null,
         };
         if (type === 'service' && form.service_id) body.service_id = form.service_id;
         if (type === 'discount' && form.discount_mode === 'percent') body.discount_percent = form.discount_percent;
@@ -96,6 +97,11 @@ export default function AddChargeModal({ reservation, open = true, onClose, onSa
                                 </>}
                             <Select fieldClass={type === 'discount' ? 'span-6' : 'span-12'} label={t('billing.fields.tax_category')} value={form.tax_category} options={taxOptions}
                                 onChange={(e) => set('tax_category', e.target.value)} error={err('tax_category')} hint={t('billing.charge.tax_hint')} />
+                            {type === 'service' && <>
+                                <Select fieldClass="span-6" label={t('billing.charge.department')} value={form.department} placeholder={t('billing.charge.department_auto')}
+                                    options={(options.departments ?? []).map((d) => ({ value: d, label: t(`billing.departments.${d}`) }))} onChange={(e) => set('department', e.target.value)} error={err('department')} />
+                                <Input fieldClass="span-6" label={t('billing.charge.reference')} optional maxLength={40} value={form.reference} onChange={(e) => set('reference', e.target.value)} hint={t('billing.charge.reference_hint')} error={err('reference')} />
+                            </>}
                             <Textarea fieldClass="span-12" label={t('billing.fields.note')} optional rows={2} maxLength={255} value={form.note} onChange={(e) => set('note', e.target.value)} />
                         </div>
                         {preview !== null && <div className="billing-preview row-between"><span>{t('billing.charge.amount_before_tax')}</span><strong className="num">{fmt(preview, cur)}</strong></div>}

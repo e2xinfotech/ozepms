@@ -216,6 +216,8 @@ class InvoiceService
                 'date' => $line->business_date->toDateString(),
                 'type' => $line->line_type,
                 'description' => $line->description,
+                'department' => $line->department,
+                'reference' => $line->reference,
                 'sac' => $line->sac_hsn_code,
                 'quantity' => Money::round((string) $line->quantity, 2),
                 'unit_price' => Money::round($sign((string) $line->unit_price), $places),

@@ -12,7 +12,7 @@ class UpdateProfileRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:120'],
             'job_title' => ['nullable', 'string', 'max:80'],
-            'phone_e164' => ['nullable', 'string', 'regex:/^\+[1-9]\d{6,14}$/'],
+            'phone_e164' => ['nullable', 'string', 'max:20', 'regex:/^\+[1-9]\d{6,14}$/'],
             'locale' => ['required', Rule::in(array_keys(config('ozepms.locales.available')))],
         ];
     }

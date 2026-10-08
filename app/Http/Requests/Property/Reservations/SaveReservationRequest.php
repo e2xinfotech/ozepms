@@ -18,7 +18,7 @@ class SaveReservationRequest extends FormRequest
             'idempotency_key' => ['nullable', 'string', 'max:64', 'regex:/^[A-Za-z0-9_.:-]+$/'],
             'status' => ['sometimes', Rule::in(['confirmed', 'pending', 'inquiry'])],
             'source' => ['sometimes', 'nullable', 'string', 'max:30'],
-            'quoted_total' => ['sometimes', 'nullable', 'decimal:0,2', 'min:0'],
+            'quoted_total' => ['sometimes', 'nullable', 'decimal:0,2', 'min:0', 'max:999999999999'],
             'promo_code' => ['sometimes', 'nullable', 'string', 'max:30', 'regex:/^[A-Za-z0-9_\- ]+$/'],
             'arrival_time' => ['sometimes', 'nullable', 'date_format:H:i'],
             'departure_time' => ['sometimes', 'nullable', 'date_format:H:i'],
@@ -31,7 +31,7 @@ class SaveReservationRequest extends FormRequest
             'internal_notes' => ['sometimes', 'nullable', 'string', 'max:5000'],
 
             'guest_id' => ['sometimes', 'nullable', 'string', 'size:26'],
-            'guest' => [$creating ? 'required_without:guest_id' : 'sometimes', 'array'],
+            'guest' => [$creating ? 'required_without:guest_id' : 'sometimes', 'array', 'max:30'],
             'companions' => ['sometimes', 'nullable', 'array', 'max:20'],
             'companions.*.first_name' => ['nullable', 'string', 'max:80'],
             'companions.*.last_name' => ['nullable', 'string', 'max:80'],
@@ -48,7 +48,7 @@ class SaveReservationRequest extends FormRequest
             'rooms.*.children' => ['nullable', 'integer', 'min:0', 'max:10'],
             'rooms.*.infants' => ['nullable', 'integer', 'min:0', 'max:10'],
             'rooms.*.child_ages' => ['nullable', 'array', 'max:20'],
-            'rooms.*.child_ages.*' => ['integer', 'min:0', 'max:17'],
+            'rooms.*.child_ages.*' => ['integer', 'min:0', 'max:'.app(\App\Domain\Property\AgeBandService::class)->bands(app(\App\Support\PropertyContext::class)->id())['child']['max']],
             'rooms.*.rate' => ['nullable', 'decimal:0,2', 'min:0', 'max:9999999'],
         ], GuestRules::rules('guest.', $creating && ! $this->filled('guest_id')));
     }

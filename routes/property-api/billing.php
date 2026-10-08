@@ -16,6 +16,7 @@ Route::name('billing.')->group(function () {
     });
     Route::middleware(['can.do:folio.post', 'throttle:60,1'])->group(function () {
         Route::post('/reservations/{reservation}/folio/charges', [FolioController::class, 'charge'])->name('folio.charges.store');
+        Route::post('/reservations/{reservation}/folio/bill', [FolioController::class, 'bill'])->name('folio.bill.store');
         Route::post('/reservations/{reservation}/folio/lines/{line}/void', [FolioController::class, 'void'])->name('folio.lines.void');
     });
     Route::middleware(['can.do:payments.manage', 'throttle:60,1'])->group(function () {

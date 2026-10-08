@@ -68,6 +68,7 @@ class PasswordService
                     'email_verified_at' => $user->email_verified_at ?? now(),
                 ])->save();
 
+                SessionRevoker::forUser($user);
                 event(new PasswordReset($user));
                 $this->audit->log('user.password_reset', $user, userId: $user->id);
                 $resetUser = $user;
@@ -82,7 +83,7 @@ class PasswordService
     }
 
     /** @throws ValidationException when the current password is wrong */
-    public function change(User $user, string $current, string $new): void
+    public function change(User $user, string $current, string $new, ?string $keepSessionId = null): void
     {
         if (! Hash::check($current, $user->password)) {
             throw ValidationException::withMessages(['current_password' => __('auth.password')]);
@@ -94,6 +95,7 @@ class PasswordService
             'remember_token' => Str::random(60),
         ])->save();
 
+        SessionRevoker::forUser($user, $keepSessionId);
         $this->audit->log('user.password_changed', $user);
     }
 }

@@ -9,7 +9,7 @@ Laravel migrations will be generated from it phase by phase.
 | Group | Tables |
 |---|---|
 | Reference | currencies, countries, states, languages, property_types, bed_types |
-| Platform | users, password_reset_tokens, login_attempts, permissions, roles, role_permissions, platform_user_roles, subscription_plans, subscriptions, audit_logs, system_error_events |
+| Platform | users, password_reset_tokens, login_attempts, permissions, roles, role_permissions, platform_user_roles, subscription_plans, subscriptions, audit_logs (with `impersonator_id`), request_trail, approval_requests, system_error_events |
 | Property | properties, property_users, property_settings, property_languages, property_age_bands, property_counters, content_translations |
 | Accommodation | room_types, room_type_beds, room_type_images, physical_units, unit_blocks, amenities, property_amenities, room_type_amenities, physical_unit_amenities |
 | Rates | meal_plans, cancellation_policies, cancellation_policy_rules, rate_plans, room_type_rate_plans (products), product_occupancy_rules |

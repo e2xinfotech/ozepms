@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 class PlansController extends Controller
 {
     /** Subscription plans with the number of properties currently on each. */
-    public function index(Request $request): View
+    public function index(Request $request, \App\Domain\Access\AccessService $access): View
     {
         $filters = Listing::filters($request, ['status']);
 
@@ -37,6 +37,7 @@ class PlansController extends Controller
             'filters' => $filters,
             'features' => PlanService::FEATURES,
             'currencies' => Lookups::currencies(),
+            'can_approve' => $access->allows($request->user(), 'platform.plans.approve'),
         ], __('subscription.plans'));
     }
 }

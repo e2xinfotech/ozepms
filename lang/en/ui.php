@@ -62,6 +62,7 @@ return [
     'range_too_long' => 'Choose a range of :n days or less.',
     'unsaved_changes' => 'You have unsaved changes.',
     'status' => [
+        'pending_approval' => 'Waiting for approval', 'approved' => 'Approved', 'rejected' => 'Rejected',
         'active' => 'Active', 'inactive' => 'Inactive', 'disabled' => 'Disabled', 'invited' => 'Invited', 'locked' => 'Locked',
         'onboarding' => 'Setup', 'suspended' => 'Suspended', 'setup' => 'Setup',
         'trial' => 'Trial', 'grace' => 'Grace Period', 'expired' => 'Expired', 'cancelled' => 'Cancelled', 'none' => 'No Plan',

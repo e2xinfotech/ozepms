@@ -39,6 +39,7 @@ return [
     ],
     'skipped' => [
         'derived_price' => 'Il prezzo segue il piano tariffario principale',
+        'below_min_price' => "Il prezzo è inferiore al prezzo minimo del tipo di camera",
         'inherits_restrictions' => 'Le restrizioni seguono il piano tariffario principale',
         'past' => 'Le date passate non possono essere modificate',
         'beyond_horizon' => 'Date oltre l’orizzonte di prenotazione',

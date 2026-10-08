@@ -28,7 +28,7 @@ return [
         'gst' => 'GST', 'vat' => 'MwSt.', 'sales' => 'Umsatzsteuer', 'tourism' => 'Tourismusabgabe', 'city' => 'City-Tax',
         'local' => 'Lokale Abgabe', 'service_charge' => 'Servicegebühr', 'other' => 'Sonstige',
     ],
-    'apply_to' => ['room_charges' => 'Zimmer', 'add_ons' => 'Zusatzleistungen', 'fnb' => 'Gastronomie', 'events' => 'Veranstaltungen'],
+    'apply_to' => ['room_charges' => 'Zimmer', 'add_ons' => 'Zusatzleistungen', 'fnb' => 'Gastronomie', 'events' => 'Veranstaltungen', 'beverage' => 'Getränke', 'liquor' => 'Spirituosen'],
     'methods' => ['percent' => 'Prozentsatz', 'fixed' => 'Fester Betrag'],
     'bases' => ['per_room_night' => 'Pro Zimmer und Nacht', 'per_person_night' => 'Pro Person und Nacht', 'per_stay' => 'Pro Aufenthalt', 'per_booking' => 'Pro Buchung'],
     'basis_short' => ['per_room_night' => 'pro Zimmer und Nacht', 'per_person_night' => 'pro Person und Nacht', 'per_stay' => 'pro Aufenthalt', 'per_booking' => 'pro Buchung'],

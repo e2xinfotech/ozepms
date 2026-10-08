@@ -21,7 +21,8 @@ return [
     'support_mode' => 'E2X Support',
     'delete_confirm' => 'Delete the role ":name"?',
     'descriptions' => [
-        'super_admin' => 'Full system access with ability to manage all properties, users and settings.',
+        'super_admin' => 'Highest level: everything, including Admins and plan approval.',
+        'admin' => 'Full day-to-day platform access: properties, owners, plans, support. Cannot manage Admins.',
         'it_support' => 'Platform monitoring, audit log and system health.',
         'owner' => 'Owns the property. Full access, including users and billing.',
         'hotel_manager' => 'Runs day-to-day operations with full access.',
@@ -40,6 +41,7 @@ return [
     ],
     'names' => [
         'super_admin' => 'Super Admin',
+        'admin' => 'Admin',
         'it_support' => 'IT Support',
         'owner' => 'Owner',
         'hotel_manager' => 'Hotel Manager',
@@ -51,4 +53,5 @@ return [
         'guest_relations' => 'Guest Relations',
         'sales_marketing' => 'Sales & Marketing',
     ],
+    'beyond_your_access' => 'A role cannot hold permissions you do not have yourself.',
 ];

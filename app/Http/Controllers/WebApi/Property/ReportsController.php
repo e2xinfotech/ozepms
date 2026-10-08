@@ -33,7 +33,7 @@ class ReportsController extends Controller
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF"); // UTF-8 BOM so spreadsheet apps show accents correctly
             foreach ($reports->csv($key, $filter) as $row) {
-                fputcsv($out, $row);
+                \App\Support\Csv::put($out, $row);
             }
             fclose($out);
         }, $name, ['Content-Type' => 'text/csv; charset=UTF-8']);

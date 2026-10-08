@@ -19,7 +19,7 @@ class SaveGuestRequest extends FormRequest
         }
         if ($this->routeIs('*.guests.documents.store')) {
             return [
-                'file' => ['required', 'file', 'max:5120', 'mimes:jpg,jpeg,png,webp,pdf'],
+                'file' => ['required', 'file', 'max:5120', 'mimes:jpg,jpeg,png,webp,pdf', 'mimetypes:application/pdf,image/jpeg,image/png,image/webp'],
                 'type' => ['required', Rule::in(GuestDocument::TYPES)],
                 'reservation_id' => ['nullable', 'string', 'size:26'],
             ];

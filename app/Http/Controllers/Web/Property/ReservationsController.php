@@ -48,6 +48,7 @@ class ReservationsController extends Controller
             'options' => $options->form(),
             'defaults' => [
                 'today' => $service->today($property)->toDateString(),
+                'age_bands' => app(\App\Domain\Property\AgeBandService::class)->bands($property->id),
                 'check_in_time' => substr((string) $property->check_in_time, 0, 5),
                 'check_out_time' => substr((string) $property->check_out_time, 0, 5),
             ],
@@ -75,6 +76,7 @@ class ReservationsController extends Controller
             'options' => $options->form(),
             'defaults' => [
                 'today' => $service->today($p)->toDateString(),
+                'age_bands' => app(\App\Domain\Property\AgeBandService::class)->bands($p->id),
                 'check_in_time' => substr((string) $p->check_in_time, 0, 5),
                 'check_out_time' => substr((string) $p->check_out_time, 0, 5),
             ],

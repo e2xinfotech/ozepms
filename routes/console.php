@@ -65,3 +65,15 @@ Schedule::command('channels:sync')
 Schedule::call(fn () => \App\Models\ChannelSyncLog::query()->where('created_at', '<', now()->subDays((int) config('channels.log_retention_days', 90)))->limit(50000)->delete())
     ->dailyAt('03:40')
     ->name('channels:prune-logs');
+
+// Housekeeping: rooms checked out since the last run are e-mailed to the staff responsible for cleaning them.
+Schedule::command('housekeeping:notify')
+    ->everyMinute()
+    ->name('housekeeping:notify')
+    ->withoutOverlapping(10)
+    ->onOneServer();
+
+// Request trail rows older than config('ozepms.logging.request_trail_days'). The audit log itself is never pruned.
+Schedule::call(fn () => \App\Models\RequestTrail::query()->where('created_at', '<', now()->subDays((int) config('ozepms.logging.request_trail_days', 730)))->limit(100000)->delete())
+    ->dailyAt('03:50')
+    ->name('request-trail:prune');

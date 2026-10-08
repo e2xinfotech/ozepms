@@ -200,6 +200,17 @@ class InventoryService
     }
 
     /** The property's operational "today" (business date or local date). */
+    /**
+     * First date the calendar may still change: today by the clock in the property's time zone.
+     * Unlike today() it ignores a late night audit, so yesterday is closed for everyone at midnight.
+     */
+    public function calendarToday(int $propertyId): CarbonImmutable
+    {
+        $property = Property::query()->withTrashed()->findOrFail($propertyId);
+
+        return CarbonImmutable::parse(now($property->timezone ?: config('app.timezone'))->toDateString());
+    }
+
     public function today(int $propertyId): CarbonImmutable
     {
         $property = Property::query()->withTrashed()->findOrFail($propertyId);

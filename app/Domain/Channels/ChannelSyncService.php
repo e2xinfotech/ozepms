@@ -24,8 +24,12 @@ use Throwable;
  * config('channels.sync_days') days. The mark moves only when every message was accepted, so a
  * failed run is simply repeated (values are states, not increments).
  * Full sync: every mapped room and rate for the whole window.
- * Failures: back-off 1, 2, 4 … minutes (max config('channels.max_backoff_minutes')); after
- * config('channels.error_after_failures') the connection shows "error" and keeps retrying.
+ * Failures: retried at most config('channels.max_retries') times, each after config('channels.retry_after_minutes');
+ * then the connection shows "error" and stays quiet until someone presses "Try again". A refusal that cannot
+ * succeed by repeating (wrong credentials) stops at once.
+ * Freshness: every attempt computes the values from the calendar at that moment. If the calendar changes
+ * for the same rooms / rates while a run is working, the run stops before sending older values and the
+ * next run starts again from the newest data.
  */
 class ChannelSyncService
 {
@@ -39,7 +43,8 @@ class ChannelSyncService
     public function syncDue(): int
     {
         $count = 0;
-        ChannelConnection::acrossProperties()->whereIn('status', ['active', 'error'])
+        // Connections in "error" are not retried by the scheduler (the retries are used up).
+        ChannelConnection::acrossProperties()->where('status', 'active')->where('approval_status', 'approved')
             ->where(fn ($q) => $q->whereNull('next_attempt_at')->orWhere('next_attempt_at', '<=', now()))
             ->orderBy('id')->get()
             ->each(function (ChannelConnection $c) use (&$count) {
@@ -59,6 +64,10 @@ class ChannelSyncService
     /** @return array{status: string, updates: int, message: ?string} */
     public function sync(ChannelConnection $connection, bool $full = false): array
     {
+        // Nothing goes to a channel before E2X has approved the connection (and never while it is suspended).
+        if (! $connection->isApproved()) {
+            return ['status' => 'unapproved', 'updates' => 0, 'message' => null];
+        }
         $lock = Cache::lock('channel-sync:'.$connection->id, 300);
         if (! $lock->get()) {
             return ['status' => 'busy', 'updates' => 0, 'message' => null];
@@ -105,6 +114,10 @@ class ChannelSyncService
         $provider = $this->registry->provider($c);
         $type = $full ? 'full_sync' : 'ari_update';
         foreach (array_chunk($updates, max(1, (int) config('channels.batch_size', 500))) as $chunk) {
+            // The calendar changed for these rooms / rates after the values were read: do not send old data.
+            if ($this->changedSince($property->id, $maxId, $roomRanges, $rateRanges)) {
+                return ['status' => 'superseded', 'updates' => 0, 'message' => null];
+            }
             try {
                 $result = $provider->pushAri($c, $chunk);
             } catch (Throwable $e) {
@@ -113,7 +126,7 @@ class ChannelSyncService
             }
             $this->log($c, 'outbound', $type, $result, count($chunk), $this->summary($chunk));
             if (! $result->ok) {
-                $this->failed($c, (string) $result->message);
+                $this->failed($c, (string) $result->message, $result->retryable);
 
                 return ['status' => 'failed', 'updates' => count($updates), 'message' => $result->message];
             }
@@ -244,14 +257,46 @@ class ChannelSyncService
         return $out;
     }
 
-    private function failed(ChannelConnection $c, string $message): void
+    private function failed(ChannelConnection $c, string $message, bool $retryable = true): void
     {
         $failures = $c->failures + 1;
-        $wait = min((int) config('channels.max_backoff_minutes', 30), 2 ** min(10, $failures - 1));
+        // First failure + max_retries retries; a refusal that repeating cannot fix stops at once.
+        $giveUp = ! $retryable || $failures > (int) config('channels.max_retries', 2);
         $c->forceFill([
-            'failures' => $failures, 'last_error' => mb_substr($message, 0, 1000), 'last_error_at' => now(), 'next_attempt_at' => now()->addMinutes($wait),
-            'status' => $failures >= (int) config('channels.error_after_failures', 5) && $c->status === 'active' ? 'error' : $c->status,
+            'failures' => $failures, 'last_error' => mb_substr($message, 0, 1000), 'last_error_at' => now(),
+            'next_attempt_at' => $giveUp ? null : now()->addMinutes(max(1, (int) config('channels.retry_after_minutes', 5))),
+            'status' => $giveUp && $c->status === 'active' ? 'error' : $c->status,
         ])->save();
+        if ($giveUp) {
+            // The last attempt is final: the log shows "Failed", not "Will retry".
+            ChannelSyncLog::query()->where('connection_id', $c->id)->where('status', 'retrying')->orderByDesc('id')->limit(1)->update(['status' => 'failed']);
+        }
+    }
+
+    /**
+     * True when the calendar changed (change-log rows after $maxId) for any room type / rate and dates
+     * that this run is about to send. Such a run is dropped; the next one reads the newest values.
+     *
+     * @param  array<int, array{0: CarbonImmutable, 1: CarbonImmutable}>  $roomRanges
+     * @param  array<int, array{0: CarbonImmutable, 1: CarbonImmutable}>  $rateRanges
+     */
+    private function changedSince(int $propertyId, int $maxId, array $roomRanges, array $rateRanges): bool
+    {
+        $newer = DB::table('ari_change_log')->where('property_id', $propertyId)->where('id', '>', $maxId)->limit(2000)->get(['id', 'scope', 'room_type_id', 'product_id', 'date_from', 'date_to']);
+        if ($newer->isEmpty()) {
+            return false;
+        }
+        $far = CarbonImmutable::parse('2000-01-01');
+        [$rooms, $products] = $this->affected($newer, $propertyId, $far, CarbonImmutable::parse('2100-01-01'));
+        foreach ([[$rooms, $roomRanges], [$products, $rateRanges]] as [$changed, $sending]) {
+            foreach ($changed as $id => [$a, $b]) {
+                if (isset($sending[$id]) && $a->lessThanOrEqualTo($sending[$id][1]) && $b->greaterThanOrEqualTo($sending[$id][0])) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /** One sync log row (bodies cut to 200 KB). */

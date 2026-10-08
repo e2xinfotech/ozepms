@@ -22,7 +22,10 @@ class PlatformUserQuery
     {
         $filters = Listing::filters($request, ['q', 'role', 'property', 'status', 'kind']);
 
+        $hidden = app(\App\Domain\Users\PlatformHierarchy::class)->hiddenUserIds($request->user());
+
         $filtered = User::query()
+            ->when($hidden !== [], fn (Builder $q) => $q->whereNotIn('users.id', $hidden))
             ->when($filters['q'] !== '', function (Builder $q) use ($filters) {
                 $term = '%'.$filters['q'].'%';
                 $q->where(fn (Builder $w) => $w->where('users.name', 'like', $term)

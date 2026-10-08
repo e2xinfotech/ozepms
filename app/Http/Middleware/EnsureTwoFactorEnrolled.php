@@ -16,6 +16,11 @@ class EnsureTwoFactorEnrolled
     {
         $user = $request->user();
 
+        // Someone acting as this user was already verified at their own sign-in.
+        if ($request->hasSession() && $request->session()->has(\App\Domain\Platform\ImpersonationService::SESSION_KEY)) {
+            return $next($request);
+        }
+
         if ($user && ! $user->hasTwoFactorEnabled() && $this->twoFactor->isRequiredFor($user)) {
             if ($request->expectsJson()) {
                 return response()->json(['error' => ['code' => 'TWO_FACTOR_REQUIRED', 'message' => __('auth.two_factor_required')]], 403);

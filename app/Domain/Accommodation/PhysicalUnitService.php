@@ -143,6 +143,8 @@ class PhysicalUnitService
         $diff = $this->audit->diff($unit);
         $unit->save();
         $this->audit->log('physical_unit.housekeeping_changed', $unit, $diff);
+        $housekeeping = app(\App\Domain\Housekeeping\HousekeepingService::class);
+        $status === 'dirty' ? $housekeeping->openTask($unit) : $housekeeping->completeFor($unit);
 
         return $unit;
     }

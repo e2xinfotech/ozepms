@@ -139,6 +139,7 @@ if [ "$HAS_DATA" != "1" ]; then
 else
     say "Applying new database changes"
     php artisan migrate --force --no-interaction
+    php artisan db:seed --class=PermissionSeeder --force --no-interaction >/dev/null
 fi
 # Local copy: the Super Admin always gets the password printed below.
 php artisan user:reset-password admin@e2xinfotech.in --password="$ADMIN_PASS" >/dev/null

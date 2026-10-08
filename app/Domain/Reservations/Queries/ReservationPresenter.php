@@ -41,14 +41,20 @@ class ReservationPresenter
         $rows = DB::table('unit_nights')
             ->join('physical_units', 'physical_units.id', '=', 'unit_nights.unit_id')
             ->whereIn('unit_nights.reservation_room_id', $roomIds)
-            ->groupBy('unit_nights.reservation_room_id', 'physical_units.id', 'physical_units.public_id', 'physical_units.name', 'physical_units.housekeeping_status')
-            ->orderBy(DB::raw('MIN(unit_nights.stay_date)'))
-            ->get(['unit_nights.reservation_room_id', 'physical_units.public_id', 'physical_units.name', 'physical_units.housekeeping_status',
-                DB::raw('MIN(unit_nights.stay_date) AS first_night'), DB::raw('MAX(unit_nights.stay_date) AS last_night')]);
+            ->orderBy('unit_nights.reservation_room_id')->orderBy('unit_nights.stay_date')
+            ->get(['unit_nights.reservation_room_id', 'unit_nights.stay_date', 'physical_units.public_id', 'physical_units.name', 'physical_units.housekeeping_status']);
+        // One segment per run of consecutive nights in the same PMS room (a split stay has several).
         $out = [];
         foreach ($rows as $r) {
-            $out[(int) $r->reservation_room_id][] = ['id' => $r->public_id, 'name' => $r->name, 'housekeeping' => $r->housekeeping_status,
-                'from' => substr((string) $r->first_night, 0, 10), 'to' => substr((string) $r->last_night, 0, 10)];
+            $rid = (int) $r->reservation_room_id;
+            $date = substr((string) $r->stay_date, 0, 10);
+            $last = isset($out[$rid]) ? array_key_last($out[$rid]) : null;
+            if ($last !== null && $out[$rid][$last]['id'] === $r->public_id && date('Y-m-d', strtotime($out[$rid][$last]['to'].' +1 day')) === $date) {
+                $out[$rid][$last]['to'] = $date;
+
+                continue;
+            }
+            $out[$rid][] = ['id' => $r->public_id, 'name' => $r->name, 'housekeeping' => $r->housekeeping_status, 'from' => $date, 'to' => $date];
         }
 
         return $out;
@@ -209,10 +215,12 @@ class ReservationPresenter
                 // What cancelling now would cost (shown in the confirm dialog).
                 'fee_now' => in_array($r->status, ['pending', 'confirmed', 'hold'], true) ? $this->fees->forReservation($r, $property) : null,
             ],
+            'extras_by_department' => Money::isZero((string) $r->extras_total) ? [] : $this->extrasByDepartment($r->id),
+            'can_see_ids' => $canSeeId,
             'guest_profile' => $guest ? [
                 'id' => $guest->public_id, 'number' => $guest->number(), 'title' => $guest->title, 'guest_type' => $guest->guest_type,
                 'first_name' => $guest->first_name, 'last_name' => $guest->last_name, 'email' => $guest->email, 'phone' => $guest->phone_e164,
-                'nationality' => $guest->nationality_iso2, 'country' => $guest->country_iso2, 'date_of_birth' => $guest->date_of_birth?->toDateString(),
+                'nationality' => $guest->nationality_iso2, 'gender' => $guest->gender, 'country' => $guest->country_iso2, 'date_of_birth' => $guest->date_of_birth?->toDateString(),
                 'address' => array_values(array_filter([$guest->address_line1, $guest->address_line2, $guest->city, $guest->postcode])),
                 'company_name' => $guest->company_name, 'company_tax_no' => $guest->company_tax_no,
                 'id_type' => $guest->id_type, 'id_number' => $canSeeId ? $guest->id_number_enc : $guest->maskedIdNumber(),
@@ -221,8 +229,8 @@ class ReservationPresenter
             ] : null,
             'companions' => DB::table('reservation_guests')->join('guests', 'guests.id', '=', 'reservation_guests.guest_id')
                 ->where('reservation_guests.reservation_id', $r->id)->where('reservation_guests.is_primary', 0)
-                ->get(['guests.public_id', 'guests.first_name', 'guests.last_name', 'guests.nationality_iso2'])
-                ->map(fn ($g) => ['id' => $g->public_id, 'name' => trim($g->first_name.' '.$g->last_name), 'nationality' => $g->nationality_iso2])->all(),
+                ->get(['guests.public_id', 'guests.first_name', 'guests.last_name', 'guests.nationality_iso2', 'reservation_guests.person_type', 'reservation_guests.age'])
+                ->map(fn ($g) => ['id' => $g->public_id, 'name' => trim($g->first_name.' '.$g->last_name), 'nationality' => $g->nationality_iso2, 'type' => $g->person_type, 'age' => $g->age])->all(),
             'created_by' => $r->creator?->name,
             'updated_by' => $r->updater?->name,
             'updated_at' => $r->updated_at?->toIso8601String(),
@@ -312,6 +320,21 @@ class ReservationPresenter
         }
 
         return ['paid' => (string) $r->paid_total, 'balance' => (string) $r->balance_due, 'checkout_balance' => (string) $r->balance_due, 'ready' => false];
+    }
+
+    /**
+     * Posted extras per outlet (restaurant, bar …) with their tax, for the price breakdown.
+     *
+     * @return list<array{department: string, amount: string, tax: string, total: string}>
+     */
+    private function extrasByDepartment(int $reservationId): array
+    {
+        return DB::table('folio_lines as fl')->join('folios as f', 'f.id', '=', 'fl.folio_id')
+            ->where('f.reservation_id', $reservationId)->where('fl.line_type', 'service')->whereNotNull('fl.department')
+            ->where('fl.is_void', 0)->whereNull('fl.void_of_line_id')
+            ->groupBy('fl.department')->orderBy('fl.department')
+            ->get(['fl.department', DB::raw('SUM(fl.amount) AS amount'), DB::raw('SUM(fl.tax_amount) AS tax')])
+            ->map(fn ($r) => ['department' => $r->department, 'amount' => Money::round((string) $r->amount), 'tax' => Money::round((string) $r->tax), 'total' => Money::round(Money::add((string) $r->amount, (string) $r->tax))])->all();
     }
 
     /** Unit for tonight (in-house) or the first assigned night. */

@@ -1,13 +1,24 @@
+import { useEffect, useRef, useState } from 'react';
 import { number } from '@/lib/format';
 
 /**
  * Lightweight SVG charts in the OzePMS style (no chart library).
  * Bars use the brand tint, lines the brand colour; axes are muted.
  */
-export function BarLineChart({ labels, bars, line, barLabel, lineLabel, barMax, lineMax, height = 240, barFormat, lineFormat }: {
+export function BarLineChart({ labels, bars, line, barLabel, lineLabel, barMax, lineMax, height = 240, fill, barFormat, lineFormat }: {
     labels: string[]; bars: number[]; line?: number[]; barLabel: string; lineLabel?: string;
-    barMax?: number; lineMax?: number; height?: number; barFormat?: (v: number) => string; lineFormat?: (v: number) => string;
+    barMax?: number; lineMax?: number; height?: number; fill?: boolean; barFormat?: (v: number) => string; lineFormat?: (v: number) => string;
 }) {
+    // fill: the chart takes the width and height of its box (dashboard that fits one screen).
+    const box = useRef<HTMLDivElement>(null);
+    const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+    useEffect(() => {
+        if (!fill || !box.current) return;
+        const el = box.current;
+        const ro = new ResizeObserver(() => setSize({ w: Math.max(320, Math.round(el.clientWidth)), h: Math.max(120, Math.round(el.clientHeight)) }));
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [fill]);
     const bMax = niceMax(barMax ?? Math.max(1, ...bars));
     const lMax = niceMax(lineMax ?? Math.max(1, ...(line ?? [1])));
     const ticks = [0, 0.2, 0.4, 0.6, 0.8, 1];
@@ -17,7 +28,7 @@ export function BarLineChart({ labels, bars, line, barLabel, lineLabel, barMax, 
     const fb = barFormat ?? ((v: number) => number(v, bMax < 5 ? 1 : 0));
     const fl = lineFormat ?? ((v: number) => number(v, lMax < 5 ? 1 : 0));
     // Axis margins grow with the longest tick label (e.g. money values).
-    const W = 760, H = height, padT = 12, padB = 30;
+    const W = fill && size ? size.w : 760, H = fill && size ? size.h - 26 : height, padT = 12, padB = 30;
     const padL = Math.max(46, fb(bMax).length * 7 + 14);
     const padR = line ? Math.max(52, fl(lMax).length * 7 + 14) : 12;
     const iw = W - padL - padR, ih = H - padT - padB;
@@ -26,8 +37,8 @@ export function BarLineChart({ labels, bars, line, barLabel, lineLabel, barMax, 
     const pts = (line ?? []).map((v, i) => [padL + step * i + step / 2, padT + ih - (v / lMax) * ih] as const);
 
     return (
-        <div className="chart-box">
-            <svg viewBox={`0 0 ${W} ${H + 26}`} role="img" aria-label={barLabel}>
+        <div className={fill ? 'chart-box fill' : 'chart-box'} ref={box}>
+            <svg viewBox={`0 0 ${W} ${H + 26}`} role="img" aria-label={barLabel} style={fill && size ? { width: size.w, height: size.h } : undefined}>
                 {ticks.map((tk) => (
                     <g key={tk}>
                         <line x1={padL} x2={W - padR} y1={padT + ih - tk * ih} y2={padT + ih - tk * ih} stroke="var(--line)" />

@@ -21,7 +21,7 @@ return [
         'calendar.view' => 'View calendar', 'calendar.update' => 'Change rates & availability',
         'reservations.view' => 'View reservations', 'reservations.create' => 'Create reservations',
         'reservations.update' => 'Modify reservations', 'reservations.cancel' => 'Cancel reservations',
-        'checkin.perform' => 'Check guests in', 'checkout.perform' => 'Check guests out', 'checkout.override_balance' => 'Check out with an open balance', 'housekeeping.update' => 'Update housekeeping',
+        'checkin.perform' => 'Check guests in', 'checkout.perform' => 'Check guests out', 'checkout.override_balance' => 'Check out with an open balance', 'housekeeping.update' => 'Update housekeeping', 'housekeeping.manage' => 'Manage housekeeping staff & room assignments',
         'guests.view' => 'View guests', 'guests.update' => 'Edit guests',
         'folio.view' => 'View folios', 'folio.post' => 'Post charges', 'payments.manage' => 'Record payments & refunds',
         'invoices.manage' => 'Issue invoices', 'services.manage' => 'Manage services & extras', 'billing.override' => 'Override billing checks (void room charges, open balance)',

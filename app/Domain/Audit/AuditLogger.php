@@ -21,6 +21,7 @@ class AuditLogger
         AuditLog::query()->create([
             'property_id' => $propertyId ?? $this->resolvePropertyId($entity),
             'user_id' => $userId ?? auth()->id(),
+            'impersonator_id' => $this->impersonatorId($request),
             'action' => $action,
             'entity_type' => $entity ? $this->entityName($entity) : null,
             'entity_id' => $entity?->getKey(),
@@ -30,6 +31,17 @@ class AuditLogger
             'changes' => $changes ? Redactor::clean($changes) : null,
             'created_at' => now(),
         ]);
+    }
+
+    /** The platform user behind the session when someone is acting as another user, else null. */
+    private function impersonatorId(?\Illuminate\Http\Request $request): ?int
+    {
+        if ($request === null || ! $request->hasSession()) {
+            return null;
+        }
+        $state = $request->session()->get('impersonation');
+
+        return is_array($state) && (int) ($state['target_id'] ?? 0) === (int) auth()->id() ? (int) $state['actor_id'] : null;
     }
 
     /** Before/after diff of a model that is about to be saved. */

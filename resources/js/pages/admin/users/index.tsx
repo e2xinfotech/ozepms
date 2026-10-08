@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import {
     Alert, Badge, Button, Checkbox, ConfirmDialog, DataTable, Drawer, EmptyState, Field, FormSection, Icon, Input, KeyValue, KpiCard,
-    PageHeader, Pagination, PillTabs, RowMenu, Select, SidePanel, Tabs, toast, type Column, type Option, type PageMeta,
+    PageHeader, Pagination, PillTabs, RowMenu, Segmented, Select, SidePanel, Tabs, toast, type Column, type Option, type PageMeta,
 } from '@/components/ui';
+import { ImpersonateDialog } from '@/components/platform/ImpersonateDialog';
 import { ActivityList, PermissionView, RoleBadge, UserCell, UserHeader, type ActivityItem, type PermissionGroup } from '@/components/users/UserBits';
 import { createPage } from '@/lib/boot';
 import { dateTime, number } from '@/lib/format';
@@ -16,7 +17,7 @@ interface Row {
 }
 interface Detail {
     id: string; name: string; email: string; phone_e164: string | null; job_title: string | null; locale: string; avatar: string | null;
-    is_platform: boolean; roles: string[]; role_name: string | null; role_color: string | null; role_description: string | null; status: string;
+    is_platform: boolean; can_manage: boolean; can_reset_password: boolean; can_impersonate: boolean; roles: string[]; role_name: string | null; role_color: string | null; role_description: string | null; status: string;
     two_factor: boolean; last_login_at: string | null; created_at: string | null; permissions: string[];
     properties: { code: string; name: string; city: string | null; role_name: string; status: string; is_owner: boolean }[];
     activity: ActivityItem[];
@@ -39,9 +40,13 @@ function UserForm({ user, options, locales, onClose }: { user: Detail | null; op
         name: user?.name ?? '', email: user?.email ?? '', job_title: user?.job_title ?? '', phone_e164: user?.phone_e164 ?? '',
         locale: user?.locale ?? 'en', roles: user?.roles ?? [],
     });
+    // New accounts are either a property owner (first step before a property) or a member of the platform team.
+    const canTeam = options.platform_roles.length > 0;
+    const [kind, setKind] = useState<'owner' | 'team'>(user ? 'team' : 'owner');
+    const owner = !user && kind === 'owner';
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<ApiError | null>(null);
-    const editsRoles = !user || user.is_platform;
+    const editsRoles = (!user && kind === 'team') || (!!user && user.is_platform);
 
     const save = async () => {
         setBusy(true);
@@ -51,7 +56,7 @@ function UserForm({ user, options, locales, onClose }: { user: Detail | null; op
         try {
             const res = user
                 ? await http.put<{ message: string; user: Detail }>(`/web-api/admin/users/${user.id}`, body)
-                : await http.post<{ message: string; user: Detail }>('/web-api/admin/users', { ...body, email: data.email });
+                : await http.post<{ message: string; user: Detail }>(owner ? '/web-api/admin/owners' : '/web-api/admin/users', { ...body, email: data.email });
             toast.success(res.message);
             navigateWithQuery({ selected: res.user.id, new: null }, false);
         } catch (e) {
@@ -66,7 +71,13 @@ function UserForm({ user, options, locales, onClose }: { user: Detail | null; op
             <Button variant="primary" icon="save" loading={busy} onClick={save}>{user ? t('ui.save_changes') : t('admin.add_user')}</Button>
         </>}>
             {error && !Object.keys(error.fields).length && <Alert tone="danger">{error.message}</Alert>}
-            {!user && <Alert tone="info">{t('users.platform_invite_hint')}</Alert>}
+            {!user && canTeam && (
+                <FormSection title={t('users.kind_title')}>
+                    <div className="span-12"><Segmented active={kind} onChange={(k) => setKind(k as 'owner' | 'team')}
+                        items={[{ key: 'owner', label: t('users.kind_owner') }, { key: 'team', label: t('users.kind_team') }]} /></div>
+                </FormSection>
+            )}
+            {!user && <Alert tone="info">{owner ? t('users.owner_invite_hint') : t('users.platform_invite_hint')}</Alert>}
             <FormSection title={t('users.section_details')}>
                 <Input fieldClass="span-12" label={t('users.name')} required value={data.name} onChange={(e) => setData({ ...data, name: e.target.value })} error={error?.field('name')} />
                 <Input fieldClass="span-12" label={t('users.email')} required type="email" icon="mail" disabled={!!user} value={data.email} onChange={(e) => setData({ ...data, email: e.target.value })} error={error?.field('email')} />
@@ -99,6 +110,7 @@ function Panel({ id, me, catalogue, onClose, onEdit }: { id: string; me: string;
     const [tab, setTab] = useState('overview');
     const [confirm, setConfirm] = useState<'disabled' | 'active' | null>(null);
     const [busy, setBusy] = useState(false);
+    const [impersonate, setImpersonate] = useState(false);
 
     useEffect(() => {
         let alive = true;
@@ -128,7 +140,7 @@ function Panel({ id, me, catalogue, onClose, onEdit }: { id: string; me: string;
     return (
         <SidePanel title={user.name} onClose={onClose}>
             <UserHeader name={user.name} avatar={user.avatar} status={user.status} roleName={user.role_name} roleDescription={user.role_description}
-                action={<Button size="sm" variant="outline" icon="pencil" onClick={() => onEdit(user)}>{t('users.edit_user')}</Button>} />
+                action={user.can_manage ? <Button size="sm" variant="outline" icon="pencil" onClick={() => onEdit(user)}>{t('users.edit_user')}</Button> : undefined} />
             <div style={{ padding: '0 20px' }}>
                 <Tabs active={tab} onChange={setTab} items={[
                     { key: 'overview', label: t('users.tabs.overview') },
@@ -166,15 +178,20 @@ function Panel({ id, me, catalogue, onClose, onEdit }: { id: string; me: string;
                 ))}
                 {tab === 'activity' && <ActivityList items={user.activity} />}
             </div>
-            <div className="sp-section">
+            <ImpersonateDialog userId={user.id} name={user.name} open={impersonate} onClose={() => setImpersonate(false)} />
+            {(user.can_manage || user.can_impersonate) && <div className="sp-section">
                 <h3>{t('ui.quick_actions')}</h3>
                 <div className="action-grid">
-                    <Button variant="outline" icon="key" disabled={busy} onClick={() => act(() => http.post(`/web-api/admin/users/${user.id}/password-link`), false)}>{t('users.reset_password')}</Button>
+                    {user.can_impersonate && <Button variant="outline" icon="log-in" disabled={busy} onClick={() => setImpersonate(true)}>{t('impersonation.log_in_as')}</Button>}
+                    {!user.is_platform && <a className="btn btn-outline" href={`/admin/properties/new?owner=${user.id}`}>{t('users.add_property_for')}</a>}
+                    {user.can_manage && <>
+                    {user.can_reset_password && <Button variant="outline" icon="key" disabled={busy} onClick={() => act(() => http.post(`/web-api/admin/users/${user.id}/password-link`), false)}>{t('users.reset_password')}</Button>}
                     {user.status === 'disabled' || user.status === 'locked'
                         ? <Button variant="outline" icon="check-circle" disabled={busy || self} onClick={() => setConfirm('active')}>{t('users.enable_user')}</Button>
                         : <Button variant="danger-soft" icon="pause" disabled={busy || self} onClick={() => setConfirm('disabled')}>{t('users.disable_user')}</Button>}
+                    </>}
                 </div>
-            </div>
+            </div>}
             <ConfirmDialog open={confirm !== null} danger={confirm === 'disabled'} busy={busy}
                 title={confirm === 'disabled' ? t('users.disable_user') : t('users.enable_user')}
                 message={t(confirm === 'disabled' ? 'users.disable_confirm' : 'users.enable_confirm', { name: user.name })}

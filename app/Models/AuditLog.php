@@ -21,6 +21,11 @@ class AuditLog extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function impersonator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'impersonator_id');
+    }
+
     public function property(): BelongsTo
     {
         return $this->belongsTo(Property::class);

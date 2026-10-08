@@ -62,6 +62,7 @@ return [
     'range_too_long' => 'Wählen Sie einen Zeitraum von höchstens :n Tagen.',
     'unsaved_changes' => 'Es gibt ungespeicherte Änderungen.',
     'status' => [
+        'pending_approval' => 'Wartet auf Genehmigung', 'approved' => 'Genehmigt', 'rejected' => 'Abgelehnt',
         'active' => 'Aktiv', 'inactive' => 'Inaktiv', 'disabled' => 'Deaktiviert', 'invited' => 'Eingeladen', 'locked' => 'Gesperrt',
         'onboarding' => 'Einrichtung', 'suspended' => 'Ausgesetzt', 'setup' => 'Einrichtung',
         'trial' => 'Testphase', 'grace' => 'Kulanzzeit', 'expired' => 'Abgelaufen', 'cancelled' => 'Storniert', 'none' => 'Kein Tarif',

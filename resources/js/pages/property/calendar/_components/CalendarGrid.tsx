@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { memo, useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
 import { Badge, Icon } from '@/components/ui';
 import { number } from '@/lib/format';
 import { t } from '@/lib/i18n';
@@ -40,7 +40,7 @@ function rateTip(d: RateDay, p: ProductRow): string {
     const parts = [d.p === null ? t('calendar.no_rate') : t('calendar.tips.price', { price: price(d.p) })];
     if (p.pricing_mode === 'derived' && p.parent) parts.push(t('calendar.derived', { parent: p.parent }));
     if (d.o) for (const [adults, value] of Object.entries(d.o)) parts.push(t('calendar.tips.occupancy', { count: adults, price: price(value) }));
-    parts.push(d.max ? t('calendar.tips.los', { min: d.min, max: d.max }) : t('calendar.tips.los_open', { min: d.min }));
+    parts.push(t('calendar.tips.los', { min: d.min || 1, max: d.max || 99 }));
     if (d.mla) parts.push(t('calendar.tips.min_los_arrival', { count: d.mla }));
     if (d.cut) parts.push(t('calendar.tips.cutoff', { count: d.cut }));
     if (d.adv) parts.push(t('calendar.tips.max_advance', { count: d.adv }));
@@ -86,6 +86,7 @@ export function CalendarGrid({ grid, view, range, canEdit, selection, onSelect, 
         const el = (target as HTMLElement | null)?.closest<HTMLElement>('[data-row]');
         if (!el) return null;
         const i = Number(el.dataset.i);
+        if (grid.days[i] && grid.days[i].date < grid.today) return null;
         return { kind: el.dataset.kind as Selection['kind'], rowId: el.dataset.row!, roomTypeId: el.dataset.rt!, start: i, end: i };
     };
 
@@ -140,6 +141,8 @@ export function CalendarGrid({ grid, view, range, canEdit, selection, onSelect, 
     };
 
     const style = { '--cal-days': grid.days.length } as CSSProperties;
+    // Dates before today (in the property's time zone) are history: shown, never editable.
+    const days = useMemo(() => grid.days.map((d) => ({ ...d, past: d.date < grid.today })), [grid.days, grid.today]);
 
     return (
         <div className={clsx('cal-wrap', `view-${view}`, `range-${range}`)} ref={wrap} style={style}
@@ -158,7 +161,7 @@ export function CalendarGrid({ grid, view, range, canEdit, selection, onSelect, 
             </div>
 
             {grid.room_types.map((rt) => (
-                <RoomTypeGroup key={rt.id} rt={rt} days={grid.days} view={view} canEdit={canEdit} detail={range === 'day'}
+                <RoomTypeGroup key={rt.id} rt={rt} days={days} view={view} canEdit={canEdit} detail={range === 'day'}
                     collapsed={collapsed.has(rt.id)} roomsOpen={view === 'reservations' || roomsOpen.has(rt.id)}
                     selection={selection?.roomTypeId === rt.id ? selection : null} onToggle={toggle} />
             ))}
@@ -203,8 +206,8 @@ const RoomTypeGroup = memo(function RoomTypeGroup({ rt, days, view, canEdit, col
                     </span>
                 </div>
                 {rt.inventory.map((d, i) => (
-                    <div key={i} role="gridcell" tabIndex={editable}
-                        className={clsx('cal-cell inv', days[i].weekend && 'weekend', d.a === 0 && 'zero', d.ss && 'stop', d.d && 'muted', inSel(selection, rt.id, i) && 'selected')}
+                    <div key={i} role="gridcell" tabIndex={days[i].past ? undefined : editable}
+                        className={clsx('cal-cell inv', days[i].past && 'past', days[i].weekend && 'weekend', d.a === 0 && 'zero', d.ss && 'stop', d.d && 'muted', inSel(selection, rt.id, i) && 'selected')}
                         data-row={rt.id} data-rt={rt.id} data-kind="room_type" data-i={i} data-tip={invTip(d)} aria-label={invTip(d)}>
                         <span className="num">{d.a}</span>
                         {detail && <small className="cal-detail">{invTip(d)}</small>}
@@ -254,8 +257,8 @@ function ProductLine({ rt, p, days, canEdit, selection, detail }: { rt: RoomType
             {p.days.map((d, i) => {
                 const tip = rateTip(d, p);
                 return (
-                    <div key={i} role="gridcell" tabIndex={canEdit ? 0 : undefined}
-                        className={clsx('cal-cell rate', days[i].weekend && 'weekend', d.ss && 'stop', !!d.cut && 'has-cutoff', inSel(selection, p.id, i) && 'selected')}
+                    <div key={i} role="gridcell" tabIndex={canEdit && !days[i].past ? 0 : undefined}
+                        className={clsx('cal-cell rate', days[i].past && 'past', days[i].weekend && 'weekend', d.ss && 'stop', !!d.cut && 'has-cutoff', inSel(selection, p.id, i) && 'selected')}
                         data-row={p.id} data-rt={rt.id} data-kind="product" data-i={i} data-tip={tip} aria-label={tip}>
                         <span className={clsx('price num', (derived || d.d) && 'muted')}>{price(d.p)}</span>
                         <span className="los num">
@@ -264,7 +267,7 @@ function ProductLine({ rt, p, days, canEdit, selection, detail }: { rt: RoomType
                                     {d.cta && <Icon name="door-closed" size={13} className="mark" title={t('calendar.tips.cta')} />}
                                     {d.ctd && <Icon name="log-out" size={13} className="mark" title={t('calendar.tips.ctd')} />}
                                 </>
-                            ) : d.ss ? '–' : `${d.min}-${d.max ?? '∞'}`}
+                            ) : d.ss ? '–' : `${d.min ?? 1}-${d.max ?? 99}`}
                         </span>
                         {!!d.cut && <i className="cut-mark" aria-hidden="true" />}
                         {detail && <small className="cal-detail">{tip}</small>}

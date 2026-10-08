@@ -9,12 +9,12 @@ import { useQueryState } from '@/lib/use';
 
 interface Row {
     id: string; code: string; name: string; description: string | null; price: string; tax_category: string | null; sac_hsn_code: string | null;
-    posting_rule: string; is_active: boolean; sort_order: number; times_posted: number;
+    posting_rule: string; department: string; is_active: boolean; sort_order: number; times_posted: number;
 }
 interface Props {
     list: { rows: Row[]; meta: PageMeta; counts: { all: number; active: number; inactive: number } };
     filters: { q?: string; status?: string; posting_rule?: string; selected?: string };
-    options: { tax_categories: { value: string; label: string; sac: string | null }[]; posting_rules: string[]; show_sac?: boolean };
+    options: { tax_categories: { value: string; label: string; sac: string | null }[]; posting_rules: string[]; departments: string[]; show_sac?: boolean };
 }
 
 const currency = () => payload().shell.property?.currency ?? '';
@@ -41,6 +41,7 @@ function ServicesPage({ list, filters, options }: Props) {
         { key: 'name', header: t('billing.services.columns.name'), sortable: true, render: (r) => <><span className="cell-main">{r.name}</span>{r.description && <span className="cell-sub">{r.description}</span>}</> },
         { key: 'code', header: t('billing.services.columns.code'), sortable: true, render: (r) => r.code },
         { key: 'price', header: t('billing.services.columns.price'), sortable: true, align: 'right', render: (r) => money(r.price, currency()) },
+        { key: 'department', header: t('billing.services.columns.department'), render: (r) => t(`billing.departments.${r.department}`) },
         { key: 'rule', header: t('billing.services.columns.posting_rule'), render: (r) => t(`billing.posting_rules.${r.posting_rule}`) },
         { key: 'tax', header: t('billing.services.columns.tax_category'), className: 'hide-with-panel', render: (r) => <>{categoryLabel(r.tax_category)}{options.show_sac && r.sac_hsn_code && <span className="cell-sub block">SAC/HSN {r.sac_hsn_code}</span>}</> },
         { key: 'used', header: t('billing.services.columns.used'), align: 'right', className: 'hide-with-panel', render: (r) => r.times_posted },
@@ -72,7 +73,7 @@ function ServicesPage({ list, filters, options }: Props) {
     );
 }
 
-const blank = (): Row => ({ id: '', code: '', name: '', description: '', price: '', tax_category: 'service', sac_hsn_code: '', posting_rule: 'once', is_active: true, sort_order: 0, times_posted: 0 });
+const blank = (): Row => ({ id: '', code: '', name: '', description: '', price: '', tax_category: 'service', sac_hsn_code: '', posting_rule: 'once', department: 'other', is_active: true, sort_order: 0, times_posted: 0 });
 
 function ServicePanel({ id, options, onClose, onSaved }: { id: string; options: Props['options']; onClose: () => void; onSaved: (id: string) => void }) {
     const [svc, setSvc] = useState<Row | null>(id === 'new' ? blank() : null);
@@ -99,7 +100,7 @@ function ServicePanel({ id, options, onClose, onSaved }: { id: string; options: 
         setBusy(true);
         setError(null);
         const body = { code: svc.code, name: svc.name, description: svc.description || null, price: svc.price, tax_category: svc.tax_category,
-            sac_hsn_code: svc.sac_hsn_code || null, posting_rule: svc.posting_rule, is_active: svc.is_active, sort_order: Number(svc.sort_order) || 0 };
+            sac_hsn_code: svc.sac_hsn_code || null, posting_rule: svc.posting_rule, department: svc.department, is_active: svc.is_active, sort_order: Number(svc.sort_order) || 0 };
         try {
             const res = svc.id
                 ? await http.put<{ message: string; service: Row }>(propertyApiUrl(`/services/${svc.id}`), body)
@@ -126,6 +127,8 @@ function ServicePanel({ id, options, onClose, onSaved }: { id: string; options: 
                     <Input fieldClass="span-6" label={t('billing.services.fields.code')} required maxLength={30} value={svc.code} onChange={(e) => set('code', e.target.value.toUpperCase())} error={err('code')} />
                     <Input fieldClass="span-6" type="number" min={0} step="0.01" label={t('billing.services.fields.price')} required suffix={currency()} className="num"
                         value={svc.price} onChange={(e) => set('price', e.target.value)} error={err('price')} />
+                    <Select fieldClass="span-12" label={t('billing.services.fields.department')} required value={svc.department} options={options.departments.map((d) => ({ value: d, label: t(`billing.departments.${d}`) }))}
+                        onChange={(e) => set('department', e.target.value)} error={err('department')} hint={t('billing.services.department_hint')} />
                     <Select fieldClass="span-12" label={t('billing.services.fields.posting_rule')} required value={svc.posting_rule}
                         options={options.posting_rules.map((p) => ({ value: p, label: t(`billing.posting_rules.${p}`) }))} onChange={(e) => set('posting_rule', e.target.value)}
                         error={err('posting_rule')} hint={t('billing.services.posting_hint')} />

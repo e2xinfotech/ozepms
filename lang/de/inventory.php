@@ -39,6 +39,7 @@ return [
     ],
     'skipped' => [
         'derived_price' => 'Der Preis folgt dem übergeordneten Ratenplan',
+        'below_min_price' => "Der Preis liegt unter dem Mindestpreis des Zimmertyps",
         'inherits_restrictions' => 'Die Einschränkungen folgen dem übergeordneten Ratenplan',
         'past' => 'Vergangene Daten können nicht geändert werden',
         'beyond_horizon' => 'Daten jenseits des Buchungshorizonts',

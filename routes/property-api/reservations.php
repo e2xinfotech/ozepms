@@ -20,6 +20,11 @@ Route::middleware('can.do:reservations.view')->group(function () {
     Route::get('/reservations/{reservation}/history', [ReservationsController::class, 'history'])->name('reservations.history');
     Route::post('/reservations/{reservation}/notes', [ReservationsController::class, 'note'])->name('reservations.notes.store');
 });
+Route::middleware('can.do:reservations.update|checkin.perform')->group(function () {
+    Route::get('/reservations/{reservation}/occupants', [ReservationsController::class, 'occupants'])->name('reservations.occupants');
+    Route::put('/reservations/{reservation}/occupants', [ReservationsController::class, 'saveOccupants'])->name('reservations.occupants.save');
+});
+Route::get('/reservations/{reservation}/guest-register', [ReservationsController::class, 'guestRegister'])->middleware('can.do:reservations.view')->name('reservations.guest-register');
 Route::middleware('can.do:reservations.update')->group(function () {
     Route::put('/reservations/{reservation}', [ReservationsController::class, 'update'])->name('reservations.update');
     Route::post('/reservations/{reservation}/confirm', [ReservationsController::class, 'confirm'])->name('reservations.confirm');

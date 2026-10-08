@@ -17,6 +17,12 @@ return [
             'platform.subscriptions.manage',
             'platform.audit.view',
             'platform.system.view',
+            'platform.admins.manage',      // Super Admin only: create, change and disable Admins
+            'platform.plans.approve',      // Super Admin only: approve plans created by an Admin
+            'platform.approvals.manage',   // property registrations, channel connections
+            'platform.channels.approve',
+            'platform.settings.manage',    // platform settings and global limits
+            'platform.impersonate',        // "Log in as" a property user
         ],
     ],
 
@@ -26,7 +32,7 @@ return [
         'rate_plans'   => ['rate_plans.view', 'rate_plans.create', 'rate_plans.update'],
         'calendar'     => ['calendar.view', 'calendar.update'],
         'reservations' => ['reservations.view', 'reservations.create', 'reservations.update', 'reservations.cancel'],
-        'front_desk'   => ['checkin.perform', 'checkout.perform', 'checkout.override_balance', 'housekeeping.update'],
+        'front_desk'   => ['checkin.perform', 'checkout.perform', 'checkout.override_balance', 'housekeeping.update', 'housekeeping.manage'],
         'guests'       => ['guests.view', 'guests.update'],
         'billing'      => ['folio.view', 'folio.post', 'payments.manage', 'invoices.manage', 'services.manage', 'billing.override'],
         'offers'       => ['offers.manage'],
@@ -39,7 +45,14 @@ return [
     // Roles copied to every installation. "*" = every permission of that scope.
     'roles' => [
         'platform' => [
+            // Highest level (the platform owner). Created from the server console only.
             'super_admin' => ['name' => 'Super Admin', 'color' => 'violet', 'permissions' => ['*']],
+            // Day-to-day platform staff. Cannot manage Admins or approve plans.
+            'admin' => ['name' => 'Admin', 'color' => 'blue', 'permissions' => [
+                'platform.dashboard', 'platform.properties.manage', 'platform.users.manage', 'platform.plans.manage',
+                'platform.subscriptions.manage', 'platform.audit.view', 'platform.system.view',
+                'platform.approvals.manage', 'platform.channels.approve', 'platform.settings.manage', 'platform.impersonate',
+            ]],
             'it_support'  => ['name' => 'IT Support',  'color' => 'sky', 'permissions' => ['platform.dashboard', 'platform.audit.view', 'platform.system.view']],
         ],
         'property' => [

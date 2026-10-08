@@ -5,6 +5,7 @@ import { http, type ApiError } from '@/lib/http';
 import { t } from '@/lib/i18n';
 import { propertyApiUrl } from '@/lib/page';
 import { BillingSlot, hasBilling } from './BillingSlot';
+import { OccupantsForm, useOccupants } from './Occupants';
 import { billingRef, type ReservationDetail, type ReservationRoomDetail } from './types';
 
 export type DialogKind = 'cancel' | 'no_show' | 'check_in' | 'check_out' | 'assign' | 'confirm';
@@ -30,10 +31,11 @@ export function ReservationDialogs({ reservation: r, kind, roomId, idTypes, onCl
     const [form, setForm] = useState<Record<string, string | boolean>>({});
     const [paying, setPaying] = useState(false);
     const set = (k: string, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }));
+    const occupants = useOccupants(r.id, kind === 'check_in');
 
     useEffect(() => {
         setError(null);
-        setForm(kind === 'check_in' ? { id_type: r.guest_profile?.id_type ?? '', id_number: '' } : {});
+        setForm(kind === 'check_in' ? { id_type: r.guest_profile?.id_type ?? '', id_number: '', nationality_iso2: r.guest_profile?.nationality ?? '', date_of_birth: r.guest_profile?.date_of_birth ?? '', gender: r.guest_profile?.gender ?? '' } : {});
     }, [kind, r.guest_profile?.id_type]);
 
     if (!kind) return null;
@@ -95,10 +97,14 @@ export function ReservationDialogs({ reservation: r, kind, roomId, idTypes, onCl
 
     if (kind === 'check_in') {
         const unassigned = r.rooms.filter((x) => ['pending', 'confirmed'].includes(x.status) && !x.unit);
-        const go = () => run('check-in', {
-            note: form.note || null,
-            guest: { id_type: form.id_type || null, id_number: form.id_number || null },
-        });
+        // Everyone staying is saved first (all optional); the check-in itself only needs the main guest.
+        const go = async () => {
+            try { await occupants.save(); } catch { return; }
+            await run('check-in', {
+                note: form.note || null,
+                guest: { id_type: form.id_type || null, id_number: form.id_number || null, nationality_iso2: form.nationality_iso2 || null, date_of_birth: form.date_of_birth || null, gender: form.gender || null },
+            });
+        };
         return (
             <Modal open title={t('reservations.dialogs.check_in_title', { guest: r.guest.name })} onClose={onClose} footer={footer(t('reservations.dialogs.check_in_confirm'), go)}>
                 <form className="stack" onSubmit={submitOnEnter(go)}>
@@ -112,8 +118,12 @@ export function ReservationDialogs({ reservation: r, kind, roomId, idTypes, onCl
                             onChange={(e) => set('id_type', e.target.value)} error={fieldErr('guest.id_type')} />
                         <Input fieldClass="span-6" label={t('guests.fields.id_number')} optional value={String(form.id_number ?? '')} maxLength={40} autoFocus
                             placeholder={r.guest_profile?.id_number ?? ''} onChange={(e) => set('id_number', e.target.value)} error={fieldErr('guest.id_number')} />
+                        <Select fieldClass="span-4" label={t('guests.fields.nationality_iso2')} optional value={String(form.nationality_iso2 ?? '')} placeholder="—" options={occupants.data?.countries ?? []} onChange={(e) => set('nationality_iso2', e.target.value)} />
+                        <Input fieldClass="span-4" type="date" label={t('guests.fields.date_of_birth')} optional value={String(form.date_of_birth ?? '')} onChange={(e) => set('date_of_birth', e.target.value)} error={fieldErr('guest.date_of_birth')} />
+                        <Select fieldClass="span-4" label={t('reservations.occupants.gender')} optional value={String(form.gender ?? '')} placeholder="—" options={['female', 'male', 'other'].map((v) => ({ value: v, label: t(`reservations.occupants.gender_${v}`) }))} onChange={(e) => set('gender', e.target.value)} />
                         <Input fieldClass="span-12" label={t('reservations.fields.note')} optional value={String(form.note ?? '')} maxLength={255} onChange={(e) => set('note', e.target.value)} />
                     </div>
+                    <OccupantsForm state={occupants} />
                     {firstError && !fieldErr('guest.id_number') && <Alert tone="danger">{firstError}</Alert>}
                     <button type="submit" hidden />
                 </form>
@@ -162,6 +172,9 @@ function AssignDialog({ r, roomId, onClose, onDone }: { r: ReservationDetail; ro
     const room: ReservationRoomDetail | undefined = open.find((x) => x.id === selectedRoom);
     const [units, setUnits] = useState<{ id: string; name: string; floor: string | null; housekeeping: string }[] | null>(null);
     const [unit, setUnit] = useState('');
+    const [partial, setPartial] = useState(false);
+    const [from, setFrom] = useState('');
+    const [to, setTo] = useState('');
     const [busy, setBusy] = useState(false);
     const [failed, setFailed] = useState<string | null>(null);
     const seq = useRef(0);
@@ -172,19 +185,25 @@ function AssignDialog({ r, roomId, onClose, onDone }: { r: ReservationDetail; ro
         setUnits(null);
         setFailed(null);
         http.get<{ units: { id: string; name: string; floor: string | null; housekeeping: string }[] }>(propertyApiUrl('/reservations/units'), {
-            room_type_id: room.room_type.id, check_in: room.check_in, check_out: room.check_out, room_id: room.id,
+            room_type_id: room.room_type.id, check_in: partial && from ? from : room.check_in, check_out: partial && to ? to : room.check_out, room_id: room.id,
         }).then((res) => {
             if (n !== seq.current) return;
             setUnits(res.units);
             setUnit(room.unit?.id ?? res.units.find((u) => u.housekeeping !== 'dirty')?.id ?? res.units[0]?.id ?? '');
         }).catch((e: ApiError) => n === seq.current && setFailed(e.message));
+    }, [room?.id, partial, from, to]);
+
+    useEffect(() => {
+        setFrom(room?.check_in ?? '');
+        setTo(room?.check_out ?? '');
+        setPartial(false);
     }, [room?.id]);
 
     const save = async (unitId: string | null) => {
         if (!room) return;
         setBusy(true);
         try {
-            const res = await http.post<{ message: string; reservation: ReservationDetail }>(propertyApiUrl(`/reservations/${r.id}/assign`), { room_id: room.id, unit_id: unitId });
+            const res = await http.post<{ message: string; reservation: ReservationDetail }>(propertyApiUrl(`/reservations/${r.id}/assign`), { room_id: room.id, unit_id: unitId, ...(partial ? { from, to } : {}) });
             toast.success(res.message);
             onClose();
             onDone(res.reservation);
@@ -207,6 +226,14 @@ function AssignDialog({ r, roomId, onClose, onDone }: { r: ReservationDetail; ro
                 {open.length > 1 && <Select label={t('reservations.fields.room')} value={selectedRoom} onChange={(e) => setSelectedRoom(e.target.value)}
                     options={open.map((x, i) => ({ value: x.id, label: `${t('reservations.detail.room_n', { n: i + 1 })} · ${x.room_type?.name ?? ''}${x.unit ? ` · ${x.unit.name}` : ''}` }))} />}
                 {room && <p className="muted">{room.status === 'checked_in' ? t('reservations.dialogs.assign_move_text') : t('reservations.dialogs.assign_text', { from: date(room.check_in), to: date(room.check_out) })}</p>}
+                {room && room.status !== 'checked_in' && room.nights > 1 && <>
+                    <Checkbox label={t('reservations.dialogs.split_toggle')} checked={partial} onChange={(e) => setPartial(e.target.checked)} />
+                    {partial && <div className="form-grid">
+                        <Input fieldClass="span-6" type="date" label={t('reservations.dialogs.split_from')} value={from} min={room.check_in} max={addDaysIso(room.check_out, -1)} onChange={(e) => setFrom(e.target.value)} />
+                        <Input fieldClass="span-6" type="date" label={t('reservations.dialogs.split_to')} value={to} min={addDaysIso(from || room.check_in, 1)} max={room.check_out} onChange={(e) => setTo(e.target.value)} />
+                        <p className="span-12 muted text-sm">{t('reservations.dialogs.split_hint')}</p>
+                    </div>}
+                </>}
                 {failed && <Alert tone="danger">{failed}</Alert>}
                 {!failed && units === null && <div className="skeleton" style={{ height: 40 }} />}
                 {units !== null && units.length === 0 && <EmptyState icon="door-closed" title={t('reservations.dialogs.assign_none')} />}
@@ -223,4 +250,10 @@ function AssignDialog({ r, roomId, onClose, onDone }: { r: ReservationDetail; ro
             </form>
         </Modal>
     );
+}
+
+function addDaysIso(iso: string, days: number): string {
+    const d = new Date(`${iso}T00:00:00`);
+    d.setDate(d.getDate() + days);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }

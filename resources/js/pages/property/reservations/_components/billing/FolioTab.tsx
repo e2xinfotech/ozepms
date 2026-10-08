@@ -5,6 +5,7 @@ import { http, type ApiError } from '@/lib/http';
 import { t } from '@/lib/i18n';
 import { propertyUrl } from '@/lib/page';
 import type { BillingProps } from '../BillingSlot';
+import AddBillModal from './AddBillModal';
 import AddChargeModal from './AddChargeModal';
 import { billingApi, fmt, isPositive, submit, type FolioData, type FolioLineRow } from './shared';
 
@@ -20,6 +21,7 @@ export default function FolioTab({ reservation, onChanged }: BillingProps) {
     const [data, setData] = useState<FolioData | null>(null);
     const [failed, setFailed] = useState<ApiError | null>(null);
     const [adding, setAdding] = useState(false);
+    const [billing, setBilling] = useState(false);
     const [voiding, setVoiding] = useState<FolioLineRow | null>(null);
     const cur = reservation.currency;
 
@@ -42,6 +44,7 @@ export default function FolioTab({ reservation, onChanged }: BillingProps) {
     return (
         <Card title={title} actions={<div className="row">
             <LinkButton size="sm" variant="outline" icon="printer" href={propertyUrl(`/reservations/${reservation.id}/folio`)} target="_blank" rel="noopener">{t('billing.folio.print')}</LinkButton>
+            {data.can.post && <Button size="sm" variant="outline" icon="receipt" onClick={() => setBilling(true)}>{t('billing.bill.title')}</Button>}
             {data.can.post && <Button size="sm" variant="primary" icon="plus" onClick={() => setAdding(true)}>{t('billing.folio.add_charge')}</Button>}
         </div>}>
             {data.lines.length === 0 && data.pending.length === 0
@@ -58,7 +61,7 @@ export default function FolioTab({ reservation, onChanged }: BillingProps) {
                                 <td title={l.posted_at ? `${dateTime(l.posted_at)}${l.posted_by ? ` · ${l.posted_by}` : ''}` : undefined}>{date(l.date)}</td>
                                 <td>
                                     <span className="cell-main">{l.reversal ? `${t('billing.line_status.reversal')}: ` : ''}{l.description}</span>
-                                    <span className="cell-sub">{t(`billing.types.${l.type}`)}{l.sac ? ` · SAC ${l.sac}` : ''}{l.void_reason ? ` · ${l.void_reason}` : ''}</span>
+                                    <span className="cell-sub">{l.department && l.department !== 'other' ? `${t(`billing.departments.${l.department}`)} · ` : ''}{t(`billing.types.${l.type}`)}{l.reference ? ` · #${l.reference}` : ''}{l.sac ? ` · SAC ${l.sac}` : ''}{l.void_reason ? ` · ${l.void_reason}` : ''}</span>
                                 </td>
                                 <td className="num">{Number(l.quantity)}</td>
                                 <td className="num">{fmt(l.amount, cur)}</td>
@@ -98,6 +101,7 @@ export default function FolioTab({ reservation, onChanged }: BillingProps) {
                     <div className="ps-row total"><span>{t('billing.summary.balance')}</span><span className="num">{fmt(s.balance, cur)}</span></div>
                 </div>
             </div>
+            {billing && <AddBillModal reservation={reservation} open onClose={() => setBilling(false)} onSaved={() => { setBilling(false); changed(); }} />}
             {adding && <AddChargeModal reservation={reservation} open onClose={() => setAdding(false)} onSaved={() => { setAdding(false); changed(); }} />}
             {voiding && <VoidModal line={voiding} reservationId={reservation.id} currency={cur} onClose={() => setVoiding(null)} onDone={() => { setVoiding(null); changed(); }} />}
         </Card>

@@ -39,7 +39,7 @@ class GuestQuery
         $tab = in_array($f['tab'], self::TABS, true) ? $f['tab'] : 'all';
         $today = $this->guard->today($property);
 
-        $filtered = Guest::query()->whereNull('guests.anonymized_at');
+        $filtered = Guest::query()->whereNull('guests.anonymized_at')->where('guests.is_companion', 0);
         if ($f['q'] !== '' && ($term = SearchTerm::parse($f['q'])) !== null) {
             $filtered->where(function (Builder $w) use ($term, $property) {
                 match ($term->kind) {

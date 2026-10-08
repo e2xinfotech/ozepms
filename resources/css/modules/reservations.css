@@ -40,8 +40,7 @@
 .price-summary .ps-row.strong { color: var(--ink); font-weight: var(--weight-semibold); }
 .price-summary .ps-row.total { margin: 4px -12px 0; padding: 10px 12px; border-radius: var(--radius); background: var(--brand-50); color: var(--ink); font-weight: var(--weight-bold); font-size: var(--text-lg); }
 .price-summary .ps-row.total .num { color: var(--brand-600); }
-.action-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-@media (max-width: 1600px) { .action-grid.three { grid-template-columns: minmax(0, 1fr); } }
+.action-grid.three { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 .billing-note { display: flex; gap: 10px; align-items: flex-start; color: var(--muted); font-size: var(--text-sm); }
 
 /* Detail page (reservation-details.png) */

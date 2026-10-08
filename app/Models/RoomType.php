@@ -33,6 +33,8 @@ class RoomType extends Model
             'size_value' => 'decimal:2',
             'is_active' => 'boolean',
             'extra_bed_allowed' => 'boolean',
+            'show_on_booking_engine' => 'boolean',
+            'min_price' => 'decimal:2',
             'base_adults' => 'integer',
             'max_adults' => 'integer',
             'max_children' => 'integer',

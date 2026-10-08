@@ -30,6 +30,7 @@ class BillingController extends Controller
                 'tax_categories' => TaxCategory::query()->orderBy('id')->get(['code', 'name', 'default_sac_hsn'])
                     ->map(fn ($c) => ['value' => $c->code, 'label' => __('billing.tax_categories.'.$c->code) !== 'billing.tax_categories.'.$c->code ? __('billing.tax_categories.'.$c->code) : $c->name, 'sac' => $c->default_sac_hsn])->all(),
                 'posting_rules' => Service::POSTING_RULES,
+                'departments' => Service::DEPARTMENTS,
                 // SAC/HSN codes are part of Indian GST only.
                 'show_sac' => $context->property()->country_iso2 === 'IN',
             ],

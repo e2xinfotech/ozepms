@@ -1,0 +1,37 @@
+/* Channel manager (Phase 8) — channel cards, mapping table, sync log, Test Channel tools. */
+.ch-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.ch-cards .card-body { display: flex; flex-direction: column; gap: 6px; }
+.ch-section-title { font-size: var(--text-md); font-weight: var(--weight-semibold); color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 24px 0 12px; }
+
+.ch-head-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 12px; }
+.ch-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ch-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start; }
+.ch-copy { display: flex; gap: 8px; align-items: center; }
+.ch-copy input { flex: 1; min-width: 0; font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--text-sm); }
+.ch-steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); }
+
+.ch-map { width: 100%; border-collapse: collapse; }
+.ch-map th { text-align: left; font-size: var(--text-sm); color: var(--muted); font-weight: var(--weight-medium); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.ch-map td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.ch-map tr.room td { background: var(--surface-2, var(--surface)); font-weight: var(--weight-semibold); }
+.ch-map tr.rate td:first-child { padding-left: 28px; }
+.ch-map .field { margin: 0; }
+.ch-map select, .ch-map input { min-width: 150px; }
+.ch-markup { display: flex; gap: 8px; }
+.ch-markup input { min-width: 80px; width: 90px; }
+.ch-scroll { overflow-x: auto; }
+
+.ch-log-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; padding: 12px 16px; background: var(--surface-2, var(--surface)); }
+.ch-log-body pre { margin: 0; max-height: 260px; overflow: auto; font-size: 12px; white-space: pre-wrap; word-break: break-all; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+.ch-pager { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+
+.ch-holds { overflow-x: auto; }
+.ch-holds table { border-collapse: collapse; font-size: var(--text-sm); }
+.ch-holds th, .ch-holds td { padding: 6px 8px; border: 1px solid var(--line); text-align: center; white-space: nowrap; }
+.ch-holds td.closed { background: var(--red-50, #fee2e2); color: var(--red-700, #b91c1c); }
+.ch-holds th:first-child, .ch-holds td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface); }
+
+@media (max-width: 640px) {
+    .ch-two { grid-template-columns: 1fr; }
+    .ch-map select, .ch-map input { min-width: 120px; }
+}

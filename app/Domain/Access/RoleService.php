@@ -7,6 +7,7 @@ use App\Infrastructure\Database\Tx;
 use App\Models\Permission;
 use App\Models\Property;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -18,8 +19,10 @@ class RoleService
     public function __construct(private readonly AuditLogger $audit, private readonly AccessService $access) {}
 
     /** @param  array<int, string>  $permissionKeys */
-    public function create(Property $property, string $name, ?string $description, string $color, array $permissionKeys): Role
+    public function create(Property $property, string $name, ?string $description, string $color, array $permissionKeys, ?User $by = null): Role
     {
+        $this->assertWithinReach($by, $permissionKeys);
+
         return Tx::run(function () use ($property, $name, $description, $color, $permissionKeys) {
             $role = Role::query()->create([
                 'property_id' => $property->id,
@@ -38,10 +41,15 @@ class RoleService
     }
 
     /** @param  array<int, string>  $permissionKeys */
-    public function update(Role $role, string $name, ?string $description, string $color, array $permissionKeys): Role
+    public function update(Role $role, string $name, ?string $description, string $color, array $permissionKeys, ?User $by = null): Role
     {
         if ($role->is_system) {
             throw ValidationException::withMessages(['role' => __('roles.system_read_only')]);
+        }
+
+        $this->assertWithinReach($by, $permissionKeys);
+        if ($by !== null && ! $this->access->covers($by, $role->id)) {
+            throw ValidationException::withMessages(['permissions' => __('roles.beyond_your_access')]);
         }
 
         return Tx::run(function () use ($role, $name, $description, $color, $permissionKeys) {
@@ -65,6 +73,14 @@ class RoleService
         $this->audit->log('role.deleted', $role, ['before' => ['name' => $role->name]], $role->property_id);
         $role->delete();
         $this->access->forgetRole($role->id);
+    }
+
+    /** A role may only hold permissions its creator has. */
+    private function assertWithinReach(?User $by, array $permissionKeys): void
+    {
+        if ($by !== null && array_diff($permissionKeys, $this->access->propertyPermissions($by)) !== []) {
+            throw ValidationException::withMessages(['permissions' => __('roles.beyond_your_access')]);
+        }
     }
 
     /** @param  array<int, string>  $keys */

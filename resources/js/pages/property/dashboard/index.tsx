@@ -25,8 +25,10 @@ type Metric = 'occupancy' | 'revenue' | 'adr' | 'revpar';
 
 
 
-function StayTable({ rows, empty }: { rows: StayRow[]; empty: string }) {
+function StayTable({ rows, empty, max, moreUrl }: { rows: StayRow[]; empty: string; max?: number; moreUrl?: string }) {
     if (rows.length === 0) return <EmptyState icon="calendar-check" title={empty} />;
+    const hidden = max && rows.length > max ? rows.length - max : 0;
+    if (max) rows = rows.slice(0, max);
     return (
         <div className="table-scroll">
             <table className="table">
@@ -44,6 +46,7 @@ function StayTable({ rows, empty }: { rows: StayRow[]; empty: string }) {
                     ))}
                 </tbody>
             </table>
+            {hidden > 0 && moreUrl && <a className="dash-more" href={moreUrl}>{t('property.dashboard.more_rows', { count: hidden })}</a>}
         </div>
     );
 }
@@ -72,7 +75,7 @@ function DashboardPage({ dashboard: d, max_range_days, onboarding }: { dashboard
     const lineMetric: Metric = metric === 'occupancy' ? 'revenue' : metric;
 
     return (
-        <div className="content">
+        <div className={pending.length === 0 ? 'content dashboard-fit' : 'content'}>
             <PageHeader title={t('nav.dashboard')} description={t('property.dashboard.welcome')}
                 actions={<DateRange from={d.from} to={d.to} maxDays={max_range_days} onApply={(from, to) => navigateWithQuery({ from, to })} />} />
 
@@ -114,7 +117,7 @@ function DashboardPage({ dashboard: d, max_range_days, onboarding }: { dashboard
                         { key: 'revpar', label: t('property.dashboard.tab_revpar') },
                     ]} />
                 }>
-                    <BarLineChart labels={labels}
+                    <BarLineChart fill labels={labels}
                         bars={metric === 'occupancy' ? occ : series[metric]}
                         barMax={metric === 'occupancy' ? 100 : undefined}
                         barLabel={metricLabel[metric]}
@@ -128,7 +131,7 @@ function DashboardPage({ dashboard: d, max_range_days, onboarding }: { dashboard
 
                 <div className="dash-col">
                     <Card title={t('property.dashboard.room_status')}>
-                        <Donut centerValue={number(d.room_status.total)} centerLabel={t('property.dashboard.rooms')} segments={[
+                        <Donut size={120} centerValue={number(d.room_status.total)} centerLabel={t('property.dashboard.rooms')} segments={[
                             { label: t('ui.status.occupied'), value: d.room_status.occupied, color: 'var(--green-solid)' },
                             { label: t('property.dashboard.vacant'), value: d.room_status.vacant, color: 'var(--line-strong)' },
                             { label: t('ui.status.out_of_service'), value: d.room_status.out_of_service, color: 'var(--amber-solid)' },
@@ -137,10 +140,10 @@ function DashboardPage({ dashboard: d, max_range_days, onboarding }: { dashboard
                     </Card>
                     <Card title={t('property.dashboard.today_summary')}>
                         <div className="summary-tiles">
-                            <div className="summary-tile"><span className="st-value"><Icon name="bed-double" size={20} />{d.summary.arrivals}</span><span className="st-label" title={t('property.dashboard.arrivals_short')}>{t('property.dashboard.arrivals_short')}</span></div>
-                            <div className="summary-tile"><span className="st-value"><Icon name="briefcase" size={20} />{d.summary.departures}</span><span className="st-label" title={t('property.dashboard.departures_short')}>{t('property.dashboard.departures_short')}</span></div>
-                            <div className="summary-tile"><span className="st-value"><Icon name="spray-can" size={20} />{d.summary.housekeeping}</span><span className="st-label" title={t('property.dashboard.housekeeping_short')}>{t('property.dashboard.housekeeping_short')}</span></div>
-                            <div className={`summary-tile${d.summary.issues > 0 ? ' alert-tile' : ''}`}><span className="st-value"><Icon name="alert-triangle" size={20} />{d.summary.issues}</span><span className="st-label">{t('property.dashboard.issues')}</span></div>
+                            <div className="summary-tile" title={t('property.dashboard.arrivals_tip')}><span className="st-value"><Icon name="bed-double" size={20} />{d.summary.arrivals}</span><span className="st-label" title={t('property.dashboard.arrivals_short')}>{t('property.dashboard.arrivals_short')}</span></div>
+                            <div className="summary-tile" title={t('property.dashboard.departures_tip')}><span className="st-value"><Icon name="briefcase" size={20} />{d.summary.departures}</span><span className="st-label" title={t('property.dashboard.departures_short')}>{t('property.dashboard.departures_short')}</span></div>
+                            <div className="summary-tile" title={t('property.dashboard.housekeeping_tip')}><span className="st-value"><Icon name="spray-can" size={20} />{d.summary.housekeeping}</span><span className="st-label" title={t('property.dashboard.housekeeping_short')}>{t('property.dashboard.housekeeping_short')}</span></div>
+                            <div className={`summary-tile${d.summary.issues > 0 ? ' alert-tile' : ''}`} title={t('property.dashboard.issues_tip')}><span className="st-value"><Icon name="alert-triangle" size={20} />{d.summary.issues}</span><span className="st-label">{t('property.dashboard.issues')}</span></div>
                         </div>
                     </Card>
                 </div>
@@ -148,10 +151,10 @@ function DashboardPage({ dashboard: d, max_range_days, onboarding }: { dashboard
 
             <div className="dash-grid-3">
                 <Card flush title={`${t('property.dashboard.arrivals_today')} (${d.summary.arrivals})`} actions={<a className="card-link" href={propertyUrl('/front-desk')}>{t('ui.view_all')}</a>}>
-                    <StayTable rows={d.arrivals} empty={t('property.dashboard.no_arrivals')} />
+                    <StayTable rows={d.arrivals} empty={t('property.dashboard.no_arrivals')} max={4} moreUrl={propertyUrl('/front-desk')} />
                 </Card>
                 <Card flush title={`${t('property.dashboard.departures_today')} (${d.summary.departures})`} actions={<a className="card-link" href={propertyUrl('/front-desk?tab=departures')}>{t('ui.view_all')}</a>}>
-                    <StayTable rows={d.departures} empty={t('property.dashboard.no_departures')} />
+                    <StayTable rows={d.departures} empty={t('property.dashboard.no_departures')} max={4} moreUrl={propertyUrl('/front-desk?tab=departures')} />
                 </Card>
                 <Card title={t('property.dashboard.housekeeping')}>
                     <div className="bar-list">

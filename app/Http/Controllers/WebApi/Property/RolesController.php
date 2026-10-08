@@ -35,6 +35,7 @@ class RolesController extends Controller
             $request->validated('description'),
             (string) $request->validated('color'),
             $request->validated('permissions'),
+            $request->user(),
         );
 
         return response()->json(['message' => __('roles.saved'), 'role' => PermissionCatalogue::role($role->load('permissions'), 0)], 201);
@@ -48,6 +49,7 @@ class RolesController extends Controller
             $request->validated('description'),
             (string) $request->validated('color'),
             $request->validated('permissions'),
+            $request->user(),
         );
 
         return response()->json(['message' => __('roles.saved'), 'role' => PermissionCatalogue::role($model->load('permissions'))]);

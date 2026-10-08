@@ -40,7 +40,7 @@ export function CellEditor({ grid, selection, at, onClose, onSaved }: Props) {
             const d = product.days[selection.start];
             v.price = product.pricing_mode === 'derived' ? '' : d.p ?? '';
             v.occ = { ...(d.o ?? {}) };
-            v.min_los = str(d.min); v.max_los = str(d.max); v.min_advance = str(d.cut); v.max_advance = str(d.adv);
+            v.min_los = str(d.min) || '1'; v.max_los = str(d.max) || '99'; v.min_advance = str(d.cut); v.max_advance = str(d.adv);
             v.cta = d.cta ? '1' : '0'; v.ctd = d.ctd ? '1' : '0'; v.closed = d.ss ? '1' : '0';
         } else {
             const d = rt.inventory[selection.start];

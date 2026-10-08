@@ -17,8 +17,8 @@ async function changeLocale(locale: string) {
 }
 
 async function logout() {
-    await http.post('/web-api/auth/logout');
-    window.location.href = '/login';
+    const res = await http.post<{ redirect?: string }>('/web-api/auth/logout');
+    window.location.href = res?.redirect ?? '/login';
 }
 
 export function Topbar({ shell, onMenu }: { shell: ShellData; onMenu: () => void }) {
@@ -69,6 +69,12 @@ export function Topbar({ shell, onMenu }: { shell: ShellData; onMenu: () => void
             </div>}
 
             <div className="topbar-actions">
+                {shell.impersonation && (
+                    <button type="button" className="imp-pill" title={t('impersonation.banner', { name: shell.impersonation.target })}
+                        onClick={async () => { const r = await http.post<{ redirect: string }>('/web-api/impersonation/stop'); window.location.href = r.redirect; }}>
+                        <Icon name="user-cog" size={16} />{t('impersonation.pill', { name: shell.impersonation.target })}
+                    </button>
+                )}
                 <Dropdown width={180} trigger={(toggle) => (
                     <button className="topbar-btn" onClick={toggle} aria-label={t('nav.language')}><Icon name="globe" size={20} />{(document.documentElement.lang || 'en').slice(0, 2).toUpperCase()}</button>
                 )} items={Object.entries(shell.locales).map(([code, name]) => ({
@@ -88,7 +94,7 @@ export function Topbar({ shell, onMenu }: { shell: ShellData; onMenu: () => void
                 )} items={[
                     { label: t('nav.profile'), icon: 'user', href: '/account/profile' },
                     { label: t('nav.security'), icon: 'shield', href: '/account/security' },
-                    ...(shell.admin_url ? [{ label: t('nav.super_admin'), icon: 'shield-check', href: shell.admin_url }] : []),
+                    ...(shell.admin_url ? [{ label: t('nav.platform'), icon: 'shield-check', href: shell.admin_url }] : []),
                     { label: '', separator: true },
                     { label: t('nav.sign_out'), icon: 'log-out', onClick: logout, danger: true },
                 ]} />

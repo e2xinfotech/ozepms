@@ -3,7 +3,9 @@
 namespace App\Domain\Channels;
 
 use App\Domain\Accommodation\InProperty;
+use App\Domain\Access\AccessService;
 use App\Domain\Audit\AuditLogger;
+use App\Domain\Platform\ApprovalService;
 use App\Infrastructure\Database\Tx;
 use App\Models\ChannelConnection;
 use App\Models\ChannelRateMapping;
@@ -27,7 +29,21 @@ class ConnectionService
         private readonly ChannelRegistry $registry,
         private readonly ChannelSyncService $sync,
         private readonly AuditLogger $audit,
+        private readonly AccessService $access,
+        private readonly ApprovalService $approvals,
     ) {}
+
+    /** May this user enter credentials and approve channel connections (E2X staff)? */
+    public function isStaff(?User $by): bool
+    {
+        return $by !== null && $this->access->allows($by, 'platform.channels.approve');
+    }
+
+    /** Real channels: only E2X staff enter credentials and change the hotel id. The Test Channel is open to the hotel. */
+    private function hotelMayEditCredentials(string $provider, ?User $by): bool
+    {
+        return ! $this->registry->requiresApproval($provider) || $this->isStaff($by);
+    }
 
     public function create(Property $property, array $data, ?User $by = null): ChannelConnection
     {
@@ -38,31 +54,76 @@ class ConnectionService
         if (ChannelConnection::acrossProperties()->where('property_id', $property->id)->where('provider', $provider)->exists()) {
             throw ValidationException::withMessages(['provider' => __('channels.errors.provider_exists')]);
         }
-        $credentials = $this->credentials($provider, (array) ($data['credentials'] ?? []), []);
+        $mayEnter = $this->hotelMayEditCredentials($provider, $by);
+        $credentials = $mayEnter ? $this->credentials($provider, (array) ($data['credentials'] ?? []), []) : [];
+        $approved = ! $this->registry->requiresApproval($provider) || $this->isStaff($by);
         $connection = InProperty::run($property, fn () => ChannelConnection::query()->create([
             'property_id' => $property->id, 'provider' => $provider, 'name' => trim((string) ($data['name'] ?? '')) ?: null,
             'external_hotel_id' => trim((string) $data['external_hotel_id']), 'status' => 'pending',
+            'approval_status' => $approved ? 'approved' : 'pending',
+            'approved_by' => $approved && $by !== null ? $by->id : null, 'approved_at' => $approved ? now() : null,
             'credentials' => $credentials + ['webhook_secret' => Str::random(48)],
             // Start after the current change log: history is covered by the first full sync.
             'last_ari_log_id' => (int) DB::table('ari_change_log')->where('property_id', $property->id)->max('id'),
             'settings' => [],
         ]));
         $this->audit->log('channel.connected', $connection, ['after' => ['provider' => $provider, 'hotel' => $connection->external_hotel_id]], $property->id, $by?->id);
-        $this->test($connection, $by);
+        if ($approved) {
+            $this->test($connection, $by);
+        } else {
+            $this->requestApproval($connection, $by);
+        }
 
         return $connection->fresh();
+    }
+
+    /** The hotel asks E2X to connect this channel (again, after a rejection). */
+    public function requestApproval(ChannelConnection $connection, ?User $by = null): void
+    {
+        if ($connection->approval_status === 'rejected') {
+            $connection->forceFill(['approval_status' => 'pending', 'approval_note' => null])->save();
+        }
+        $property = Property::query()->withoutGlobalScopes()->find($connection->property_id);
+        $this->approvals->request('channel_connection', $connection, $by,
+            __('approvals.channel_summary', ['channel' => __('channels.providers.'.$connection->provider), 'property' => ($property?->name ?? '').' ('.($property?->code ?? '').')']),
+            $connection->property_id, ['connection' => $connection->public_id, 'provider' => $connection->provider, 'property_code' => $property?->code]);
+    }
+
+    /** E2X stops all traffic of a connection at any time; the hotel's settings and mapping stay as they are. */
+    public function suspend(ChannelConnection $connection, User $by, ?string $reason = null): void
+    {
+        $before = $connection->approval_status;
+        $connection->forceFill(['approval_status' => 'suspended', 'approval_note' => $reason !== null ? mb_substr(trim($reason), 0, 500) : null])->save();
+        $this->audit->log('channel.suspended', $connection, ['before' => ['approval' => $before], 'after' => ['approval' => 'suspended'], 'reason' => $reason], $connection->property_id, $by->id);
+    }
+
+    public function unsuspend(ChannelConnection $connection, User $by): void
+    {
+        $connection->forceFill(['approval_status' => 'approved', 'approval_note' => null])->save();
+        $this->audit->log('channel.unsuspended', $connection, ['after' => ['approval' => 'approved']], $connection->property_id, $by->id);
+        if ($connection->isSyncing()) {
+            $this->sync->sync($connection->fresh(), true);
+        }
     }
 
     public function update(ChannelConnection $connection, array $data, ?User $by = null): ChannelConnection
     {
         $before = ['name' => $connection->name, 'hotel' => $connection->external_hotel_id];
-        $connection->forceFill([
-            'name' => trim((string) ($data['name'] ?? '')) ?: null,
-            'external_hotel_id' => trim((string) ($data['external_hotel_id'] ?? $connection->external_hotel_id)),
-            'credentials' => $this->credentials($connection->provider, (array) ($data['credentials'] ?? []), (array) ($connection->credentials ?? [])),
-        ])->save();
+        if ($this->hotelMayEditCredentials($connection->provider, $by)) {
+            $connection->forceFill([
+                'name' => trim((string) ($data['name'] ?? '')) ?: null,
+                'external_hotel_id' => trim((string) ($data['external_hotel_id'] ?? $connection->external_hotel_id)),
+                'credentials' => $this->credentials($connection->provider, (array) ($data['credentials'] ?? []), (array) ($connection->credentials ?? [])),
+            ])->save();
+        } else {
+            $hotel = trim((string) ($data['external_hotel_id'] ?? $connection->external_hotel_id));
+            if ($hotel !== $connection->external_hotel_id) {
+                throw ValidationException::withMessages(['external_hotel_id' => __('channels.errors.staff_only')]);
+            }
+            $connection->forceFill(['name' => trim((string) ($data['name'] ?? '')) ?: null])->save();
+        }
         $this->audit->log('channel.updated', $connection, ['before' => $before, 'after' => ['name' => $connection->name, 'hotel' => $connection->external_hotel_id]], $connection->property_id, $by?->id);
-        if (in_array($connection->status, ['pending', 'error'], true)) {
+        if ($connection->isApproved() && in_array($connection->status, ['pending', 'error'], true)) {
             $this->test($connection, $by);
         }
 
@@ -74,7 +135,8 @@ class ConnectionService
     {
         $result = $this->registry->provider($connection)->testConnection($connection);
         $this->sync->log($connection, 'outbound', 'connection_test', $result, 0, null);
-        if ($result->ok && in_array($connection->status, ['pending', 'error'], true)) {
+        // A connection only goes live once it is approved.
+        if ($result->ok && $connection->isApproved() && in_array($connection->status, ['pending', 'error'], true)) {
             $connection->forceFill(['status' => 'active', 'failures' => 0, 'last_error' => null, 'next_attempt_at' => null])->save();
         } elseif (! $result->ok) {
             $connection->forceFill(['last_error' => mb_substr((string) $result->message, 0, 1000), 'last_error_at' => now()])->save();
@@ -90,6 +152,9 @@ class ConnectionService
 
     public function resume(ChannelConnection $connection, ?User $by = null): void
     {
+        if (! $connection->isApproved()) {
+            throw ValidationException::withMessages(['connection' => __('channels.messages.not_approved')]);
+        }
         $this->status($connection, 'active', 'channel.resumed', $by);
         $connection->forceFill(['failures' => 0, 'next_attempt_at' => null])->save();
         $this->sync->sync($connection, true);

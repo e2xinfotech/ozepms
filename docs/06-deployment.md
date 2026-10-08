@@ -287,3 +287,12 @@ Test with <https://securityheaders.com> and <https://www.ssllabs.com/ssltest/> (
 ```
 
 Copy backups off the server (object storage) and test a restore every month. Also back up `shared/.env` and `shared/storage/app`.
+
+## Booking engine on its own host name
+
+Set `OZ_BOOKING_DOMAIN=book.ozepms.e2xinfotech.in` in `.env` (host only), add a DNS record for it pointing at the server, add the name to
+`server_name` in the nginx file (already in `deploy/nginx/ozepms.conf`) and issue one certificate that covers both names
+(`certbot certonly --webroot -w /var/www/letsencrypt -d ozepms.e2xinfotech.in -d book.ozepms.e2xinfotech.in`), then `php artisan config:cache`
+and `php artisan route:cache`. Hotels then share `https://book.ozepms.e2xinfotech.in/P1002`; `/book/P1002` on the PMS host redirects there.
+The PMS and platform screens answer 404 on the booking host, and `SESSION_DOMAIN` must stay empty so the PMS sign-in cookie is not shared.
+The "Settings → Booking engine" link and the `booking_url` of `/api/v1` follow the setting automatically.

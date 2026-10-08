@@ -25,3 +25,12 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+local-accounts.txt
+
+# Not uploaded: automated tests and local helper files
+/tests
+/phpunit.xml
+/.handoff
+/_sync
+/storage/logs/*
+!/storage/logs/.gitignore

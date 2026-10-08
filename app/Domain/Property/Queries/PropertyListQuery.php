@@ -17,7 +17,7 @@ class PropertyListQuery
 {
     public const FILTERS = ['q', 'country', 'type', 'status'];
 
-    public const STATUSES = ['onboarding', 'active', 'suspended', 'inactive'];
+    public const STATUSES = ['pending_approval', 'onboarding', 'active', 'suspended', 'inactive', 'rejected'];
 
     /** @return array{rows: array, meta: array, counts: array, kpis: array} */
     public function platform(Request $request): array

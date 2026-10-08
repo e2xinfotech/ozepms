@@ -103,7 +103,7 @@ class AriService
      */
     private function applyOne(AriChangeSet $changes, Property $property, ?int $userId, string $source): array
     {
-        $today = $this->inventory->today($property->id);
+        $today = $this->inventory->calendarToday($property->id);
         $limit = $this->inventory->horizonEnd($today)->addDays(self::EXTRA_DAYS - 1);
         $skipped = [];
 
@@ -188,6 +188,7 @@ class AriService
         }
 
         // Product level ---------------------------------------------------------------------
+        $minPrices = $products->isEmpty() ? [] : DB::table('room_types')->whereIn('id', $products->pluck('room_type_id')->unique())->pluck('min_price', 'id')->all();
         foreach ($products as $product) {
             $productId = (int) $product->id;
             $derived = $product->pricing_mode === 'derived';
@@ -205,7 +206,10 @@ class AriService
             if ($changes->hasPriceChanges() && $derived) {
                 $skipped[] = $this->skip('product', $productId, 'price', 'derived_price', $dayCount);
             }
-            if ($changes->price !== null && ! $derived) {
+            $floor = (float) ($minPrices[(int) $product->room_type_id] ?? 0);
+            if ($changes->price !== null && ! $derived && $floor > 0 && (float) $changes->price < $floor) {
+                $skipped[] = $this->skip('product', $productId, 'price', 'below_min_price', $dayCount);
+            } elseif ($changes->price !== null && ! $derived) {
                 $sets[] = 'price = ?';
                 $bindings[] = $changes->price;
                 $rateFields['price'] = $changes->price;

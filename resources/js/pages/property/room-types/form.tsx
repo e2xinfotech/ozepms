@@ -19,6 +19,8 @@ interface RoomType {
     base_adults: number; max_adults: number; max_children: number; max_infants: number; max_occupancy: number;
     extra_bed_allowed: boolean; max_extra_beds: number; size_value: string | null; size_unit: string | null;
     smoking_policy: string; view_label: string | null; is_active: boolean;
+    min_price: string | null; show_on_booking_engine: boolean; notification_emails: string | null; wifi_info: string | null; checkin_info: string | null;
+    nearby_info: string | null; activities_info: string | null; invoice_note: string | null; registration_authority: string | null; registration_number: string | null;
     beds: { bed_type: string; quantity: number }[]; amenities: string[]; images: { id: number; url: string; alt: string | null }[];
     units: Unit[]; active_units: number; products: Product[];
 }
@@ -53,6 +55,9 @@ function RoomTypeForm({ room_type: rt, options, can }: Props) {
         extra_bed_allowed: rt?.extra_bed_allowed ?? false, max_extra_beds: rt?.max_extra_beds ?? 0,
         size_value: rt?.size_value ?? '', size_unit: rt?.size_unit ?? 'sqm', smoking_policy: rt?.smoking_policy ?? 'non_smoking',
         view_label: rt?.view_label ?? '', is_active: rt?.is_active ?? true,
+        min_price: rt?.min_price ?? '', show_on_booking_engine: rt?.show_on_booking_engine ?? true, notification_emails: rt?.notification_emails ?? '',
+        wifi_info: rt?.wifi_info ?? '', checkin_info: rt?.checkin_info ?? '', nearby_info: rt?.nearby_info ?? '', activities_info: rt?.activities_info ?? '',
+        invoice_note: rt?.invoice_note ?? '', registration_authority: rt?.registration_authority ?? '', registration_number: rt?.registration_number ?? '',
     });
     const set = <K extends keyof typeof data>(key: K, value: (typeof data)[K]) => setData((d) => ({ ...d, [key]: value }));
     const num = (key: 'base_adults' | 'max_adults' | 'max_children' | 'max_infants' | 'max_occupancy' | 'max_extra_beds') =>
@@ -218,6 +223,30 @@ function RoomTypeForm({ room_type: rt, options, can }: Props) {
                         options={['non_smoking', 'smoking', 'both'].map((v) => ({ value: v, label: t(`rooms.smoking.${v}`) }))}
                         onChange={(e) => set('smoking_policy', e.target.value)} />
                     <Input fieldClass="span-4" label={t('rooms.fields.view_label')} optional value={data.view_label} maxLength={60} onChange={(e) => set('view_label', e.target.value)} error={err('view_label')} />
+                </FormSection>
+
+                <FormSection title={t('rooms.sections.sales_settings')} description={t('rooms.sections.sales_settings_desc')}>
+                    <Input fieldClass="span-4" type="number" min={0} step="0.01" label={t('rooms.fields.min_price')} optional hint={t('rooms.hints.min_price')}
+                        value={data.min_price} onChange={(e) => set('min_price', e.target.value)} error={err('min_price')} />
+                    <div className="field span-4">
+                        <span className="field-label">{t('rooms.fields.show_on_booking_engine')}</span>
+                        <Toggle checked={data.show_on_booking_engine} onChange={(v) => set('show_on_booking_engine', v)} label={data.show_on_booking_engine ? t('ui.yes') : t('ui.no')} />
+                    </div>
+                    <Input fieldClass="span-12" label={t('rooms.fields.notification_emails')} optional hint={t('rooms.hints.notification_emails')} maxLength={500}
+                        value={data.notification_emails} onChange={(e) => set('notification_emails', e.target.value)} error={err('notification_emails')} />
+                </FormSection>
+
+                <FormSection title={t('rooms.sections.guest_info')} description={t('rooms.sections.guest_info_desc')}>
+                    <Textarea fieldClass="span-6" label={t('rooms.fields.wifi_info')} optional rows={3} maxLength={2000} value={data.wifi_info} onChange={(e) => set('wifi_info', e.target.value)} error={err('wifi_info')} />
+                    <Textarea fieldClass="span-6" label={t('rooms.fields.checkin_info')} optional rows={3} maxLength={2000} value={data.checkin_info} onChange={(e) => set('checkin_info', e.target.value)} error={err('checkin_info')} />
+                    <Textarea fieldClass="span-6" label={t('rooms.fields.nearby_info')} optional rows={3} maxLength={2000} value={data.nearby_info} onChange={(e) => set('nearby_info', e.target.value)} error={err('nearby_info')} />
+                    <Textarea fieldClass="span-6" label={t('rooms.fields.activities_info')} optional rows={3} maxLength={2000} value={data.activities_info} onChange={(e) => set('activities_info', e.target.value)} error={err('activities_info')} />
+                    <Textarea fieldClass="span-12" label={t('rooms.fields.invoice_note')} optional hint={t('rooms.hints.invoice_note')} rows={2} maxLength={2000} value={data.invoice_note} onChange={(e) => set('invoice_note', e.target.value)} error={err('invoice_note')} />
+                </FormSection>
+
+                <FormSection title={t('rooms.sections.registration')} description={t('rooms.sections.registration_desc')}>
+                    <Input fieldClass="span-6" label={t('rooms.fields.registration_authority')} optional maxLength={120} value={data.registration_authority} onChange={(e) => set('registration_authority', e.target.value)} error={err('registration_authority')} />
+                    <Input fieldClass="span-6" label={t('rooms.fields.registration_number')} optional maxLength={80} value={data.registration_number} onChange={(e) => set('registration_number', e.target.value)} error={err('registration_number')} />
                 </FormSection>
 
                 <FormSection title={t('rooms.sections.beds')} description={t('rooms.sections.beds_desc')}

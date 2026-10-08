@@ -25,7 +25,7 @@ class GuestService
 {
     /** Profile fields accepted from forms (validated by the request classes). */
     public const FIELDS = [
-        'title', 'guest_type', 'first_name', 'last_name', 'email', 'phone', 'country_iso2', 'nationality_iso2', 'date_of_birth',
+        'title', 'guest_type', 'first_name', 'last_name', 'email', 'phone', 'country_iso2', 'nationality_iso2', 'date_of_birth', 'gender',
         'address_line1', 'address_line2', 'city', 'postcode', 'company_name', 'company_tax_no', 'id_type', 'id_number',
         'id_issuing_iso2', 'id_expiry', 'is_vip', 'marketing_consent', 'notes', 'preferences', 'tags',
     ];
@@ -147,13 +147,14 @@ class GuestService
 
     public function addDocument(Guest $guest, UploadedFile $file, string $type, ?int $reservationId = null, ?User $by = null): GuestDocument
     {
-        $path = $file->store('guest-documents/'.$guest->property_id, self::DOCUMENT_DISK);
+        // The content decides what a document is; the stored name is generated and the name shown is cleaned.
+        [$path, $mime, $size] = \App\Support\SafeUpload::document($file, self::DOCUMENT_DISK, 'guest-documents/'.$guest->property_id);
 
         try {
             $doc = GuestDocument::query()->create([
                 'property_id' => $guest->property_id, 'guest_id' => $guest->id, 'reservation_id' => $reservationId,
-                'doc_type' => $type, 'file_name' => Str::limit($file->getClientOriginalName(), 180, ''), 'path' => $path,
-                'mime' => (string) $file->getMimeType(), 'size_bytes' => (int) $file->getSize(), 'uploaded_by' => $by?->id,
+                'doc_type' => $type, 'file_name' => Str::limit(trim((string) preg_replace('/[^\p{L}\p{N}._ ()-]+/u', '_', basename($file->getClientOriginalName()))), 180, ''), 'path' => $path,
+                'mime' => $mime, 'size_bytes' => $size, 'uploaded_by' => $by?->id,
                 'created_at' => now(),
             ]);
         } catch (\Throwable $e) {

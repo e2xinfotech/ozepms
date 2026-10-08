@@ -49,7 +49,19 @@ return [
         'per_person' => 'Par personne',
         'per_person_night' => 'Par personne et par nuit',
     ],
+    'departments' => [
+        'restaurant' => 'Restaurant',
+        'bar' => 'Bar',
+        'room_service' => 'Service en chambre',
+        'spa' => 'Spa et bien-être',
+        'laundry' => 'Blanchisserie',
+        'transport' => 'Transport',
+        'other' => 'Autre',
+    ],
+    'bill' => ['title' => 'Note de point de vente', 'hint' => 'Enregistrez une note de restaurant ou de bar : plusieurs articles sous un même numéro. Chaque article est taxé selon sa catégorie (cuisine, boissons, alcool …).', 'post' => 'Enregistrer la note', 'add_item' => 'Ajouter un article'],
     'tax_categories' => [
+        'beverage' => 'Boissons',
+        'alcohol' => 'Alcool et spiritueux',
         'accommodation' => 'Hébergement',
         'food' => 'Restauration',
         'service' => 'Autres services',
@@ -97,6 +109,10 @@ return [
         'not_invoice' => 'Ce folio est un relevé de compte, pas une facture fiscale.',
     ],
     'charge' => [
+        'department' => 'Point de vente',
+        'department_auto' => 'Comme le service',
+        'reference' => 'N° de note / ticket',
+        'reference_hint' => 'Affiché sur le folio et la facture.',
         'title' => 'Ajouter des frais',
         'post' => 'Imputer',
         'service' => 'Service',
@@ -142,6 +158,9 @@ return [
         'refund_gateway' => 'Le remboursement est envoyé à Razorpay et rendu sur le moyen de paiement d\'origine du client.',
     ],
     'invoice' => [
+        'group_room' => 'Chambre',
+        'group_other' => 'Autres frais',
+        'group_subtotal' => 'Sous-total',
         'fixed' => 'Fixe',
         'list_title' => 'Factures et avoirs',
         'types' => [
@@ -191,6 +210,7 @@ return [
         'back' => 'Retour à la réservation',
     ],
     'services' => [
+        'department_hint' => 'Où cet article est vendu. La réservation et la facture montrent chaque point de vente séparément.',
         'title' => 'Services et extras',
         'description' => 'Extras pouvant être imputés au folio d\'un client, avec leur prix, leur catégorie de taxe et leur mode de facturation.',
         'add' => 'Ajouter un service',
@@ -201,6 +221,7 @@ return [
         'none_hint' => 'Ajoutez des extras comme un lit d\'appoint, un transfert aéroport ou la blanchisserie pour les imputer en un clic.',
         'posting_hint' => 'Définit la quantité proposée lors de l\'imputation (nuits et personnes du séjour).',
         'columns' => [
+            'department' => 'Point de vente',
             'name' => 'Service',
             'code' => 'Code',
             'price' => 'Prix',
@@ -210,6 +231,7 @@ return [
             'status' => 'Statut',
         ],
         'fields' => [
+            'department' => 'Point de vente',
             'name' => 'Nom',
             'code' => 'Code',
             'price' => 'Prix',
@@ -221,6 +243,7 @@ return [
         ],
     ],
     'errors' => [
+        'bill_empty' => 'Ajoutez au moins un article.',
         'invalid_type' => 'Choisissez un type de frais valide.',
         'quantity' => 'La quantité doit être supérieure à zéro.',
         'amount_zero' => 'Le montant ne doit pas être nul.',
@@ -246,6 +269,7 @@ return [
         'key_reused' => 'Cette demande a déjà été utilisée pour une autre réservation. Rechargez la page et réessayez.',
     ],
     'messages' => [
+        'bill_posted' => '{1} 1 article imputé au folio.|[2,*] :count articles imputés au folio.',
         'charge_posted' => 'Frais imputés au folio.',
         'line_voided' => 'Ligne annulée.',
         'payment_recorded' => 'Paiement enregistré.',

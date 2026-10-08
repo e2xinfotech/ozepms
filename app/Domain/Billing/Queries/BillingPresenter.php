@@ -55,6 +55,8 @@ class BillingPresenter
                 'date' => $l->business_date->toDateString(),
                 'type' => $l->line_type,
                 'description' => $l->description,
+                'department' => $l->department,
+                'reference' => $l->reference,
                 'sac' => $l->sac_hsn_code,
                 'quantity' => (string) $l->quantity,
                 'unit_price' => Money::round((string) $l->unit_price, $places),
@@ -175,12 +177,13 @@ class BillingPresenter
             'services' => Service::query()->where('is_active', true)->with('taxCategory:id,code')->orderBy('sort_order')->orderBy('name')->get()
                 ->map(fn (Service $s) => [
                     'id' => $s->public_id, 'code' => $s->code, 'name' => $s->name, 'price' => (string) $s->price,
-                    'posting_rule' => $s->posting_rule, 'tax_category' => $s->taxCategory?->code,
+                    'posting_rule' => $s->posting_rule, 'tax_category' => $s->taxCategory?->code, 'department' => $s->department,
                     'quantity' => ServiceCatalogService::quantityFor($s, $nights, $persons),
                 ])->all(),
             'tax_categories' => $categories->map(fn ($c) => ['value' => $c->code, 'label' => __('billing.tax_categories.'.$c->code) !== 'billing.tax_categories.'.$c->code ? __('billing.tax_categories.'.$c->code) : $c->name, 'sac' => $c->default_sac_hsn])->all(),
             'methods' => Payment::MANUAL_METHODS,
             'online' => $this->payments->onlineEnabled(),
+            'departments' => Service::DEPARTMENTS,
             'stay' => ['nights' => $nights, 'persons' => $persons],
         ];
     }

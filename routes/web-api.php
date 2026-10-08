@@ -20,6 +20,7 @@ Route::middleware(['guest', 'throttle:auth'])->prefix('auth')->name('auth.')->gr
 
 Route::middleware('auth')->group(function () {
     Route::post('/auth/logout', [WebApi\AuthController::class, 'logout'])->name('auth.logout');
+    Route::post('/impersonation/stop', [WebApi\ImpersonationController::class, 'stop'])->name('impersonation.stop');
 
     Route::prefix('account')->name('account.')->group(function () {
         Route::post('/two-factor/begin', [WebApi\AccountController::class, 'beginTwoFactor'])->name('two-factor.begin');
@@ -36,6 +37,7 @@ Route::middleware('auth')->group(function () {
         Route::prefix('p/{property}')->middleware(['property', 'subscription'])->name('property.')->group(function () {
             Route::get('/properties/{code}', [WebApi\Property\PropertyController::class, 'show'])->middleware('can.do:property.view')->name('properties.show');
             Route::put('/settings', [WebApi\Property\PropertyController::class, 'update'])->middleware('can.do:property.update')->name('settings.update');
+            Route::put('/settings/age-bands', WebApi\Property\AgeBandsController::class)->middleware('can.do:property.update')->name('settings.age-bands');
             Route::put('/settings/booking-engine', WebApi\Property\BookingEngineSettingsController::class)->middleware('can.do:property.update')->name('settings.booking-engine');
             Route::middleware('can.do:property.update')->group(function () {
                 Route::get('/settings/api-keys', [WebApi\Property\ApiKeysController::class, 'index'])->name('settings.api-keys.index');
@@ -83,10 +85,17 @@ Route::middleware('auth')->group(function () {
             Route::middleware('can.do:platform.users.manage')->group(function () {
                 Route::get('/users/{user}', [WebApi\Admin\UsersController::class, 'show'])->name('users.show');
                 Route::post('/users', [WebApi\Admin\UsersController::class, 'store'])->name('users.store');
+                Route::post('/owners', [WebApi\Admin\UsersController::class, 'storeOwner'])->name('owners.store');
                 Route::put('/users/{user}', [WebApi\Admin\UsersController::class, 'update'])->name('users.update');
                 Route::post('/users/{user}/status', [WebApi\Admin\UsersController::class, 'status'])->name('users.status');
                 Route::post('/users/{user}/password-link', [WebApi\Admin\UsersController::class, 'passwordLink'])->name('users.password-link');
             });
+
+            Route::post('/users/{user}/impersonate', [WebApi\ImpersonationController::class, 'start'])
+                ->middleware(['can.do:platform.impersonate', 'throttle:20,1'])->name('users.impersonate');
+
+            Route::post('/approvals/{approval}/decide', [WebApi\Admin\ApprovalsController::class, 'decide'])
+                ->middleware('can.do:platform.approvals.manage')->name('approvals.decide');
 
             Route::middleware('can.do:platform.plans.manage')->group(function () {
                 Route::post('/plans', [WebApi\Admin\PlansController::class, 'store'])->name('plans.store');

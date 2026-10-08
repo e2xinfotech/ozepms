@@ -53,11 +53,26 @@ final class Lookups
 
     public static function plans(): array
     {
-        return SubscriptionPlan::query()->where('is_active', true)->orderBy('sort_order')->get(['id', 'name', 'price', 'currency_code', 'billing_cycle', 'trial_days'])
+        return SubscriptionPlan::query()->where('is_active', true)->where('approval_status', 'approved')->orderBy('sort_order')->get(['id', 'name', 'price', 'currency_code', 'billing_cycle', 'trial_days'])
             ->map(fn ($p) => ['value' => $p->id, 'label' => $p->name, 'price' => $p->price, 'currency' => $p->currency_code, 'cycle' => $p->billing_cycle, 'trial_days' => $p->trial_days])->all();
     }
 
     /** Everything the property create/edit form needs. */
+    /**
+     * Owners to choose from when registering a property: people who already own a property and
+     * people created as owners who have no property yet.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    public static function owners(): array
+    {
+        return \App\Models\User::query()->where('is_platform_user', false)->whereIn('status', ['active', 'invited'])
+            ->where(fn ($q) => $q->whereIn('id', \Illuminate\Support\Facades\DB::table('property_users')->where('is_owner', true)->select('user_id'))
+                ->orWhereNotIn('id', \Illuminate\Support\Facades\DB::table('property_users')->select('user_id')))
+            ->orderBy('name')->limit(500)->get(['public_id', 'name', 'email'])
+            ->map(fn ($u) => ['value' => $u->public_id, 'label' => $u->name.' ('.$u->email.')'])->all();
+    }
+
     public static function propertyForm(): array
     {
         return [

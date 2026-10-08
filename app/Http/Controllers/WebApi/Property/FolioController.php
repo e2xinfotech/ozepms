@@ -53,6 +53,7 @@ class FolioController extends Controller
             'type' => $v['type'], 'service' => $service, 'description' => $v['description'] ?? null,
             'quantity' => $v['quantity'] ?? null, 'unit_price' => $v['unit_price'] ?? null,
             'discount_percent' => $v['discount_percent'] ?? null, 'idempotency_key' => $v['idempotency_key'], 'note' => $v['note'] ?? null,
+            'department' => $v['department'] ?? null, 'reference' => $v['reference'] ?? null,
         ];
         if (array_key_exists('tax_category', $v)) {
             $data['tax_category_id'] = $v['tax_category'] ? (TaxCategory::query()->where('code', $v['tax_category'])->value('id')
@@ -61,6 +62,32 @@ class FolioController extends Controller
         $line = $this->folios->postCharge($r, $data, $request->user());
 
         return response()->json(['line' => $line->public_id, 'folio' => $this->presenter->folio($r->fresh(), $this->abilities()), 'message' => __('billing.messages.charge_posted')], 201);
+    }
+
+    /** A bill from an outlet: several items, one bill number, each with its own tax category. */
+    public function bill(\App\Http\Requests\Property\Billing\PostBillRequest $request, mixed $property, string $reservation): JsonResponse
+    {
+        $r = $this->reservationOr404($reservation);
+        $v = $request->validated();
+        $lines = [];
+        foreach ($v['lines'] as $i => $l) {
+            $service = null;
+            if (! empty($l['service_id'])) {
+                $service = Service::query()->where('public_id', $l['service_id'])->where('is_active', true)->first()
+                    ?? throw ValidationException::withMessages(["lines.$i.service_id" => __('billing.errors.service_not_found')]);
+            }
+            $line = ['service' => $service, 'description' => $l['description'] ?? null, 'quantity' => $l['quantity'] ?? null, 'unit_price' => $l['unit_price'] ?? null, 'note' => $v['note'] ?? null];
+            if (! empty($l['tax_category'])) {
+                $line['tax_category_id'] = TaxCategory::query()->where('code', $l['tax_category'])->value('id')
+                    ?? throw ValidationException::withMessages(["lines.$i.tax_category" => __('billing.errors.tax_category')]);
+            } elseif (array_key_exists('tax_category', $l)) {
+                $line['tax_category_id'] = null;
+            }
+            $lines[] = $line;
+        }
+        $posted = $this->folios->postBill($r, ['department' => $v['department'] ?? null, 'reference' => $v['reference'] ?? null, 'idempotency_key' => $v['idempotency_key'], 'lines' => $lines], $request->user());
+
+        return response()->json(['count' => count($posted), 'folio' => $this->presenter->folio($r->fresh(), $this->abilities()), 'message' => trans_choice('billing.messages.bill_posted', count($posted), ['count' => count($posted)])], 201);
     }
 
     public function void(VoidLineRequest $request, mixed $property, string $reservation, string $line): JsonResponse

@@ -39,6 +39,7 @@ return [
     ],
     'skipped' => [
         'derived_price' => 'Price follows the parent rate plan',
+        'below_min_price' => "Price is below the minimum price of the room type",
         'inherits_restrictions' => 'Restrictions follow the parent rate plan',
         'past' => 'Past dates cannot be changed',
         'beyond_horizon' => 'Dates beyond the booking horizon',

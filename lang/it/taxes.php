@@ -28,7 +28,7 @@ return [
         'gst' => 'GST', 'vat' => 'IVA', 'sales' => 'Imposta sulle vendite', 'tourism' => 'Tassa turistica', 'city' => 'Tassa di soggiorno',
         'local' => 'Tassa locale', 'service_charge' => 'Costo di servizio', 'other' => 'Altro',
     ],
-    'apply_to' => ['room_charges' => 'Camere', 'add_ons' => 'Extra', 'fnb' => 'Ristorazione', 'events' => 'Eventi'],
+    'apply_to' => ['room_charges' => 'Camere', 'add_ons' => 'Extra', 'fnb' => 'Ristorazione', 'events' => 'Eventi', 'beverage' => 'Bevande', 'liquor' => 'Alcolici'],
     'methods' => ['percent' => 'Percentuale', 'fixed' => 'Importo fisso'],
     'bases' => ['per_room_night' => 'Per camera a notte', 'per_person_night' => 'Per persona a notte', 'per_stay' => 'Per soggiorno', 'per_booking' => 'Per prenotazione'],
     'basis_short' => ['per_room_night' => 'per camera a notte', 'per_person_night' => 'per persona a notte', 'per_stay' => 'per soggiorno', 'per_booking' => 'per prenotazione'],

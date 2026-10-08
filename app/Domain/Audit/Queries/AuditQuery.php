@@ -17,13 +17,21 @@ class AuditQuery
     /** @return array{rows: array, meta: array} */
     public function list(Request $request): array
     {
-        $filters = Listing::filters($request, ['action', 'user', 'property', 'from', 'to']);
+        $filters = Listing::filters($request, ['action', 'user', 'property', 'from', 'to', 'via']);
+
+        $hidden = app(\App\Domain\Users\PlatformHierarchy::class)->hiddenUserIds($request->user());
 
         $query = AuditLog::query()
-            ->with(['user:id,public_id,name,email', 'property:id,code,name'])
+            ->with(['user:id,public_id,name,email', 'impersonator:id,public_id,name,email', 'property:id,code,name'])
+            ->when($hidden !== [], fn (Builder $q) => $q->where(fn ($w) => $w->whereNull('user_id')->orWhereNotIn('user_id', $hidden))
+                ->where(fn ($w) => $w->whereNull('impersonator_id')->orWhereNotIn('impersonator_id', $hidden))
+                ->whereNotIn('action', ['user.super_admin_created_console']))
             ->when($filters['action'] !== '', fn (Builder $q) => $q->where('action', 'like', '%'.$filters['action'].'%'))
             ->when($filters['user'] !== '', fn (Builder $q) => $q->whereIn('user_id', DB::table('users')
                 ->where('email', 'like', '%'.$filters['user'].'%')->orWhere('name', 'like', '%'.$filters['user'].'%')->select('id')))
+            ->when($filters['via'] === 'acting', fn (Builder $q) => $q->whereNotNull('impersonator_id'))
+            ->when($filters['via'] !== '' && $filters['via'] !== 'acting', fn (Builder $q) => $q->whereIn('impersonator_id', DB::table('users')
+                ->where('email', 'like', '%'.$filters['via'].'%')->orWhere('name', 'like', '%'.$filters['via'].'%')->select('id')))
             ->when($filters['property'] !== '', fn (Builder $q) => $q->whereIn('property_id', DB::table('properties')
                 ->where('code', $filters['property'])->select('id')))
             ->when($this->date($filters['from']), fn (Builder $q, CarbonImmutable $d) => $q->where('created_at', '>=', $d->startOfDay()))
@@ -41,7 +49,7 @@ class AuditQuery
     public function forUser(int $userId, ?int $propertyId = null, int $limit = 20): array
     {
         return AuditLog::query()
-            ->with(['property:id,code,name'])
+            ->with(['property:id,code,name', 'impersonator:id,public_id,name,email'])
             ->where('user_id', $userId)
             ->when($propertyId, fn (Builder $q) => $q->where('property_id', $propertyId))
             ->orderByDesc('id')
@@ -59,6 +67,8 @@ class AuditQuery
             'action_label' => self::actionLabel($log->action),
             'user' => $log->user?->name,
             'user_email' => $log->user?->email,
+            'impersonator' => $this->visible($log->impersonator_id) ? $log->impersonator?->name : null,
+            'impersonator_email' => $this->visible($log->impersonator_id) ? $log->impersonator?->email : null,
             'property' => $log->property?->name,
             'property_code' => $log->property?->code,
             'entity' => $log->entity_type ? self::entityLabel($log->entity_type) : null,
@@ -67,6 +77,12 @@ class AuditQuery
             'changes' => $log->changes,
             'at' => $log->created_at?->toIso8601String(),
         ];
+    }
+
+    /** Super Admins are not named to viewers below that level. */
+    private function visible(?int $userId): bool
+    {
+        return $userId === null || ! in_array($userId, app(\App\Domain\Users\PlatformHierarchy::class)->hiddenUserIds(request()->user()), true);
     }
 
     /** Action keys contain dots, so they are looked up in the translated array directly. */

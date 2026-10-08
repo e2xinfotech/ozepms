@@ -9,7 +9,7 @@ namespace App\Support;
 final class RoleLabel
 {
     private const SYSTEM_NAMES = [
-        'super_admin' => 'Super Admin', 'it_support' => 'IT Support', 'owner' => 'Owner', 'hotel_manager' => 'Hotel Manager',
+        'super_admin' => 'Super Admin', 'admin' => 'Admin', 'it_support' => 'IT Support', 'owner' => 'Owner', 'hotel_manager' => 'Hotel Manager',
         'front_desk' => 'Front Desk', 'reservations' => 'Reservations', 'housekeeping' => 'Housekeeping', 'accounts' => 'Accounts',
         'revenue_manager' => 'Revenue Manager', 'guest_relations' => 'Guest Relations', 'sales_marketing' => 'Sales & Marketing',
     ];

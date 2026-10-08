@@ -34,6 +34,25 @@ class SaveRoomTypeRequest extends FormRequest
             'size_unit' => ['nullable', 'required_with:size_value', Rule::in(['sqm', 'sqft'])],
             'smoking_policy' => ['sometimes', Rule::in(['non_smoking', 'smoking', 'both'])],
             'view_label' => ['nullable', 'string', 'max:60'],
+            'min_price' => ['nullable', 'decimal:0,2', 'min:0', 'max:99999999'],
+            'show_on_booking_engine' => ['sometimes', 'boolean'],
+            'notification_emails' => ['bail', 'nullable', 'string', 'max:500', function ($attr, $value, $fail) {
+                if (! is_string($value)) {
+                    return;
+                }
+                foreach (array_filter(array_map('trim', explode(',', (string) $value))) as $mail) {
+                    if (! filter_var($mail, FILTER_VALIDATE_EMAIL)) {
+                        $fail(__('validation.email', ['attribute' => __('rooms.fields.notification_emails')]));
+                    }
+                }
+            }],
+            'wifi_info' => ['nullable', 'string', 'max:2000'],
+            'checkin_info' => ['nullable', 'string', 'max:2000'],
+            'nearby_info' => ['nullable', 'string', 'max:2000'],
+            'activities_info' => ['nullable', 'string', 'max:2000'],
+            'invoice_note' => ['nullable', 'string', 'max:2000'],
+            'registration_authority' => ['nullable', 'string', 'max:120'],
+            'registration_number' => ['nullable', 'string', 'max:80'],
             'sort_order' => ['sometimes', 'integer', 'min:0', 'max:9999'],
             'is_active' => ['sometimes', 'boolean'],
 

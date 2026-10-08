@@ -34,6 +34,8 @@ class PropertiesController extends Controller
         return Page::render('admin/properties/create', [
             'lookups' => Lookups::propertyForm(),
             'plans' => Lookups::plans(),
+            'owners' => Lookups::owners(),
+            'owner_id' => (string) request()->query('owner', ''),
         ], __('admin.add_property'));
     }
 

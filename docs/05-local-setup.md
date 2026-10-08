@@ -94,8 +94,10 @@ DB_DATABASE=ozepms
 DB_USERNAME=ozepms
 DB_PASSWORD=choose-a-local-password
 
-# First Super Admin (leave the password empty to have one generated and printed once)
-OZ_ADMIN_EMAIL=you@e2xinfotech.in
+# First Super Admin and first Admin (leave a password empty to have one generated and printed once)
+OZ_SUPER_ADMIN_EMAIL=superadmin@e2xinfotech.in
+OZ_SUPER_ADMIN_PASSWORD=
+OZ_ADMIN_EMAIL=admin@e2xinfotech.in
 OZ_ADMIN_PASSWORD=
 ```
 
@@ -116,10 +118,16 @@ The owner and the Super Admin must set up two-step verification at first sign-in
 
 | Who | E-mail | Password | Lands on |
 |---|---|---|---|
-| Super Admin | `OZ_ADMIN_EMAIL` (default `admin@e2xinfotech.in`) | `OZ_ADMIN_PASSWORD` from `.env`; if empty, a password is generated and printed once by `migrate --seed` | `/admin` |
+| Super Admin | `OZ_SUPER_ADMIN_EMAIL` (default `superadmin@e2xinfotech.in`) | `OZ_SUPER_ADMIN_PASSWORD` from `.env`; if empty, a password is generated and printed once by `migrate --seed` | `/admin` |
+| Admin | `OZ_ADMIN_EMAIL` (default `admin@e2xinfotech.in`) | `OZ_ADMIN_PASSWORD` from `.env`; if empty, generated once | `/admin` |
 | Property owner (demo) | `owner@demo.ozepms.test` | `OZ_DEMO_PASSWORD` (default `Demo@12345`) | `/properties` → P1001 / P1002 |
 | Hotel manager (demo) | `manager@demo.ozepms.test` | same | `/p/P1001/dashboard` |
 | Front desk (demo) | `frontdesk@demo.ozepms.test` | same | `/p/P1001/dashboard` (fewer menus) |
+
+Super Admins exist only on the server: `php artisan user:create-super-admin you@e2xinfotech.in` creates one (or promotes an
+existing account) and prints a generated password once. More Admins (shikhar@, deepak@ …) are added by a Super Admin in
+**Users & Roles**. After updating an existing installation run `php artisan migrate --force` and
+`php artisan db:seed --class=PermissionSeeder --force` (the old "Super Admin" role becomes "Admin", a new Super Admin role is added).
 
 Lost or unknown password: `php artisan user:reset-password admin@e2xinfotech.in` (prints a new one once) or
 `php artisan user:reset-password admin@e2xinfotech.in --password='Your#Strong2026'`.

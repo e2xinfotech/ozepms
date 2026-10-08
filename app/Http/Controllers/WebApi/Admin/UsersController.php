@@ -27,10 +27,22 @@ class UsersController extends Controller
         $user = $this->users->createPlatformUser(
             $request->safe()->only(['name', 'email', 'job_title', 'phone_e164', 'locale']),
             $request->validated('roles'),
+            $request->user(),
         );
 
         return response()->json([
             'message' => __('users.invited'),
+            'user' => (new PlatformUserResource($user->refresh()))->resolve($request),
+        ], 201);
+    }
+
+    /** A property owner, created before any property exists. */
+    public function storeOwner(\App\Http\Requests\Admin\StoreOwnerRequest $request): JsonResponse
+    {
+        $user = $this->users->createOwner($request->safe()->only(['name', 'email', 'job_title', 'phone_e164', 'locale']), $request->user());
+
+        return response()->json([
+            'message' => __('users.owner_created'),
             'user' => (new PlatformUserResource($user->refresh()))->resolve($request),
         ], 201);
     }
@@ -58,13 +70,17 @@ class UsersController extends Controller
     public function passwordLink(string $user): JsonResponse
     {
         $model = $this->find($user);
-        $this->users->sendPasswordLink($model);
+        $this->users->sendPasswordLink($model, request()->user());
 
         return response()->json(['message' => __('users.link_sent', ['email' => $model->email])]);
     }
 
     private function find(string $publicId): User
     {
-        return User::query()->where('public_id', $publicId)->firstOrFail();
+        $user = User::query()->where('public_id', $publicId)->firstOrFail();
+        // Super Admin accounts do not exist for anyone below that level.
+        abort_if(in_array($user->id, app(\App\Domain\Users\PlatformHierarchy::class)->hiddenUserIds(request()->user()), true), 404);
+
+        return $user;
     }
 }

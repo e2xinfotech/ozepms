@@ -26,6 +26,7 @@ class RoomTypeService
         'code', 'name', 'category', 'description', 'base_adults', 'max_adults', 'max_children', 'max_infants',
         'max_occupancy', 'extra_bed_allowed', 'max_extra_beds', 'size_value', 'size_unit', 'smoking_policy',
         'view_label', 'sort_order',
+        'min_price', 'show_on_booking_engine', 'notification_emails', 'wifi_info', 'checkin_info', 'nearby_info', 'activities_info', 'invoice_note', 'registration_authority', 'registration_number',
     ];
 
     public function __construct(

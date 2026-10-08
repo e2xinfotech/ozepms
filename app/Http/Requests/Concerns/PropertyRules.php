@@ -13,7 +13,7 @@ trait PropertyRules
     /** @return array<string, mixed> */
     protected function propertyRules(): array
     {
-        $country = (string) $this->input('country_iso2');
+        $country = is_string($this->input('country_iso2')) ? (string) $this->input('country_iso2') : '';
 
         return [
             'name' => ['required', 'string', 'max:150'],
@@ -38,7 +38,7 @@ trait PropertyRules
             'maps_url' => ['nullable', 'url:http,https', 'max:500'],
 
             'currency_code' => ['required', 'string', 'size:3', Rule::exists('currencies', 'code')->where('is_active', true)],
-            'timezone' => ['required', 'string', 'timezone:all'],
+            'timezone' => ['required', 'string', 'max:64', 'timezone:all'],
             'date_format' => ['nullable', Rule::in(config('ozepms.property.date_formats'))],
             'number_format' => ['nullable', Rule::in(config('ozepms.property.number_formats'))],
             'week_start' => ['nullable', 'integer', Rule::in([0, 1, 6])],

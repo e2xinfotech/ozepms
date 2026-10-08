@@ -10,7 +10,7 @@ class BookRequest extends SearchRequest
         return parent::rules() + [
             'room_type_id' => ['required', 'string', 'size:26'],
             'rate_plan_id' => ['required', 'string', 'size:26'],
-            'quoted_total' => ['required', 'decimal:0,2', 'min:0'],
+            'quoted_total' => ['required', 'decimal:0,2', 'min:0', 'max:999999999999'],
             'idempotency_key' => ['required', 'string', 'max:64'],
             'guest.first_name' => ['required', 'string', 'max:80'],
             'guest.last_name' => ['required', 'string', 'max:80'],

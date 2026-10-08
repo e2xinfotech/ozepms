@@ -39,6 +39,7 @@ return [
     ],
     'skipped' => [
         'derived_price' => 'Le prix suit le plan tarifaire parent',
+        'below_min_price' => "Le prix est inférieur au prix minimum du type de chambre",
         'inherits_restrictions' => 'Les restrictions suivent le plan tarifaire parent',
         'past' => 'Les dates passées ne peuvent pas être modifiées',
         'beyond_horizon' => 'Dates au-delà de l’horizon de réservation',

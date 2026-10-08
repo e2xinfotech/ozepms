@@ -45,7 +45,11 @@ return [
     'smoking' => ['non_smoking' => 'Non-fumeur', 'smoking' => 'Fumeur', 'both' => 'Fumeur et non-fumeur'],
     'size_units' => ['sqm' => 'm²', 'sqft' => 'pi²'],
 
+    'alert' => ['subject' => 'Réservation :ref — :hotel', 'intro' => 'Nouvelle réservation à :hotel :', 'ref' => 'Réservation :ref · :guest', 'stay' => 'Séjour : du :in au :out', 'rooms' => 'Types de chambre : :rooms'],
     'sections' => [
+        'sales_settings' => 'Paramètres de vente', 'sales_settings_desc' => 'Prix plancher, visibilité sur le moteur de réservation et destinataires des réservations.',
+        'guest_info' => 'Informations clients', 'guest_info_desc' => 'Textes pour les clients de ce type de chambre (e-mails de confirmation et messagerie future).',
+        'registration' => 'Enregistrement', 'registration_desc' => 'Enregistrement de l\'hébergement auprès de l\'autorité du tourisme, pour les rapports de conformité.',
         'basic' => 'Informations générales',
         'basic_desc' => 'Nom, code et catégorie affichés au personnel et aux clients.',
         'occupancy' => 'Occupation',
@@ -65,6 +69,16 @@ return [
     ],
 
     'fields' => [
+        'min_price' => 'Prix minimum',
+        'show_on_booking_engine' => 'Afficher sur le moteur de réservation',
+        'notification_emails' => 'E-mails de notification des réservations',
+        'wifi_info' => 'Informations Wi-Fi',
+        'checkin_info' => 'Informations d\'arrivée',
+        'nearby_info' => 'Lieux et transports à proximité',
+        'activities_info' => 'Activités à proximité',
+        'invoice_note' => 'Note de facture',
+        'registration_authority' => 'Autorité d\'autorisation',
+        'registration_number' => 'Numéro d\'autorisation',
         'name' => 'Nom du type de chambre', 'code' => 'Code', 'category' => 'Catégorie', 'description' => 'Description',
         'base_adults' => 'Occupation de base (adultes)', 'max_adults' => 'Adultes max.', 'max_children' => 'Enfants max.',
         'max_infants' => 'Bébés max.', 'max_occupancy' => 'Occupation max. (adultes + enfants)',
@@ -78,6 +92,9 @@ return [
     ],
 
     'hints' => [
+        'min_price' => 'Les prix inférieurs sont refusés dans le calendrier.',
+        'notification_emails' => 'Séparés par des virgules ; les réservations de ce type de chambre sont aussi envoyées à ces adresses.',
+        'invoice_note' => 'Imprimée sur les factures des réservations de ce type de chambre.',
         'code' => 'Code court utilisé sur le calendrier et les canaux, p. ex. DLX.',
         'quantity' => 'Les chambres sont nommées :code-01, :code-02 … et peuvent être renommées sur la page Chambres.',
         'quantity_edit' => ':count chambres actives. Augmentez le nombre pour en ajouter ; désactivez des chambres sur la page Chambres.',

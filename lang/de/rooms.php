@@ -45,7 +45,11 @@ return [
     'smoking' => ['non_smoking' => 'Nichtraucher', 'smoking' => 'Raucher', 'both' => 'Raucher und Nichtraucher'],
     'size_units' => ['sqm' => 'm²', 'sqft' => 'sq ft'],
 
+    'alert' => ['subject' => 'Buchung :ref — :hotel', 'intro' => 'Neue Buchung im :hotel:', 'ref' => 'Buchung :ref · :guest', 'stay' => 'Aufenthalt: :in bis :out', 'rooms' => 'Zimmertypen: :rooms'],
     'sections' => [
+        'sales_settings' => 'Verkaufseinstellungen', 'sales_settings_desc' => 'Mindestpreis, Sichtbarkeit in der Buchungsmaschine und wer über Buchungen informiert wird.',
+        'guest_info' => 'Gästeinformationen', 'guest_info_desc' => 'Texte für Gäste dieses Zimmertyps (Bestätigungs-E-Mails und künftige Gästenachrichten).',
+        'registration' => 'Registrierung', 'registration_desc' => 'Registrierung der Unterkunft bei der Tourismusbehörde, für Compliance-Berichte.',
         'basic' => 'Grunddaten',
         'basic_desc' => 'Name, Code und Kategorie für Mitarbeiter und Gäste.',
         'occupancy' => 'Belegung',
@@ -65,6 +69,16 @@ return [
     ],
 
     'fields' => [
+        'min_price' => 'Mindestpreis',
+        'show_on_booking_engine' => 'In der Buchungsmaschine anzeigen',
+        'notification_emails' => 'Benachrichtigungs-E-Mails für Buchungen',
+        'wifi_info' => 'WLAN-Informationen',
+        'checkin_info' => 'Check-in-Informationen',
+        'nearby_info' => 'Orte & Verkehr in der Nähe',
+        'activities_info' => 'Aktivitäten in der Nähe',
+        'invoice_note' => 'Rechnungshinweis',
+        'registration_authority' => 'Genehmigungsbehörde',
+        'registration_number' => 'Genehmigungsnummer',
         'name' => 'Name des Zimmertyps', 'code' => 'Code', 'category' => 'Kategorie', 'description' => 'Beschreibung',
         'base_adults' => 'Grundbelegung (Erwachsene)', 'max_adults' => 'Max. Erwachsene', 'max_children' => 'Max. Kinder',
         'max_infants' => 'Max. Kleinkinder', 'max_occupancy' => 'Max. Belegung (Erwachsene + Kinder)',
@@ -78,6 +92,9 @@ return [
     ],
 
     'hints' => [
+        'min_price' => 'Niedrigere Preise werden im Kalender abgelehnt.',
+        'notification_emails' => 'Kommagetrennt; Buchungen dieses Zimmertyps werden auch an diese Adressen gesendet.',
+        'invoice_note' => 'Wird auf Rechnungen von Buchungen mit diesem Zimmertyp gedruckt.',
         'code' => 'Kurzcode für Kalender und Kanäle, z. B. DLX.',
         'quantity' => 'Die Zimmer heißen :code-01, :code-02 … und können auf der Zimmerseite umbenannt werden.',
         'quantity_edit' => ':count aktive Zimmer. Erhöhen Sie die Anzahl, um Zimmer hinzuzufügen; deaktivieren Sie Zimmer auf der Zimmerseite.',

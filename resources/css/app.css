@@ -3,7 +3,7 @@
  * Change colours, fonts, sizes and spacing in tokens.css only.
  * Components never use raw colour values.
  */
-@import '@fontsource-variable/inter';
+@import '@fontsource-variable/figtree';
 @import 'flag-icons/css/flag-icons.min.css';
 @import './tokens.css';
 @import './base.css';
@@ -24,3 +24,4 @@
 @import './modules/offers.css';
 @import './modules/booking.css';
 @import './modules/reports.css';
+@import './modules/channels.css';

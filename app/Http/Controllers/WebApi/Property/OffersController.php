@@ -92,10 +92,10 @@ class OffersController extends Controller
             $first = true;
             foreach ($query->export($request) as $row) {
                 if ($first) {
-                    fputcsv($out, array_keys($row));
+                    \App\Support\Csv::put($out, array_keys($row));
                     $first = false;
                 }
-                fputcsv($out, array_values($row));
+                \App\Support\Csv::put($out, array_values($row));
             }
             fclose($out);
         }, $name, ['Content-Type' => 'text/csv; charset=UTF-8']);

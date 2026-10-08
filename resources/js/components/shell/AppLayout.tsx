@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { Icon } from '@/components/ui';
+import { Button, Icon } from '@/components/ui';
+import { http } from '@/lib/http';
 import { date } from '@/lib/format';
 import { t } from '@/lib/i18n';
 import type { ShellData } from '@/lib/page';
@@ -16,6 +17,17 @@ export function AppLayout({ shell, children }: { shell: ShellData; children: Rea
             {menuOpen && <div className="sidebar-backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true" />}
             <div className="main">
                 <Topbar shell={shell} onMenu={() => setMenuOpen((o) => !o)} />
+                {shell.impersonation && (
+                    <div className="banner impersonation">
+                        <Icon name="user-cog" size={16} />
+                        <span className="grow">
+                            {t('impersonation.banner', { name: shell.impersonation.target })} · {t('impersonation.banner_by', { actor: shell.impersonation.actor ?? '' })} · {t('impersonation.minutes_left', { n: shell.impersonation.minutes_left })}
+                        </span>
+                        <Button size="sm" variant="outline" icon="log-out" onClick={async () => { const r = await http.post<{ redirect: string }>('/web-api/impersonation/stop'); window.location.href = r.redirect; }}>
+                            {t('impersonation.return')}
+                        </Button>
+                    </div>
+                )}
                 {shell.support_mode && (
                     <div className="banner info"><Icon name="shield-check" size={16} />{t('nav.support_mode_banner')}</div>
                 )}

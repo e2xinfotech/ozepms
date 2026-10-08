@@ -45,7 +45,11 @@ return [
     'smoking' => ['non_smoking' => 'Non-smoking', 'smoking' => 'Smoking', 'both' => 'Smoking and non-smoking'],
     'size_units' => ['sqm' => 'm²', 'sqft' => 'sq ft'],
 
+    'alert' => ['subject' => 'Booking :ref — :hotel', 'intro' => 'New booking at :hotel:', 'ref' => 'Booking :ref · :guest', 'stay' => 'Stay: :in to :out', 'rooms' => 'Room types: :rooms'],
     'sections' => [
+        'sales_settings' => 'Sales Settings', 'sales_settings_desc' => 'Floor price, booking engine visibility and who is told about bookings.',
+        'guest_info' => 'Guest Information', 'guest_info_desc' => 'Texts for guests of this room type (confirmation e-mails and future guest messaging).',
+        'registration' => 'Registration', 'registration_desc' => 'Tourism authority registration of this accommodation, for compliance reports.',
         'basic' => 'Basic Information',
         'basic_desc' => 'Name, code and category shown to staff and guests.',
         'occupancy' => 'Occupancy',
@@ -65,6 +69,16 @@ return [
     ],
 
     'fields' => [
+        'min_price' => 'Minimum Price',
+        'show_on_booking_engine' => 'Show on Booking Engine',
+        'notification_emails' => 'Booking Notification E-mails',
+        'wifi_info' => 'Wi-Fi Information',
+        'checkin_info' => 'Check-in Information',
+        'nearby_info' => 'Nearby Places & Transport',
+        'activities_info' => 'Nearby Activities',
+        'invoice_note' => 'Invoice Note',
+        'registration_authority' => 'Authorization Authority',
+        'registration_number' => 'Authorization Number',
         'name' => 'Room Type Name', 'code' => 'Code', 'category' => 'Category', 'description' => 'Description',
         'base_adults' => 'Base Occupancy (Adults)', 'max_adults' => 'Max Adults', 'max_children' => 'Max Children',
         'max_infants' => 'Max Infants', 'max_occupancy' => 'Max Occupancy (Adults + Children)',
@@ -78,6 +92,9 @@ return [
     ],
 
     'hints' => [
+        'min_price' => 'Prices below this are refused in the calendar.',
+        'notification_emails' => 'Comma-separated; bookings of this room type are also sent to these addresses.',
+        'invoice_note' => 'Printed on invoices of bookings with this room type.',
         'code' => 'Short code used on the calendar and on channels, e.g. DLX.',
         'quantity' => 'Rooms are named :code-01, :code-02 … and can be renamed on the Rooms page.',
         'quantity_edit' => ':count active rooms. Raise the number to add rooms; deactivate rooms on the Rooms page.',

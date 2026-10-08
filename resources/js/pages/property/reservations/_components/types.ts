@@ -59,6 +59,7 @@ export interface ReservationRoomDetail {
 }
 
 export interface GuestProfile {
+    gender?: string | null;
     id: string; number: string; title: string | null; guest_type: string; first_name: string; last_name: string | null;
     email: string | null; phone: string | null; nationality: string | null; country: string | null; date_of_birth: string | null;
     address: string[]; company_name: string | null; company_tax_no: string | null; id_type: string | null; id_number: string | null;
@@ -79,6 +80,8 @@ export interface ReservationDetail extends Omit<ReservationRow, 'rooms'> {
     totals: { room_total: string; extras_total: string; discount_total: string; offer_discount?: string; subtotal: string; tax_total: string; tax_rate: string; grand_total: string; paid: string; balance: string; checkout_balance?: string; billing_ready: boolean };
     cancellation: { fee: string | null; reason: string | null; at: string | null; fee_now: string | null };
     guest_profile: GuestProfile | null;
+    can_see_ids?: boolean;
+    extras_by_department?: { department: string; amount: string; tax: string; total: string }[];
     companions: { id: string; name: string; nationality: string | null }[];
     created_by: string | null;
     updated_by: string | null;

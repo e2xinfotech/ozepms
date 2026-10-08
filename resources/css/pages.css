@@ -92,3 +92,53 @@
 .facility-list li { display: flex; align-items: center; gap: 8px; color: var(--ink); }
 .facility-list li svg { color: var(--brand-600); flex: none; }
 .panel-figure figcaption { font-size: var(--text-xs); color: var(--muted); margin-top: 4px; }
+
+/* Dashboard that fits one screen (desktop only; smaller screens scroll as before).
+   Local text sizes and spacing are reduced; tables show the first rows with a link to the rest. */
+@media (min-width: 1280px) and (min-height: 680px) {
+    .dashboard-fit {
+        --text-xs: 11px; --text-sm: 12px; --text-md: 13px; --text-lg: 14px; --control-h: 34px;
+        height: calc(100dvh - var(--topbar-h)); overflow: hidden; padding: 12px 20px 14px; gap: 10px;
+        display: grid; grid-template-rows: auto auto minmax(0, 1.15fr) minmax(0, 1fr); align-content: stretch;
+    }
+    .dashboard-fit .page-header { gap: 6px 12px; }
+    .dashboard-fit .page-header h1 { font-size: 22px; }
+    .dashboard-fit .page-header .page-desc { margin-top: 2px; font-size: 13px; }
+    .dashboard-fit .kpi-row { gap: 10px; }
+    .dashboard-fit .kpi { padding: 8px 14px; gap: 12px; }
+    .dashboard-fit .kpi-icon { width: 38px; height: 38px; }
+    .dashboard-fit .kpi-icon svg { width: 20px; height: 20px; }
+    .dashboard-fit .kpi-value { font-size: 20px; }
+    .dashboard-fit .kpi-fit .kpi-value { font-size: clamp(15px, 10cqi, 20px); }
+    .dashboard-fit .kpi-label { font-size: var(--text-sm); }
+    .dashboard-fit .dash-grid, .dashboard-fit .dash-grid-3 { gap: 10px; align-items: stretch; min-height: 0; }
+    .dashboard-fit .dash-grid { grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); }
+    .dashboard-fit .dash-col { gap: 10px; min-height: 0; }
+    .dashboard-fit .dash-col > .card { flex: 1 1 0; min-height: 0; }
+    .dashboard-fit .card { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+    .dashboard-fit .card > .card-head { padding: 9px 14px 2px; }
+    .dashboard-fit .card > .card-head h3 { font-size: 15px; }
+    .dashboard-fit .card > .card-body { padding: 6px 14px 10px; flex: 1 1 auto; min-height: 0; }
+    .dashboard-fit .card.flush > .card-body { padding: 0; overflow: hidden; }
+    .dashboard-fit .chart-box.fill { height: 100%; min-height: 0; }
+    .dashboard-fit .chart-box.fill svg { max-width: 100%; }
+    .dashboard-fit .seg button { padding: 0 10px; height: 28px; font-size: var(--text-sm); }
+    .dashboard-fit .donut-wrap { gap: 14px; flex-wrap: nowrap; }
+    .dashboard-fit .donut-legend { min-width: 0; gap: 4px !important; }
+    .dashboard-fit .summary-tiles { gap: 8px; height: 100%; }
+    .dashboard-fit .summary-tile { padding: 6px 4px; justify-content: center; }
+    .dashboard-fit .summary-tile .st-value { font-size: 18px; gap: 6px; }
+    .dashboard-fit .table th, .dashboard-fit .table td { padding: 6px 10px; font-size: var(--text-sm); }
+    .dashboard-fit .table th { font-size: var(--text-xs); }
+    .dashboard-fit .badge { font-size: 11px; padding: 2px 8px; }
+    .dashboard-fit .bar-list { gap: 10px; }
+    .dashboard-fit .bar-list-row { gap: 8px; grid-template-columns: minmax(90px, 1fr) 36px minmax(60px, 1.2fr) 48px; font-size: var(--text-sm); }
+    /* Narrow cards: keep booking, guest, nights and status; guests count and source are on the front desk page. */
+    .dashboard-fit .table-scroll { overflow-x: hidden; }
+    .dashboard-fit .dash-grid-3 .table th:nth-child(4), .dashboard-fit .dash-grid-3 .table td:nth-child(4),
+    .dashboard-fit .dash-grid-3 .table th:nth-child(5), .dashboard-fit .dash-grid-3 .table td:nth-child(5) { display: none; }
+    .dashboard-fit .empty-state { padding: 10px; }
+    .dashboard-fit .empty-state svg { width: 22px; height: 22px; }
+    .dashboard-fit .dash-more { display: block; padding: 5px 10px; font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+}
+.dash-more { display: block; padding: 8px 12px; font-weight: var(--weight-semibold); }

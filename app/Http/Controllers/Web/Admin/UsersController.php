@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Admin;
 
 use App\Domain\Access\PermissionCatalogue;
+use App\Domain\Users\PlatformHierarchy;
 use App\Domain\Users\Queries\PlatformUserQuery;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
@@ -17,8 +18,9 @@ class UsersController extends Controller
 {
     private const PROPERTY_OPTIONS_LIMIT = 300;
 
-    public function index(Request $request, PlatformUserQuery $users): View
+    public function index(Request $request, PlatformUserQuery $users, PlatformHierarchy $hierarchy): View
     {
+        $assignable = $hierarchy->assignableRoles($request->user());
         $roles = Role::query()->whereNull('property_id')->orderByDesc('scope')->orderBy('name')
             ->get(['code', 'name', 'scope', 'color', 'description']);
 
@@ -27,7 +29,7 @@ class UsersController extends Controller
             'selected' => (string) $request->query('selected', ''),
             'options' => [
                 'roles' => $roles->map(fn (Role $r) => ['value' => $r->code, 'label' => \App\Support\RoleLabel::name($r->code, $r->name)])->values()->all(),
-                'platform_roles' => $roles->where('scope', 'platform')->map(fn (Role $r) => [
+                'platform_roles' => $roles->where('scope', 'platform')->whereIn('code', $assignable)->map(fn (Role $r) => [
                     'value' => $r->code,
                     'label' => \App\Support\RoleLabel::name($r->code, $r->name),
                     'description' => $r->description && str_starts_with($r->description, 'roles.descriptions.') ? __($r->description) : $r->description,
@@ -37,7 +39,7 @@ class UsersController extends Controller
                 'statuses' => PlatformUserQuery::STATUSES,
             ],
             'catalogue' => PermissionCatalogue::grouped('platform'),
-            'open_new' => $request->boolean('new'),
+            'open_new' => $request->query('new') !== null && $request->query('new') !== '0',
             'locales' => config('ozepms.locales.available'),
             'me' => $request->user()->public_id,
         ], __('users.title'));

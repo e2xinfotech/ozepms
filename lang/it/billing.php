@@ -49,7 +49,19 @@ return [
         'per_person' => 'A persona',
         'per_person_night' => 'A persona a notte',
     ],
+    'departments' => [
+        'restaurant' => 'Ristorante',
+        'bar' => 'Bar',
+        'room_service' => 'Servizio in camera',
+        'spa' => 'Spa e benessere',
+        'laundry' => 'Lavanderia',
+        'transport' => 'Trasporti',
+        'other' => 'Altro',
+    ],
+    'bill' => ['title' => 'Conto del punto vendita', 'hint' => 'Registra un conto di ristorante o bar: più articoli con un solo numero. Ogni articolo è tassato in base alla sua categoria (cibo, bevande, alcolici …).', 'post' => 'Registra conto', 'add_item' => 'Aggiungi articolo'],
     'tax_categories' => [
+        'beverage' => 'Bevande',
+        'alcohol' => 'Alcolici e liquori',
         'accommodation' => 'Alloggio',
         'food' => 'Ristorazione',
         'service' => 'Altri servizi',
@@ -97,6 +109,10 @@ return [
         'not_invoice' => 'Questo conto è un estratto, non una fattura fiscale.',
     ],
     'charge' => [
+        'department' => 'Punto vendita',
+        'department_auto' => 'Come il servizio',
+        'reference' => 'N. conto / scontrino',
+        'reference_hint' => 'Mostrato sul folio e sulla fattura.',
         'title' => 'Aggiungi addebito',
         'post' => 'Addebita',
         'service' => 'Servizio',
@@ -142,6 +158,9 @@ return [
         'refund_gateway' => 'Il rimborso viene inviato a Razorpay e restituito sul metodo di pagamento originale dell\'ospite.',
     ],
     'invoice' => [
+        'group_room' => 'Camera',
+        'group_other' => 'Altri addebiti',
+        'group_subtotal' => 'Subtotale',
         'fixed' => 'Fisso',
         'list_title' => 'Fatture e note di credito',
         'types' => [
@@ -191,6 +210,7 @@ return [
         'back' => 'Torna alla prenotazione',
     ],
     'services' => [
+        'department_hint' => 'Dove viene venduto questo articolo. Prenotazione e fattura mostrano ogni punto vendita separatamente.',
         'title' => 'Servizi ed extra',
         'description' => 'Extra che si possono addebitare sul conto dell\'ospite, con prezzo, categoria fiscale e modalità di addebito.',
         'add' => 'Aggiungi servizio',
@@ -201,6 +221,7 @@ return [
         'none_hint' => 'Aggiungi extra come letto aggiuntivo, transfer aeroporto o lavanderia per addebitarli con un clic.',
         'posting_hint' => 'Imposta la quantità proposta quando il servizio viene addebitato (notti e ospiti del soggiorno).',
         'columns' => [
+            'department' => 'Punto vendita',
             'name' => 'Servizio',
             'code' => 'Codice',
             'price' => 'Prezzo',
@@ -210,6 +231,7 @@ return [
             'status' => 'Stato',
         ],
         'fields' => [
+            'department' => 'Punto vendita',
             'name' => 'Nome',
             'code' => 'Codice',
             'price' => 'Prezzo',
@@ -221,6 +243,7 @@ return [
         ],
     ],
     'errors' => [
+        'bill_empty' => 'Aggiungi almeno un articolo.',
         'invalid_type' => 'Scegli un tipo di addebito valido.',
         'quantity' => 'La quantità deve essere maggiore di zero.',
         'amount_zero' => 'L\'importo non può essere zero.',
@@ -246,6 +269,7 @@ return [
         'key_reused' => 'Questa richiesta è già stata usata per un\'altra prenotazione. Ricarica la pagina e riprova.',
     ],
     'messages' => [
+        'bill_posted' => '{1} 1 articolo addebitato al folio.|[2,*] :count articoli addebitati al folio.',
         'charge_posted' => 'Addebito registrato sul conto.',
         'line_voided' => 'Riga stornata.',
         'payment_recorded' => 'Pagamento registrato.',

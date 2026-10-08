@@ -85,6 +85,7 @@ class ServiceCatalogService
             'tax_category_id' => $category->id,
             'sac_hsn_code' => isset($data['sac_hsn_code']) && trim((string) $data['sac_hsn_code']) !== '' ? trim((string) $data['sac_hsn_code']) : $category->default_sac_hsn,
             'posting_rule' => (string) $data['posting_rule'],
+            'department' => in_array($data['department'] ?? 'other', \App\Models\Service::DEPARTMENTS, true) ? $data['department'] ?? 'other' : 'other',
             'sort_order' => (int) ($data['sort_order'] ?? 0),
         ];
     }

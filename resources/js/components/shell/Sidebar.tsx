@@ -24,7 +24,7 @@ export function Sidebar({ shell, open }: { shell: ShellData; open: boolean }) {
             <div className="nav-spacer" />
             {inProperty && shell.admin_url && (
                 <nav className="nav">
-                    <a href={shell.admin_url} className="nav-item"><Icon name="shield-check" size={21} />{t('nav.super_admin')}</a>
+                    <a href={shell.admin_url} className="nav-item"><Icon name="shield-check" size={21} />{t('nav.platform')}</a>
                 </nav>
             )}
         </aside>

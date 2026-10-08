@@ -20,7 +20,7 @@ class SaveTaxRuleRequest extends FormRequest
             'tax_type' => ['sometimes', Rule::in(TaxRule::TAX_TYPES)],
             'calc_type' => [$req, Rule::in(TaxRule::CALC_TYPES)],
             'rate' => [$req, 'decimal:0,4', 'min:0', 'max:99999'],
-            'apply_to' => [$req, 'array', 'min:1'],
+            'apply_to' => [$req, 'array', 'min:1', 'max:6'],
             'apply_to.*' => [Rule::in(TaxRule::APPLY_TO), 'distinct'],
             'description' => ['nullable', 'string', 'max:500'],
             'slab_min' => ['nullable', 'decimal:0,2', 'min:0', 'max:999999999'],

@@ -25,6 +25,7 @@ export interface ShellData {
     is_platform?: boolean;
     admin_url?: string | null;
     support_mode?: boolean;
+    impersonation?: { actor: string | null; target: string; expires_at: string; minutes_left: number } | null;
     user?: { name: string; email: string; initials: string; avatar: string | null; role: string | null; two_factor: boolean };
     property?: {
         code: string; name: string; location: string; image: string | null;

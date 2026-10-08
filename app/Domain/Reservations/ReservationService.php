@@ -440,10 +440,12 @@ class ReservationService
     }
 
     /**
-     * Assigns (or moves to) a PMS room for the rest of the stay: all nights before check-in,
-     * from today on for an in-house room. $unit = null removes the assignment (not in-house).
+     * Assigns (or moves to) a PMS room. Without dates: all nights before check-in, from today on for
+     * an in-house room. With $from (and optionally $to, exclusive) only those nights change, so a stay
+     * can be split over several PMS rooms: the reservation stays one booking, each part is saved per
+     * night against its own room. $unit = null removes the assignment of the chosen nights (not in-house).
      */
-    public function assignUnit(Reservation $reservation, ReservationRoom $room, ?PhysicalUnit $unit, ?User $by = null): ReservationRoom
+    public function assignUnit(Reservation $reservation, ReservationRoom $room, ?PhysicalUnit $unit, ?User $by = null, ?CarbonImmutable $fromDate = null, ?CarbonImmutable $toDate = null): ReservationRoom
     {
         $property = $this->propertyOf($reservation);
         if ((int) $room->reservation_id !== (int) $reservation->id || ! $reservation->isOpen() || in_array($room->status, ['cancelled', 'no_show', 'checked_out'], true)) {
@@ -456,25 +458,37 @@ class ReservationService
             throw ValidationException::withMessages(['unit_id' => __('reservations.errors.in_house_needs_room')]);
         }
         $today = $this->today($property);
-        $from = $room->status === 'checked_in' ? $today->max($room->check_in) : $room->check_in;
-        if ($from->greaterThanOrEqualTo($room->check_out)) {
-            throw ValidationException::withMessages(['unit_id' => __('reservations.errors.not_assignable')]);
+        $earliest = $room->status === 'checked_in' ? $today->max($room->check_in) : $room->check_in;
+        $from = $fromDate !== null ? $fromDate->startOfDay() : $earliest;
+        $to = $toDate !== null ? $toDate->startOfDay() : $room->check_out;
+        if ($fromDate !== null && ($from->lessThan($earliest) || $from->greaterThanOrEqualTo($room->check_out))) {
+            throw ValidationException::withMessages(['from' => __('reservations.errors.split_from', ['from' => $earliest->toDateString(), 'to' => $room->check_out->subDay()->toDateString()])]);
         }
-        $previous = $this->unitOf($room);
+        if ($to->lessThanOrEqualTo($from) || $to->greaterThan($room->check_out)) {
+            throw ValidationException::withMessages(['to' => __('reservations.errors.split_to', ['from' => $from->addDay()->toDateString(), 'to' => $room->check_out->toDateString()])]);
+        }
+        $previous = $this->unitOn($room, $from);
 
-        Tx::run(function () use ($room, $unit, $from, $reservation, $by, $previous) {
-            DB::table('unit_nights')->where('reservation_room_id', $room->id)->where('stay_date', '>=', $from->toDateString())->delete();
+        Tx::run(function () use ($room, $unit, $from, $to, $reservation, $by, $previous) {
+            DB::table('unit_nights')->where('reservation_room_id', $room->id)->where('stay_date', '>=', $from->toDateString())->where('stay_date', '<', $to->toDateString())->delete();
             if ($unit !== null) {
-                $this->writeUnitNights($room, $unit, $from, $room->check_out, 'unit_id');
+                $this->writeUnitNights($room, $unit, $from, $to, 'unit_id');
             }
+            $parts = DB::table('unit_nights')->where('reservation_room_id', $room->id)->distinct()->count('unit_id');
             $reservation->updated_by = $by?->id;
             $reservation->touch();
             $this->audit->log($previous ? 'reservation.room_moved' : 'reservation.room_assigned', $reservation, [
-                'before' => ['unit' => $previous?->name], 'after' => ['unit' => $unit?->name, 'from' => $from->toDateString()],
+                'before' => ['unit' => $previous?->name],
+                'after' => ['unit' => $unit?->name, 'from' => $from->toDateString(), 'to' => $to->toDateString(), 'rooms_used' => $parts],
             ], $reservation->property_id, $by?->id);
         });
 
         if ($previous !== null && $unit !== null && $previous->id !== $unit->id) {
+            // An in-house guest leaving a room tonight: that room needs cleaning.
+            if ($room->status === 'checked_in' && $from->lessThanOrEqualTo($today)) {
+                PhysicalUnit::query()->whereKey($previous->id)->update(['housekeeping_status' => 'dirty', 'updated_at' => now()]);
+                app(\App\Domain\Housekeeping\HousekeepingService::class)->openTask($previous->fresh(), (int) $room->id);
+            }
             event(new ReservationModified($reservation->fresh(), $by, ['rooms' => ['moved' => [[$room->id, $previous->id, $unit->id]]]]));
         }
 
@@ -642,6 +656,14 @@ class ReservationService
     // ---------------------------------------------------------------- queries used by pages
 
     /** The PMS room assigned for the first remaining night of the stay (tonight for in-house). */
+    /** PMS room the guest has on the night of $date (null when that night has no room). */
+    public function unitOn(ReservationRoom $room, CarbonImmutable $date): ?PhysicalUnit
+    {
+        $id = DB::table('unit_nights')->where('reservation_room_id', $room->id)->where('stay_date', $date->toDateString())->value('unit_id');
+
+        return $id ? PhysicalUnit::query()->withTrashed()->find($id) : null;
+    }
+
     public function unitOf(ReservationRoom $room): ?PhysicalUnit
     {
         $id = DB::table('unit_nights')->where('reservation_room_id', $room->id)->orderBy('stay_date')->value('unit_id');
@@ -848,7 +870,7 @@ class ReservationService
             $childAges = $r['child_ages'] ?? null;
             if ($childAges === null || count($childAges) !== $children + $infants) {
                 $ages ??= $this->defaultAges($property);
-                $childAges = [...array_fill(0, $children, $ages['child']), ...array_fill(0, $infants, 0)];
+                $childAges = [...array_fill(0, $children, $ages['child']), ...array_fill(0, $infants, $ages['infant'])];
             }
             $unit = $r['unit'] ?? null;
             if ($unit !== null && (int) $unit->room_type_id !== (int) $product->room_type_id) {
@@ -869,9 +891,9 @@ class ReservationService
     /** @return array{child: int} */
     private function defaultAges(Property $property): array
     {
-        $band = DB::table('property_age_bands')->where('property_id', $property->id)->where('code', 'child')->value('min_age');
+        $ages = app(\App\Domain\Property\AgeBandService::class)->representativeAges($property->id);
 
-        return ['child' => $band !== null ? max(2, (int) $band) : 8];
+        return ['child' => $ages['child'], 'infant' => $ages['infant']];
     }
 
     /**
@@ -1163,9 +1185,9 @@ class ReservationService
         $ids = [$primary->id => ['is_primary' => 1, 'reservation_room_id' => null]];
         if ($companions === null) {
             // Keep existing companions, only the primary changes.
-            $current = DB::table('reservation_guests')->where('reservation_id', $reservation->id)->where('is_primary', 0)->pluck('reservation_room_id', 'guest_id');
-            foreach ($current as $guestId => $roomId) {
-                $ids[$guestId] ??= ['is_primary' => 0, 'reservation_room_id' => $roomId];
+            $current = DB::table('reservation_guests')->where('reservation_id', $reservation->id)->where('is_primary', 0)->get();
+            foreach ($current as $c) {
+                $ids[$c->guest_id] ??= ['is_primary' => 0, 'reservation_room_id' => $c->reservation_room_id, 'person_type' => $c->person_type, 'age' => $c->age];
             }
         } else {
             foreach ($companions as $c) {

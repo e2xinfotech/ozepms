@@ -11,7 +11,7 @@ export interface Summary {
 }
 
 export interface FolioLineRow {
-    id: string; date: string; type: string; description: string; sac: string | null; quantity: string; unit_price: string;
+    id: string; date: string; type: string; department?: string | null; reference?: string | null; description: string; sac: string | null; quantity: string; unit_price: string;
     amount: string; tax: string; total: string; taxes: { component: string; label?: string; rate: string; amount: string }[];
     void: boolean; reversal: boolean; void_reason: string | null; invoice: string | null; posted_by: string | null; posted_at: string | null; can_void: boolean;
 }
@@ -42,7 +42,8 @@ export interface InvoiceRow {
 export interface InvoicesData { rows: InvoiceRow[]; billable: boolean; pending_room_charges: string; can: { manage: boolean } }
 
 export interface BillingOptions {
-    services: { id: string; code: string; name: string; price: string; posting_rule: string; tax_category: string | null; quantity: string }[];
+    services: { id: string; code: string; name: string; price: string; posting_rule: string; tax_category: string | null; department: string; quantity: string }[];
+    departments: string[];
     tax_categories: { value: string; label: string; sac: string | null }[];
     methods: string[];
     online: boolean;

@@ -54,6 +54,9 @@
 .banner { display: flex; align-items: center; gap: 10px; padding: 10px var(--content-pad); font-size: var(--text-sm); font-weight: var(--weight-medium); }
 .banner.warn { background: var(--amber-bg); color: var(--amber-fg); }
 .banner.danger { background: var(--red-bg); color: var(--red-fg); }
+.banner.impersonation { position: sticky; top: var(--topbar-h); z-index: 29; }
+.imp-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid currentColor; background: var(--violet-bg); color: var(--violet-fg); font-size: var(--text-sm); font-weight: var(--weight-semibold); cursor: pointer; }
+.banner.impersonation { background: var(--violet-bg, var(--amber-bg)); color: var(--violet-fg, var(--amber-fg)); border-bottom: 2px solid currentColor; }
 .banner.info { background: var(--brand-100); color: var(--brand-700); }
 
 /* ---------- Page header ---------- */
