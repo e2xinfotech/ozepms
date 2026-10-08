@@ -60,12 +60,16 @@ services:
     image: ${BLUE_IMAGE:-ozepms-app:none}
     container_name: ozepms-queue-blue
     command: ["queue"]
+    healthcheck:
+      disable: true      # only the web container serves HTTP
     profiles: [blue]
   scheduler_blue:
     <<: *app
     image: ${BLUE_IMAGE:-ozepms-app:none}
     container_name: ozepms-scheduler-blue
     command: ["scheduler"]
+    healthcheck:
+      disable: true      # only the web container serves HTTP
     profiles: [blue]
 
   web_green:
@@ -78,10 +82,14 @@ services:
     image: ${GREEN_IMAGE:-ozepms-app:none}
     container_name: ozepms-queue-green
     command: ["queue"]
+    healthcheck:
+      disable: true      # only the web container serves HTTP
     profiles: [green]
   scheduler_green:
     <<: *app
     image: ${GREEN_IMAGE:-ozepms-app:none}
     container_name: ozepms-scheduler-green
     command: ["scheduler"]
+    healthcheck:
+      disable: true      # only the web container serves HTTP
     profiles: [green]
