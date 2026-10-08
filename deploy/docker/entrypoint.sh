@@ -6,7 +6,8 @@ cd /var/www/html
 prepare() {
     mkdir -p storage/app/public storage/app/private storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
     chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
-    [ -e public/storage ] || su-exec www-data php artisan storage:link --force >/dev/null 2>&1 || true
+    # Uploaded images are served from public/storage; the link is made here as root (www-data cannot write in public/).
+    ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage
 }
 
 caches() {

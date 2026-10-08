@@ -392,8 +392,9 @@ class FolioService
         }
         $property = $this->propertyOf($reservation);
         $folio = $this->open($reservation);
-        $key = 'fee:'.$kind;
-        if ($existing = $this->lineByKey($folio, $key)) {
+        // The key is unique per property, so it carries the folio. Older rows used 'fee:<kind>' alone (one per property).
+        $key = 'fee:'.$folio->id.':'.$kind;
+        if ($existing = $this->lineByKey($folio, $key) ?? $this->lineByKey($folio, 'fee:'.$kind)) {
             return $existing;
         }
         $code = config('ozepms.billing.cancellation_fee_tax_category');
@@ -404,7 +405,7 @@ class FolioService
 
         return Tx::run(function () use ($folio, $reservation, $key, $kind, $category, $amount, $taxed, $date, $by) {
             $folio = $this->lock($folio);
-            if ($existing = $this->lineByKey($folio, $key)) {
+            if ($existing = $this->lineByKey($folio, $key) ?? $this->lineByKey($folio, 'fee:'.$kind)) {
                 return $existing;
             }
             $line = $this->insertLine($folio, [
