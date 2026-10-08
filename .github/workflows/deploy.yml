@@ -102,6 +102,24 @@ jobs:
           sparse-checkout: deploy/docker
           path: scripts
 
+      - name: Check deployment settings
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
+          USER_NAME: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
+          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          missing=""
+          [ -n "$HOST" ] || missing="$missing DEPLOY_HOST"
+          [ -n "$USER_NAME" ] || missing="$missing DEPLOY_USER"
+          [ -n "$KEY" ] || missing="$missing DEPLOY_SSH_KEY"
+          [ -n "$KNOWN" ] || missing="$missing DEPLOY_KNOWN_HOSTS"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing or empty settings:$missing. Add them under Settings > Secrets and variables > Actions (Secrets tab; exact names, no spaces)."
+            exit 1
+          fi
+          echo "All deployment settings are present."
+
       - name: SSH setup
         run: |
           install -m 700 -d ~/.ssh
@@ -109,9 +127,9 @@ jobs:
           printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           cat > ~/.ssh/config <<CFG
           Host server
-            HostName ${{ secrets.DEPLOY_HOST }}
-            User ${{ secrets.DEPLOY_USER }}
-            Port ${{ secrets.DEPLOY_PORT || 22 }}
+            HostName ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
+            User ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
+            Port ${{ secrets.DEPLOY_PORT || vars.DEPLOY_PORT || 22 }}
             IdentityFile ~/.ssh/id_deploy
             IdentitiesOnly yes
             StrictHostKeyChecking yes
@@ -131,6 +149,24 @@ jobs:
     runs-on: ubuntu-24.04
     environment: production
     steps:
+      - name: Check deployment settings
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
+          USER_NAME: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
+          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          missing=""
+          [ -n "$HOST" ] || missing="$missing DEPLOY_HOST"
+          [ -n "$USER_NAME" ] || missing="$missing DEPLOY_USER"
+          [ -n "$KEY" ] || missing="$missing DEPLOY_SSH_KEY"
+          [ -n "$KNOWN" ] || missing="$missing DEPLOY_KNOWN_HOSTS"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing or empty settings:$missing. Add them under Settings > Secrets and variables > Actions (Secrets tab; exact names, no spaces)."
+            exit 1
+          fi
+          echo "All deployment settings are present."
+
       - name: SSH setup
         run: |
           install -m 700 -d ~/.ssh
@@ -138,9 +174,9 @@ jobs:
           printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           cat > ~/.ssh/config <<CFG
           Host server
-            HostName ${{ secrets.DEPLOY_HOST }}
-            User ${{ secrets.DEPLOY_USER }}
-            Port ${{ secrets.DEPLOY_PORT || 22 }}
+            HostName ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
+            User ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
+            Port ${{ secrets.DEPLOY_PORT || vars.DEPLOY_PORT || 22 }}
             IdentityFile ~/.ssh/id_deploy
             IdentitiesOnly yes
             StrictHostKeyChecking yes
