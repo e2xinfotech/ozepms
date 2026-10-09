@@ -32,6 +32,13 @@ class ChannelWebhookController extends Controller
             $results[] = ['external_ref' => $b->externalRef, 'status' => $r['status'], 'booking_ref' => $r['reservation']?->booking_ref, 'error' => $r['message']];
         }
 
+        $provider = $registry->provider($c);
+        if ($provider instanceof \App\Domain\Channels\Contracts\ProvidesWebhookResponse) {
+            [$body, $status] = $provider->webhookResponse($c, $results);
+
+            return response()->json($body, $status);
+        }
+
         return response()->json(['results' => $results]);
     }
 }

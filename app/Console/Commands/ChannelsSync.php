@@ -19,12 +19,12 @@ class ChannelsSync extends Command
     public function handle(ChannelSyncService $sync, ChannelRegistry $registry, ChannelReservationService $bookings): int
     {
         if ($this->option('full')) {
-            ChannelConnection::acrossProperties()->whereIn('status', ['active', 'error'])->get()
+            ChannelConnection::acrossProperties()->whereIn('status', ['active', 'error'])->where('approval_status', 'approved')->get()
                 ->each(fn (ChannelConnection $c) => $registry->available($c->provider) && $sync->sync($c, true));
         }
         $sent = $sync->syncDue();
         $pulled = 0;
-        foreach (ChannelConnection::acrossProperties()->whereIn('status', ['active', 'error'])->get() as $c) {
+        foreach (ChannelConnection::acrossProperties()->whereIn('status', ['active', 'error'])->where('approval_status', 'approved')->get() as $c) {
             if (! $registry->available($c->provider)) {
                 continue;
             }

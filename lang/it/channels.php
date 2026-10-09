@@ -30,6 +30,7 @@ return array (
     'booking_com' => 'Booking.com',
     'expedia' => 'Expedia',
     'agoda' => 'Agoda',
+    'makemytrip' => 'MakeMyTrip / Goibibo',
     'airbnb' => 'Airbnb',
   ),
   'provider_text' => 
@@ -38,6 +39,7 @@ return array (
     'booking_com' => 'Il più grande sito di prenotazione hotel al mondo.',
     'expedia' => 'Expedia Group (Expedia, Hotels.com, Vrbo).',
     'agoda' => 'Forte nell\'area Asia-Pacifico.',
+    'makemytrip' => 'Principali piattaforme di viaggio in India (MakeMyTrip e Goibibo).',
     'airbnb' => 'Case, appartamenti e soggiorni boutique.',
   ),
   'fields' => 

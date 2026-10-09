@@ -113,23 +113,24 @@ class ChannelSyncService
 
         $provider = $this->registry->provider($c);
         $type = $full ? 'full_sync' : 'ari_update';
-        foreach (array_chunk($updates, max(1, (int) config('channels.batch_size', 500))) as $chunk) {
-            // The calendar changed for these rooms / rates after the values were read: do not send old data.
-            if ($this->changedSince($property->id, $maxId, $roomRanges, $rateRanges)) {
-                return ['status' => 'superseded', 'updates' => 0, 'message' => null];
-            }
-            try {
-                $result = $provider->pushAri($c, $chunk);
-            } catch (Throwable $e) {
-                report($e);
-                $result = ProviderResult::fail($e->getMessage());
-            }
-            $this->log($c, 'outbound', $type, $result, count($chunk), $this->summary($chunk));
-            if (! $result->ok) {
-                $this->failed($c, (string) $result->message, $result->retryable);
+        // One value set per room / rate / date and one range per run of equal days; the adapter groups and cuts them
+        // to the limits of its channel, so the whole change goes out with as few calls as that channel allows.
+        $updates = AriBatcher::merge($updates);
+        // The calendar changed for these rooms / rates after the values were read: do not send old data.
+        if ($this->changedSince($property->id, $maxId, $roomRanges, $rateRanges)) {
+            return ['status' => 'superseded', 'updates' => 0, 'message' => null];
+        }
+        try {
+            $result = $provider->pushAri($c, $updates);
+        } catch (Throwable $e) {
+            report($e);
+            $result = ProviderResult::fail($e->getMessage());
+        }
+        $this->log($c, 'outbound', $type, $result, count($updates), $this->summary($updates));
+        if (! $result->ok) {
+            $this->failed($c, (string) $result->message, $result->retryable);
 
-                return ['status' => 'failed', 'updates' => count($updates), 'message' => $result->message];
-            }
+            return ['status' => 'failed', 'updates' => count($updates), 'message' => $result->message];
         }
 
         $c->forceFill(['last_ari_log_id' => max($c->last_ari_log_id, $maxId), 'failures' => 0, 'next_attempt_at' => null, 'last_error' => null,
