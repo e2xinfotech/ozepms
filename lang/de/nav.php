@@ -23,6 +23,7 @@ return [
     'subscriptions' => 'Abonnements',
     'audit' => 'Prüfprotokoll',
     'system' => 'Systemzustand',
+    'email' => 'SMTP-Einstellungen',
     'approvals' => 'Genehmigungen',
     'platform' => 'Plattform',
     'super_admin' => 'Super-Admin',

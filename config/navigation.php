@@ -35,6 +35,7 @@ return [
         ['key' => 'admin_approvals',  'label' => 'nav.approvals',     'icon' => 'check-circle','route' => 'admin.approvals', 'permission' => 'platform.approvals.manage'],
         ['key' => 'admin_plans',      'label' => 'nav.subscriptions', 'icon' => 'credit-card','route' => 'admin.plans',     'permission' => 'platform.plans.manage'],
         ['key' => 'admin_audit',      'label' => 'nav.audit',         'icon' => 'scroll-text','route' => 'admin.audit',     'permission' => 'platform.audit.view'],
+        ['key' => 'admin_email',      'label' => 'nav.email',         'icon' => 'mail',      'route' => 'admin.email',      'permission' => 'platform.settings.manage'],
         ['key' => 'admin_system',     'label' => 'nav.system',        'icon' => 'activity',  'route' => 'admin.system',     'permission' => 'platform.system.view'],
     ],
 ];

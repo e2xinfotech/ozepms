@@ -23,6 +23,7 @@ return [
     'subscriptions' => 'Subscriptions',
     'audit' => 'Audit Log',
     'system' => 'System Health',
+    'email' => 'SMTP Settings',
     'approvals' => 'Approvals',
     'platform' => 'Platform',
     'super_admin' => 'Super Admin',

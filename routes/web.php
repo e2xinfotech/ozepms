@@ -64,6 +64,7 @@ Route::middleware('auth')->group(function () {
                 Route::get('/approvals', [Admin\ApprovalsController::class, 'index'])->middleware('can.do:platform.approvals.manage')->name('approvals');
                 Route::get('/plans', [Admin\PlansController::class, 'index'])->middleware('can.do:platform.plans.manage')->name('plans');
                 Route::get('/audit', [Admin\AuditController::class, 'index'])->middleware('can.do:platform.audit.view')->name('audit');
+                Route::get('/email', [Admin\EmailController::class, 'index'])->middleware('can.do:platform.settings.manage')->name('email');
                 Route::get('/system', [Admin\SystemController::class, 'index'])->middleware('can.do:platform.system.view')->name('system');
 
                 foreach (glob(base_path('routes/admin/*.php')) as $file) {

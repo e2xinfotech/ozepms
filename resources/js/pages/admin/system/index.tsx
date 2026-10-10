@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Badge, Button, DataTable, EmptyState, Icon, Input, KpiCard, PageHeader, Pagination, PillTabs, Select, toast, type Column, type PageMeta } from '@/components/ui';
-import { EmailCard, type EmailSettings } from '@/components/property/EmailCard';
 import { createPage } from '@/lib/boot';
 import { dateTime, number, relative } from '@/lib/format';
 import { http, navigateWithQuery, type ApiError } from '@/lib/http';
@@ -13,12 +12,11 @@ interface ErrorGroup {
 interface Props {
     rows: ErrorGroup[]; meta: PageMeta; counts: { open: number; resolved: number; all: number };
     filters: { status: string; level: string; source: string; q: string };
-    email: EmailSettings | null;
     overview: { open_errors: number; errors_24h: number; expiring_subscriptions: number; onboarding_properties: number; connected_channels: number };
 }
 
 /** Super Admin → grouped application errors. */
-function SystemPage({ rows, meta, counts, filters, overview, email }: Props) {
+function SystemPage({ rows, meta, counts, filters, overview }: Props) {
     const [q, setQ] = useState(filters.q);
     const [busy, setBusy] = useState<string | null>(null);
 
@@ -53,7 +51,6 @@ function SystemPage({ rows, meta, counts, filters, overview, email }: Props) {
                 <KpiCard icon="credit-card" tone="violet" label={t('admin.upcoming_expirations')} value={number(overview.expiring_subscriptions)} sub={t('admin.subscriptions_expiring')} />
                 <KpiCard icon="clock" tone="blue" label={t('admin.pending_setup')} value={number(overview.onboarding_properties)} sub={t('admin.properties_in_setup')} />
             </div>
-            {email && <div style={{ marginBottom: 20 }}><EmailCard initial={email} disabled={false} url="/web-api/admin/email" scope="platform" /></div>}
             <form className="filter-bar" onSubmit={(e) => { e.preventDefault(); navigateWithQuery({ q }); }}>
                 <Input fieldClass="search" label={t('ui.search')} icon="search" type="search" placeholder={t('admin.error_search')} value={q} onChange={(e) => setQ(e.target.value)} />
                 <Select label={t('admin.error_cols.level')} value={filters.level} placeholder={t('ui.all')} options={['warning', 'error', 'critical'].map((l) => ({ value: l, label: t(`ui.status.${l}`) }))} onChange={(e) => navigateWithQuery({ level: e.target.value })} />
