@@ -38,6 +38,8 @@ class MailSettingsRequest extends FormRequest
             'events' => ['nullable', 'array', 'max:10'],
             'events.*' => ['boolean'],
             'send_for_channels' => ['nullable', 'boolean'],
+            'on_behalf' => ['nullable', 'boolean'],
+            'pre_arrival_days' => ['nullable', 'integer', 'between:1,14'],
         ];
     }
 

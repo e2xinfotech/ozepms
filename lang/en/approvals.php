@@ -58,6 +58,8 @@ return [
         'decided_subject' => ':type: :outcome',
         'decided_intro' => 'Your request “:summary” was :outcome.',
         'note' => 'Note: :note',
+        'submitted_subject' => 'Request received: :type',
+        'submitted_intro' => 'We received your request “:summary”. It is waiting for approval, and you will get an e-mail as soon as it is decided.',
     ],
     'credentials_missing' => 'Enter the channel credentials first, then approve.',
 ];

@@ -1,7 +1,7 @@
 @extends('emails.layout')
 @section('content')
 <p style="margin:0 0 14px;">{{ __('emails.greeting', ['name' => $guest]) }}</p>
-<p style="margin:0 0 20px;">{{ __('emails.intro.'.$kind, ['hotel' => $hotel]) }}</p>
+<div style="margin:0 0 20px;white-space:pre-line;">{{ $intro }}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f0f9fd;border-radius:10px;margin:0 0 22px;">
 @foreach ($rows as $label => $value)
 <tr>

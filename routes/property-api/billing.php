@@ -27,6 +27,7 @@ Route::name('billing.')->group(function () {
     });
     Route::middleware(['can.do:invoices.manage', 'throttle:30,1'])->group(function () {
         Route::post('/reservations/{reservation}/invoices', [InvoicesController::class, 'store'])->name('invoices.store');
+        Route::post('/invoices/{invoice}/email', [InvoicesController::class, 'email'])->name('invoices.email');
         Route::post('/invoices/{invoice}/cancel', [InvoicesController::class, 'cancel'])->name('invoices.cancel');
     });
     Route::middleware('can.do:services.manage')->group(function () {

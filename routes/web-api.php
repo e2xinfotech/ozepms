@@ -41,6 +41,10 @@ Route::middleware('auth')->group(function () {
             Route::middleware('can.do:property.update')->group(function () {
                 Route::put('/settings/email', [WebApi\Property\EmailSettingsController::class, 'update'])->name('settings.email');
                 Route::post('/settings/email/test', [WebApi\Property\EmailSettingsController::class, 'test'])->middleware('throttle:10,1')->name('settings.email.test');
+                Route::get('/settings/email/templates', [WebApi\Property\EmailTemplatesController::class, 'index'])->name('settings.email.templates');
+                Route::put('/settings/email/templates/{event}', [WebApi\Property\EmailTemplatesController::class, 'update'])->name('settings.email.templates.update');
+                Route::delete('/settings/email/templates/{event}', [WebApi\Property\EmailTemplatesController::class, 'reset'])->name('settings.email.templates.reset');
+                Route::post('/settings/email/templates/{event}/preview', [WebApi\Property\EmailTemplatesController::class, 'preview'])->middleware('throttle:60,1')->name('settings.email.templates.preview');
                 Route::get('/settings/email/logs', [WebApi\Property\EmailSettingsController::class, 'logs'])->name('settings.email.logs');
                 Route::post('/settings/email/logs/{log}/resend', [WebApi\Property\EmailSettingsController::class, 'resend'])->middleware('throttle:20,1')->name('settings.email.resend');
             });

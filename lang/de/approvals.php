@@ -58,6 +58,8 @@ return [
         'decided_subject' => ':type: :outcome',
         'decided_intro' => 'Ihre Anfrage „:summary“ wurde: :outcome.',
         'note' => 'Notiz: :note',
+        'submitted_subject' => 'Anfrage erhalten: :type',
+        'submitted_intro' => 'Wir haben Ihre Anfrage „:summary“ erhalten. Sie wartet auf Genehmigung, und Sie erhalten eine E-Mail, sobald entschieden wurde.',
     ],
     'credentials_missing' => 'Zuerst die Zugangsdaten des Kanals eintragen, dann genehmigen.',
 ];

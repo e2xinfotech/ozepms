@@ -11,6 +11,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Notifications\ApprovalDecidedNotification;
 use App\Notifications\ApprovalRequestedNotification;
+use App\Notifications\ApprovalSubmittedNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -53,6 +54,13 @@ class ApprovalService
             $approvers = $this->approvers($type);
             if ($approvers->isNotEmpty()) {
                 Notification::send($approvers, new ApprovalRequestedNotification($request));
+            }
+            if ($by !== null && ! $approvers->contains('id', $by->id)) {
+                try {
+                    $by->notify(new ApprovalSubmittedNotification($request));
+                } catch (\Throwable $e) {
+                    report($e);
+                }
             }
 
             return $request;

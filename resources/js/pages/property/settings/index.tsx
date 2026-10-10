@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Alert, Button, PageHeader, toast } from '@/components/ui';
 import { ApiKeysCard } from '@/components/property/ApiKeysCard';
 import { AgeBandsCard, type AgeBands } from '@/components/property/AgeBandsCard';
+import { EmailTemplatesCard } from '@/components/property/EmailTemplatesCard';
 import { EmailCard, type EmailSettings } from '@/components/property/EmailCard';
 import { BookingEngineCard, type BookingEngineSettings } from '@/components/property/BookingEngineCard';
 import { PropertyForm, propertyPayload, propertyValues } from '@/components/property/PropertyForm';
@@ -50,6 +51,7 @@ function SettingsPage({ property, lookups, can_update, booking_engine, email, ag
             <div style={{ marginTop: 20 }}><AgeBandsCard initial={age_bands} disabled={!can_update} /></div>
             <div style={{ marginTop: 20 }}><BookingEngineCard initial={booking_engine} disabled={!can_update} /></div>
             <div style={{ marginTop: 20 }}><EmailCard initial={email} disabled={!can_update} url={propertyApiUrl('/settings/email')} scope="property" /></div>
+            <div style={{ marginTop: 20 }}><EmailTemplatesCard enabled={email.events} disabled={!can_update} /></div>
             <div style={{ marginTop: 20 }}><ApiKeysCard disabled={!can_update} /></div>
             {can_update && (
                 <div className="form-footer">

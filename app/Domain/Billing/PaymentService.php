@@ -59,7 +59,7 @@ class PaymentService
         $folio = $this->folios->open($reservation);
         $receivedAt = $this->receivedAt($data['received_at'] ?? null, $reservation);
 
-        return $this->guardKey($reservation, $key, fn () => Tx::run(function () use ($reservation, $folio, $data, $method, $amount, $key, $receivedAt, $by) {
+        $recorded = $this->guardKey($reservation, $key, fn () => Tx::run(function () use ($reservation, $folio, $data, $method, $amount, $key, $receivedAt, $by) {
             $folio = $this->folios->lock($folio);
             $payment = Payment::query()->create([
                 'property_id' => $reservation->property_id,
@@ -85,6 +85,21 @@ class PaymentService
 
             return $payment;
         }));
+        if (! $this->replayed) {
+            $this->sendReceipt($recorded, $by);
+        }
+
+        return $recorded;
+    }
+
+    /** E-mails the receipt after the money is booked; a mail problem never fails the payment. */
+    private function sendReceipt(Payment $payment, ?User $by = null): void
+    {
+        try {
+            app(\App\Domain\Mail\ReservationMailer::class)->paymentReceipt($payment, false, $by?->id);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /**
@@ -255,7 +270,8 @@ class PaymentService
         $reservation = Reservation::query()->where('property_id', $payment->property_id)->findOrFail($payment->reservation_id);
         $folio = $this->folios->open($reservation);
 
-        return Tx::run(function () use ($payment, $reservation, $folio, $gatewayPaymentId, $amountMinor, $by) {
+        $fresh = false;
+        $captured = Tx::run(function () use ($payment, $reservation, $folio, $gatewayPaymentId, $amountMinor, $by, &$fresh) {
             $folio = $this->folios->lock($folio);
             $payment = Payment::query()->where('property_id', $payment->property_id)->whereKey($payment->id)->lockForUpdate()->firstOrFail();
             if (in_array($payment->status, FolioService::RECEIVED, true)) {
@@ -264,6 +280,7 @@ class PaymentService
             if ($amountMinor !== null && $amountMinor !== $this->minor((string) $payment->amount, (string) $payment->currency_code)) {
                 throw new RazorpayException('Captured amount differs from the order amount.');
             }
+            $fresh = true;
             $payment->forceFill([
                 'status' => 'captured',
                 'gateway_payment_id' => $gatewayPaymentId,
@@ -276,6 +293,11 @@ class PaymentService
 
             return $payment;
         });
+        if ($fresh) {
+            $this->sendReceipt($captured, $by);
+        }
+
+        return $captured;
     }
 
     public function markFailed(Payment $payment, string $reason): void

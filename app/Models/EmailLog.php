@@ -18,6 +18,6 @@ class EmailLog extends Model
 
     protected function casts(): array
     {
-        return ['sent_at' => 'datetime', 'attempts' => 'integer'];
+        return ['sent_at' => 'datetime', 'attempts' => 'integer', 'attachments' => 'array'];
     }
 }

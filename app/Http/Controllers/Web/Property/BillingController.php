@@ -37,6 +37,16 @@ class BillingController extends Controller
         ], __('billing.services.title'));
     }
 
+    /** The invoice or credit note as a PDF download. */
+    public function invoicePdf(mixed $property, string $invoice, \App\Domain\Billing\InvoicePdf $pdf): \Symfony\Component\HttpFoundation\Response
+    {
+        $model = Invoice::query()->where('public_id', $invoice)->firstOrFail();
+
+        return response($pdf->render($model), 200, [
+            'Content-Type' => 'application/pdf', 'Content-Disposition' => 'attachment; filename="'.$pdf->fileName($model).'"', 'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
     public function invoice(mixed $property, string $invoice, PropertyContext $context): View
     {
         $model = Invoice::query()->where('public_id', $invoice)->with(['original:id,public_id,invoice_no', 'creditNotes:id,public_id,original_invoice_id,invoice_no,grand_total,invoice_date'])->firstOrFail();

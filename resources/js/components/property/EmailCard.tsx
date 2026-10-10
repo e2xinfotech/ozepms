@@ -7,16 +7,16 @@ import { t } from '@/lib/i18n';
 export interface EmailSettings {
     host: string | null; port: number | null; encryption: string; username: string | null; has_password: boolean;
     from_address: string | null; from_name: string | null; reply_to: string | null;
-    events: Record<string, boolean>; send_for_channels: boolean; source: 'property' | 'platform' | 'env'; sends: boolean;
+    events: Record<string, boolean>; send_for_channels: boolean; on_behalf: boolean; pre_arrival_days: number; property_email: string | null; source: 'property' | 'platform' | 'env'; sends: boolean;
 }
 interface LogRow { id: string; event: string; to: string; subject: string; status: string; error: string | null; at: string | null }
 
-const EVENTS = ['booking_confirmation', 'booking_modification', 'booking_cancellation', 'check_out_thanks'];
+const EVENTS = ['booking_confirmation', 'booking_modification', 'booking_cancellation', 'pre_arrival', 'check_in_welcome', 'check_out_thanks', 'payment_receipt', 'invoice_issued'];
 const TONES: Record<string, 'green' | 'red' | 'amber'> = { sent: 'green', failed: 'red', queued: 'amber' };
 
 function toForm(s: EmailSettings) {
     return { host: s.host ?? '', port: s.port ? String(s.port) : '', encryption: s.encryption, username: s.username ?? '', password: '', clear_password: false,
-        from_address: s.from_address ?? '', from_name: s.from_name ?? '', reply_to: s.reply_to ?? '', events: s.events, send_for_channels: s.send_for_channels };
+        from_address: s.from_address ?? '', from_name: s.from_name ?? '', reply_to: s.reply_to ?? '', events: s.events, send_for_channels: s.send_for_channels, on_behalf: s.on_behalf, pre_arrival_days: String(s.pre_arrival_days) };
 }
 
 /**
@@ -49,7 +49,7 @@ export function EmailCard({ initial, disabled, url, scope }: { initial: EmailSet
                 host: form.host.trim() || null, port: form.port ? Number(form.port) : null, encryption: form.encryption, username: form.username.trim() || null,
                 password: form.password || null, clear_password: form.clear_password, from_address: form.from_address.trim() || null,
                 from_name: form.from_name.trim() || null, reply_to: form.reply_to.trim() || null,
-                ...(isProperty ? { events: form.events, send_for_channels: form.send_for_channels } : {}),
+                ...(isProperty ? { events: form.events, send_for_channels: form.send_for_channels, on_behalf: form.on_behalf, pre_arrival_days: Number(form.pre_arrival_days) || 2 } : {}),
             });
             setState(res.email);
             setForm(toForm(res.email));
@@ -116,6 +116,18 @@ export function EmailCard({ initial, disabled, url, scope }: { initial: EmailSet
                             {EVENTS.map((e) => <Toggle key={e} disabled={disabled} checked={form.events[e] ?? true} onChange={(v) => set({ events: { ...form.events, [e]: v } })} label={t(`mailsettings.events.${e}`)} />)}
                             <Toggle disabled={disabled} checked={form.send_for_channels} onChange={(v) => set({ send_for_channels: v })} label={t('mailsettings.for_channels')} />
                         </div>
+                    </div>
+                )}
+                {isProperty && (
+                    <div className="span-8">
+                        <Toggle disabled={disabled} checked={form.on_behalf} onChange={(v) => set({ on_behalf: v })} label={t('mailsettings.on_behalf')} />
+                        <div className="field-hint">{state.property_email ? `${state.property_email} — ` : ''}{t('mailsettings.on_behalf_hint')}</div>
+                    </div>
+                )}
+                {isProperty && (
+                    <div className="span-4">
+                        <Input label={t('mailsettings.pre_arrival_days')} type="number" min={1} max={14} disabled={disabled} value={form.pre_arrival_days}
+                            onChange={(e) => set({ pre_arrival_days: e.target.value })} error={error?.field('pre_arrival_days')} />
                     </div>
                 )}
                 {!disabled && (

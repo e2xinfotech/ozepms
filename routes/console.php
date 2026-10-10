@@ -77,3 +77,10 @@ Schedule::command('housekeeping:notify')
 Schedule::call(fn () => \App\Models\RequestTrail::query()->where('created_at', '<', now()->subDays((int) config('ozepms.logging.request_trail_days', 730)))->limit(100000)->delete())
     ->dailyAt('03:50')
     ->name('request-trail:prune');
+
+// Pre-arrival e-mail to guests arriving soon (each property at 09:00 its own time; only hotels that switched it on).
+Schedule::command('emails:pre-arrival')
+    ->hourly()
+    ->name('emails:pre-arrival')
+    ->withoutOverlapping()
+    ->onOneServer();

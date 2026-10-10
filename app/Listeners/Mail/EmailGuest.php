@@ -5,12 +5,11 @@ namespace App\Listeners\Mail;
 use App\Domain\Mail\MailSettings;
 use App\Domain\Mail\ReservationMailer;
 use App\Domain\Reservations\Events\ReservationCancelled;
+use App\Domain\Reservations\Events\ReservationCheckedIn;
 use App\Domain\Reservations\Events\ReservationCheckedOut;
 use App\Domain\Reservations\Events\ReservationCreated;
 use App\Domain\Reservations\Events\ReservationModified;
-use App\Models\Property;
 use App\Models\Reservation;
-use Illuminate\Support\Facades\DB;
 use Throwable;
 
 /**
@@ -56,6 +55,13 @@ class EmailGuest
         }
     }
 
+    public function handleCheckedIn(ReservationCheckedIn $event): void
+    {
+        if ($this->wanted($event->reservation, true)) {
+            $this->run(fn () => $this->mailer->notify($event->reservation, 'check_in_welcome', by: $event->by?->id));
+        }
+    }
+
     public function handleCheckedOut(ReservationCheckedOut $event): void
     {
         if ($event->reservation->status === 'checked_out' && $this->wanted($event->reservation, true)) {
@@ -63,21 +69,9 @@ class EmailGuest
         }
     }
 
-    /** False for bookings that another flow e-mails, and for channel bookings unless the property wants them. */
     private function wanted(Reservation $r, bool $bookingEngineToo = false): bool
     {
-        $source = $r->source_id ? DB::table('booking_sources')->where('id', $r->source_id)->value('code') : null;
-        if ($source === 'booking_engine') {
-            // Only guests who were told about the booking hear about its end (not an unpaid hold that simply expired).
-            return $bookingEngineToo && \App\Models\EmailLog::query()->where('reservation_id', $r->id)->where('event', 'booking_confirmation')->where('status', '!=', 'failed')->exists();
-        }
-        if ($source === 'ota') {
-            $property = Property::query()->find($r->property_id);
-
-            return $property !== null && $this->settings->sendForChannels($property);
-        }
-
-        return true;
+        return $this->mailer->allowed($r, $bookingEngineToo);
     }
 
     private function run(callable $send): void

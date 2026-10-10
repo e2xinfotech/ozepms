@@ -6,6 +6,7 @@ import { t } from '@/lib/i18n';
 import type { BillingProps } from '../BillingSlot';
 import { billingApi, fmt, isPositive, submit, type InvoiceRow, type InvoicesData } from './shared';
 import { propertyApiUrl } from '@/lib/page';
+import { SendInvoiceDialog } from '@/components/property/SendInvoiceDialog';
 
 /** Tax invoices and credit notes of the reservation; issue an invoice, cancel one with a credit note. */
 export default function InvoiceList({ reservation, onChanged }: BillingProps) {
@@ -13,6 +14,7 @@ export default function InvoiceList({ reservation, onChanged }: BillingProps) {
     const [failed, setFailed] = useState<ApiError | null>(null);
     const [issuing, setIssuing] = useState(false);
     const [cancelling, setCancelling] = useState<InvoiceRow | null>(null);
+    const [emailing, setEmailing] = useState<InvoiceRow | null>(null);
 
     const load = useCallback(() => {
         setFailed(null);
@@ -50,6 +52,7 @@ export default function InvoiceList({ reservation, onChanged }: BillingProps) {
                             <td>{i.cancelled ? <Badge size="sm" status="cancelled">{t('billing.invoice.cancelled')}</Badge> : <Badge size="sm" status="active">{t('billing.invoice.valid')}</Badge>}</td>
                             <td className="col-actions"><RowMenu items={[
                                 { label: t('billing.invoice.view'), icon: 'printer', href: i.url },
+                                ...(data.can.manage ? [{ label: t('mailsettings.invoice_send'), icon: 'mail', onClick: () => setEmailing(i) }] : []),
                                 ...(data.can.manage && i.type === 'tax_invoice' && !i.cancelled ? [{ label: t('billing.invoice.cancel'), icon: 'circle-x', danger: true, onClick: () => setCancelling(i) }] : []),
                             ]} /></td>
                         </tr>
@@ -57,6 +60,7 @@ export default function InvoiceList({ reservation, onChanged }: BillingProps) {
                 </table></div>}
             {isPositive(data.pending_room_charges) && <p className="muted text-sm">{t('billing.invoice.pending_hint', { amount: fmt(data.pending_room_charges, reservation.currency) })}</p>}
             {issuing && <IssueModal reservationId={reservation.id} onClose={() => setIssuing(false)} onDone={() => { setIssuing(false); changed(); }} />}
+            {emailing && <SendInvoiceDialog invoiceId={emailing.id} number={emailing.number} onClose={() => setEmailing(null)} />}
             {cancelling && <CancelModal invoice={cancelling} onClose={() => setCancelling(null)} onDone={() => { setCancelling(null); changed(); }} />}
         </Card>
     );

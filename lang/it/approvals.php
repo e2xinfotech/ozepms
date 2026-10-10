@@ -58,6 +58,8 @@ return [
         'decided_subject' => ':type: :outcome',
         'decided_intro' => 'La tua richiesta «:summary» è stata: :outcome.',
         'note' => 'Nota: :note',
+        'submitted_subject' => 'Richiesta ricevuta: :type',
+        'submitted_intro' => 'Abbiamo ricevuto la tua richiesta «:summary». È in attesa di approvazione e riceverai un’e-mail non appena verrà decisa.',
     ],
     'credentials_missing' => 'Inserisci prima le credenziali del canale, poi approva.',
 ];

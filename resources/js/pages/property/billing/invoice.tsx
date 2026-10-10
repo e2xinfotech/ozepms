@@ -4,6 +4,7 @@ import { createPage } from '@/lib/boot';
 import { date, money } from '@/lib/format';
 import { t } from '@/lib/i18n';
 import { propertyUrl } from '@/lib/page';
+import { SendInvoiceDialog } from '@/components/property/SendInvoiceDialog';
 import { CancelModal } from '../reservations/_components/billing/InvoiceList';
 
 interface Party { name: string; legal_name?: string; address?: string[] | string | null; tax_no: string | null; state: string | null; state_code: string | null; phone?: string | null; email?: string | null; country?: string | null }
@@ -29,6 +30,7 @@ function InvoicePage({ invoice, reservation, can }: Props) {
     const cur = s.currency;
     const m = (v: string) => money(v, cur);
     const [cancelling, setCancelling] = useState(false);
+    const [emailing, setEmailing] = useState(false);
     const credit = s.type === 'credit_note';
     // Lines grouped by outlet (room, restaurant, bar …) with a subtotal each; one group prints as a plain list.
     const groups = s.lines.reduce<{ key: string; items: { l: Line; n: number }[] }[]>((acc, l, i) => {
@@ -56,6 +58,8 @@ function InvoicePage({ invoice, reservation, can }: Props) {
                     description={reservation ? t('billing.invoice.for_reservation', { ref: reservation.ref }) : undefined}
                     actions={<>
                         {can.cancel && !credit && !invoice.cancelled_at && <Button variant="danger-soft" icon="circle-x" onClick={() => setCancelling(true)}>{t('billing.invoice.cancel')}</Button>}
+                        {can.cancel && <Button variant="outline" icon="mail" onClick={() => setEmailing(true)}>{t('mailsettings.invoice_send')}</Button>}
+                        <LinkButton variant="outline" icon="file-down" href={propertyUrl(`/invoices/${invoice.id}/pdf`)}>{t('mailsettings.invoice_pdf')}</LinkButton>
                         <Button variant="primary" icon="printer" onClick={() => window.print()}>{t('billing.invoice.print')}</Button>
                     </>} />
                 {invoice.cancelled_at && <Alert tone="warn">{t('billing.invoice.cancelled_note', { notes: invoice.credit_notes.map((n) => n.number).join(', ') })}</Alert>}
@@ -157,6 +161,7 @@ function InvoicePage({ invoice, reservation, can }: Props) {
                     <span className="inv-sign">{t('billing.invoice.signatory')}</span>
                 </footer>
             </article>
+            {emailing && <SendInvoiceDialog invoiceId={invoice.id} number={invoice.number} onClose={() => setEmailing(false)} />}
             {cancelling && <CancelModal invoice={{ id: invoice.id, number: invoice.number }} onClose={() => setCancelling(false)} onDone={() => window.location.reload()} />}
             {reservation && <div className="no-print"><LinkButton variant="ghost" icon="arrow-left" href={propertyUrl(`/reservations/${reservation.id}?tab=payments`)}>{t('billing.invoice.back')}</LinkButton></div>}
         </div>

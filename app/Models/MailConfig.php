@@ -15,6 +15,6 @@ class MailConfig extends Model
 
     protected function casts(): array
     {
-        return ['password' => 'encrypted', 'events' => 'array', 'send_for_channels' => 'boolean', 'port' => 'integer'];
+        return ['password' => 'encrypted', 'events' => 'array', 'templates' => 'array', 'send_for_channels' => 'boolean', 'on_behalf' => 'boolean', 'pre_arrival_days' => 'integer', 'port' => 'integer'];
     }
 }
