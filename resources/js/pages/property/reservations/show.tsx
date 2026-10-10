@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Badge, Button, Card, Flag, Icon, KeyValue, LinkButton, PageHeader, Segmented, Select, toast } from '@/components/ui';
+import { ComposeEmailDialog } from '@/components/property/ComposeEmailDialog';
 import { createPage } from '@/lib/boot';
 import { date, dateTime, money } from '@/lib/format';
 import { http, type ApiError } from '@/lib/http';
@@ -23,6 +24,7 @@ function ReservationShow({ reservation, tab: initialTab }: Props) {
     const [r, setR] = useState(reservation);
     const [tab, setTabState] = useState<string>(TABS.includes(initialTab as typeof TABS[number]) ? initialTab : 'overview');
     const [dialog, setDialog] = useState<{ kind: DialogKind; room?: string } | null>(null);
+    const [emailOpen, setEmailOpen] = useState(false);
     const [billingModal, setBillingModal] = useState<'payment' | 'charge' | null>(null);
 
     const setTab = (k: string) => {
@@ -169,7 +171,7 @@ function ReservationShow({ reservation, tab: initialTab }: Props) {
                             {r.actions.confirm && <Button variant="outline" icon="check" onClick={() => setDialog({ kind: 'confirm' })}>{t('reservations.actions.confirm')}</Button>}
                             {r.actions.charges && hasBilling('AddChargeModal') && <Button variant="outline" icon="plus" onClick={() => setBillingModal('charge')}>{t('reservations.actions.add_extra_charge')}</Button>}
                             {r.actions.assign && <Button variant="outline" icon="arrow-left-right" onClick={() => setDialog({ kind: 'assign', room: firstRoom?.id })}>{t('reservations.actions.change_room')}</Button>}
-                            <LinkButton variant="outline" icon="mail" href={r.guest.email ? `mailto:${r.guest.email}?subject=${encodeURIComponent(r.ref)}` : undefined}>{t('reservations.actions.send_email')}</LinkButton>
+                            {r.actions.email && <Button variant="outline" icon="mail" disabled={!r.guest.email} onClick={() => setEmailOpen(true)}>{t('reservations.actions.send_email')}</Button>}
                             <Button variant="outline" icon="file-down" onClick={() => window.print()}>{t('reservations.actions.download_voucher')}</Button>
                             <Button variant="outline" icon="printer" onClick={() => setTab('payments')}>{t('reservations.actions.print_folio')}</Button>
                             <Button variant="outline" icon="sticky-note" onClick={() => setTab('notes')}>{t('reservations.actions.add_note')}</Button>
@@ -243,6 +245,7 @@ function ReservationShow({ reservation, tab: initialTab }: Props) {
             {tab === 'notes' && <NotesTab r={r} />}
             {tab === 'documents' && <DocumentsTab r={r} />}
 
+            {emailOpen && <ComposeEmailDialog open onClose={() => setEmailOpen(false)} url={propertyApiUrl(`/reservations/${r.id}/email`)} to={r.guest.email} withConfirmation subject={r.ref} />}
             <ReservationDialogs reservation={r} kind={dialog?.kind ?? null} roomId={dialog?.room} onClose={() => setDialog(null)} onDone={setR}
                 idTypes={ID_TYPES.map((v) => ({ value: v, label: t(`guests.id_types.${v}`) }))}
                 onAssign={(roomId) => setDialog({ kind: 'assign', room: roomId })} />

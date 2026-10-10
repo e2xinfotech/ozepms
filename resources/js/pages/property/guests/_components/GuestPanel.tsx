@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ComposeEmailDialog } from '@/components/property/ComposeEmailDialog';
 import { Badge, Button, Dropdown, EmptyState, Flag, Icon, Input, KeyValue, LinkButton, Select, SidePanel, Tabs, Textarea, toast } from '@/components/ui';
 import { date, dateTime, money, number } from '@/lib/format';
 import { http, type ApiError } from '@/lib/http';
@@ -15,6 +16,7 @@ export function GuestPanel({ id, can, onClose, onEdit }: {
     const [g, setG] = useState<GuestDetail | null>(null);
     const [failed, setFailed] = useState<ApiError | null>(null);
     const [tab, setTab] = useState('stays');
+    const [emailOpen, setEmailOpen] = useState(false);
     const [tagInput, setTagInput] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
 
@@ -116,13 +118,14 @@ export function GuestPanel({ id, can, onClose, onEdit }: {
                 <div className="action-grid">
                     {can.reserve && <LinkButton variant="outline" icon="plus" href={propertyUrl(`/reservations/new?guest=${g.id}`)}>{t('guests.quick.new_reservation')}</LinkButton>}
                     {can.folio && latest && <LinkButton variant="outline" icon="file-text" href={propertyUrl(`/reservations/${latest.id}?tab=payments`)}>{t('guests.quick.view_folio')}</LinkButton>}
-                    <LinkButton variant="outline" icon="mail" href={g.email ? `mailto:${g.email}` : undefined}>{t('guests.quick.send_email')}</LinkButton>
+                    {can.update && <Button variant="outline" icon="mail" disabled={!g.email} onClick={() => setEmailOpen(true)}>{t('guests.quick.send_email')}</Button>}
                     <Dropdown items={[
                         ...(can.update ? [{ label: t('guests.quick.edit'), icon: 'pencil', onClick: () => onEdit(g) }] : []),
                         ...(can.reservations ? [{ label: t('guests.view_all_stays'), icon: 'calendar-check', href: propertyUrl(`/reservations?guest=${g.id}`) }] : []),
                     ]} trigger={(toggle) => <Button variant="outline" iconRight="chevron-down" onClick={toggle}>{t('guests.quick.more')}</Button>} />
                 </div>
             </div>
+            {emailOpen && <ComposeEmailDialog open onClose={() => setEmailOpen(false)} url={propertyApiUrl(`/guests/${g.id}/email`)} to={g.email} withConfirmation={false} />}
         </SidePanel>
     );
 }

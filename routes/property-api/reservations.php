@@ -28,6 +28,7 @@ Route::get('/reservations/{reservation}/guest-register', [ReservationsController
 Route::middleware('can.do:reservations.update')->group(function () {
     Route::put('/reservations/{reservation}', [ReservationsController::class, 'update'])->name('reservations.update');
     Route::post('/reservations/{reservation}/confirm', [ReservationsController::class, 'confirm'])->name('reservations.confirm');
+    Route::post('/reservations/{reservation}/email', [\App\Http\Controllers\WebApi\Property\EmailComposeController::class, 'reservation'])->middleware('throttle:30,1')->name('reservations.email');
     Route::post('/reservations/{reservation}/assign', [ReservationsController::class, 'assign'])->name('reservations.assign');
 });
 Route::middleware('can.do:reservations.cancel')->group(function () {
@@ -46,6 +47,7 @@ Route::get('/guest-lookup', [GuestsController::class, 'lookup'])->middleware(['c
 Route::middleware('can.do:guests.update')->group(function () {
     Route::post('/guests', [GuestsController::class, 'store'])->name('guests.store');
     Route::put('/guests/{guest}', [GuestsController::class, 'update'])->name('guests.update');
+    Route::post('/guests/{guest}/email', [\App\Http\Controllers\WebApi\Property\EmailComposeController::class, 'guest'])->middleware('throttle:30,1')->name('guests.email');
     Route::put('/guests/{guest}/tags', [GuestsController::class, 'tags'])->name('guests.tags');
     Route::post('/guests/{guest}/notes', [GuestsController::class, 'note'])->name('guests.notes.store');
     Route::post('/guests/{guest}/documents', [GuestsController::class, 'upload'])->name('guests.documents.store');

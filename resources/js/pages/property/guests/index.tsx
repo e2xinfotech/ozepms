@@ -44,7 +44,6 @@ function GuestsPage({ list, filters, options, can }: Props) {
                     <RowMenu items={[
                         ...(can.reserve ? [{ label: t('guests.quick.new_reservation'), icon: 'plus', href: propertyUrl(`/reservations/new?guest=${g.id}`) }] : []),
                         ...(can.reservations ? [{ label: t('guests.view_all_stays'), icon: 'calendar-check', href: propertyUrl(`/reservations?guest=${g.id}`) }] : []),
-                        ...(g.email ? [{ label: t('guests.quick.send_email'), icon: 'mail', href: `mailto:${g.email}` }] : []),
                     ]} />
                 </span>
             ),

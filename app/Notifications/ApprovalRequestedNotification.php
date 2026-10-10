@@ -21,6 +21,11 @@ class ApprovalRequestedNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        return app(\App\Domain\Mail\MailSettings::class)->apply($this->build($notifiable), null);
+    }
+
+    private function build(object $notifiable): MailMessage
+    {
         return (new MailMessage)
             ->subject(__('approvals.mail.requested_subject', ['type' => __('approvals.types.'.$this->request->type)]))
             ->greeting(__('approvals.mail.greeting', ['name' => $notifiable->name]))

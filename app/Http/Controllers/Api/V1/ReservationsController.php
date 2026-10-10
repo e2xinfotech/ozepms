@@ -4,14 +4,13 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Domain\BookingEngine\BookingEngineService;
 use App\Domain\BookingEngine\BookingPresenter;
+use App\Domain\Mail\ReservationMailer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Booking\ApiBookRequest;
 use App\Models\Reservation;
-use App\Notifications\BookingReceivedNotification;
 use App\Support\PropertyContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Notification;
 use Throwable;
 
 /** /api/v1/reservations — create (same booking path as the booking page) and read by booking reference. */
@@ -28,9 +27,9 @@ class ReservationsController extends Controller
         $data['idempotency_key'] = $data['idempotency_key'] ?? $request->header('Idempotency-Key');
         $result = $this->engine->book($context->property(), $data);
         $r = $result['reservation'];
-        if (! $result['payment'] && $r->primaryGuest?->email) {
+        if (! $result['payment']) {
             try {
-                Notification::route('mail', $r->primaryGuest->email)->notify((new BookingReceivedNotification($r->fresh(), $this->presenter->confirmationUrl($r)))->locale(app()->getLocale()));
+                app(ReservationMailer::class)->notify($r->fresh(), 'booking_confirmation');
             } catch (Throwable $e) {
                 report($e);
             }

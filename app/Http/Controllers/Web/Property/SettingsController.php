@@ -19,6 +19,7 @@ class SettingsController extends Controller
         return Page::render('property/settings/index', [
             'property' => (new PropertyResource($context->property()))->resolve($request),
             'booking_engine' => $engine->settings($context->property()) + $engine->status($context->property()),
+            'email' => app(\App\Domain\Mail\MailSettings::class)->view($context->property()),
             'age_bands' => app(\App\Domain\Property\AgeBandService::class)->bands($context->id()),
             'lookups' => Lookups::propertyForm(),
             'can_update' => $access->allows($request->user(), 'property.update'),

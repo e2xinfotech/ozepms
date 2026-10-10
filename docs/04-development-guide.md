@@ -203,7 +203,7 @@ Until a dependency is merged, code against the signature and cover it with a tes
 ## 8. Translations
 
 Add keys to `lang/en/<module>.php` first, then the same keys to `fr`, `it`, `de`. All groups in
-`lang/en` are sent to the browser automatically except `validation, mail, passwords, pagination`.
+`lang/en` are sent to the browser automatically except `validation, mail, emails, passwords, pagination`.
 In React: `t('rooms.add_room_type')`; in PHP: `__('rooms.add_room_type')`.
 
 ## Input rules (everything users send)

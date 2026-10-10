@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { ComposeEmailDialog } from '@/components/property/ComposeEmailDialog';
 import { Badge, Button, Dropdown, EmptyState, Flag, KeyValue, LinkButton, SidePanel, Tabs, type MenuEntry } from '@/components/ui';
 import { date } from '@/lib/format';
 import { http, type ApiError } from '@/lib/http';
@@ -15,6 +16,7 @@ export function ReservationPanel({ id, onClose, onChanged }: { id: string; onClo
     const [r, setR] = useState<ReservationDetail | null>(null);
     const [failed, setFailed] = useState<ApiError | null>(null);
     const [tab, setTab] = useState('overview');
+    const [emailOpen, setEmailOpen] = useState(false);
     const [dialog, setDialog] = useState<{ kind: DialogKind; room?: string } | null>(null);
 
     const load = useCallback(() => {
@@ -113,11 +115,12 @@ export function ReservationPanel({ id, onClose, onChanged }: { id: string; onClo
                     <LinkButton variant="outline" icon="file-text" href={reservationUrl(r.id, 'payments')}>{t('reservations.actions.view_folio')}</LinkButton>
                     {r.actions.edit && <LinkButton variant="outline" icon="pencil" href={propertyUrl(`/reservations/${r.id}/edit`)}>{t('reservations.actions.modify')}</LinkButton>}
                     {r.actions.cancel && <Button variant="danger-soft" icon="x" onClick={() => setDialog({ kind: 'cancel' })}>{t('reservations.actions.cancel')}</Button>}
-                    <LinkButton variant="outline" icon="mail" href={r.guest.email ? `mailto:${r.guest.email}?subject=${encodeURIComponent(r.ref)}` : undefined} aria-disabled={!r.guest.email}>{t('reservations.actions.send_email')}</LinkButton>
+                    {r.actions.email && <Button variant="outline" icon="mail" disabled={!r.guest.email} onClick={() => setEmailOpen(true)}>{t('reservations.actions.send_email')}</Button>}
                     <LinkButton variant="outline" icon="printer" href={`${reservationUrl(r.id)}?print=1`} target="_blank" rel="noopener">{t('reservations.actions.print_confirmation')}</LinkButton>
                     <Dropdown align="right" items={more} trigger={(toggle) => <Button variant="outline" iconRight="chevron-down" onClick={toggle}>{t('reservations.actions.more')}</Button>} />
                 </div>
             </div>
+            {emailOpen && <ComposeEmailDialog open onClose={() => setEmailOpen(false)} url={propertyApiUrl(`/reservations/${r.id}/email`)} to={r.guest.email} withConfirmation subject={r.ref} />}
             <ReservationDialogs reservation={r} kind={dialog?.kind ?? null} roomId={dialog?.room} onClose={() => setDialog(null)} onDone={changed}
                 onAssign={(roomId) => setDialog({ kind: 'assign', room: roomId })} />
         </SidePanel>

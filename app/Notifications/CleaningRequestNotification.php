@@ -22,6 +22,11 @@ class CleaningRequestNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        return app(\App\Domain\Mail\MailSettings::class)->apply($this->build($notifiable), $this->property);
+    }
+
+    private function build(object $notifiable): MailMessage
+    {
         $names = array_map(fn ($r) => $r['room'], $this->rooms);
         $count = count($names);
         $mail = (new MailMessage)

@@ -22,6 +22,11 @@ class PasswordLinkNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        return app(\App\Domain\Mail\MailSettings::class)->apply($this->build($notifiable), null);
+    }
+
+    private function build(object $notifiable): MailMessage
+    {
         $url = route('password.reset', ['token' => $this->token, 'email' => $notifiable->getEmailForPasswordReset()]);
         $minutes = config('auth.passwords.users.expire');
         $prefix = $this->isInvite ? 'mail.invite' : 'mail.reset';

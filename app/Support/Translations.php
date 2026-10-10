@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Cache;
 final class Translations
 {
     /** Server-only groups that the browser never needs. */
-    private const SERVER_ONLY = ['validation', 'mail', 'passwords', 'pagination'];
+    private const SERVER_ONLY = ['validation', 'mail', 'emails', 'passwords', 'pagination'];
 
     /** @param  list<string>|null  $only  limit to these groups (public pages get only what they need) */
     public static function forClient(?array $only = null): array

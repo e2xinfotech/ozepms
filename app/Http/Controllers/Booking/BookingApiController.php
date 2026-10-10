@@ -9,12 +9,11 @@ use App\Http\Controllers\Booking\Concerns\ResolvesBookingProperty;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Booking\BookRequest;
 use App\Http\Requests\Booking\SearchRequest;
+use App\Domain\Mail\ReservationMailer;
 use App\Models\Payment;
 use App\Models\Reservation;
-use App\Notifications\BookingReceivedNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Notification;
 use Throwable;
 
 /** Public booking engine JSON endpoints (no login, rate limited, CSRF-protected). */
@@ -83,12 +82,8 @@ class BookingApiController extends Controller
 
     private function notify(Reservation $reservation): void
     {
-        $email = $reservation->primaryGuest?->email;
-        if (! $email) {
-            return;
-        }
         try {
-            Notification::route('mail', $email)->notify((new BookingReceivedNotification($reservation->fresh(), $this->presenter->confirmationUrl($reservation)))->locale(app()->getLocale()));
+            app(ReservationMailer::class)->notify($reservation->fresh(), 'booking_confirmation');
         } catch (Throwable $e) {
             report($e);
         }

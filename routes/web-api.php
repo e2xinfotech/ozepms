@@ -38,6 +38,12 @@ Route::middleware('auth')->group(function () {
             Route::get('/properties/{code}', [WebApi\Property\PropertyController::class, 'show'])->middleware('can.do:property.view')->name('properties.show');
             Route::put('/settings', [WebApi\Property\PropertyController::class, 'update'])->middleware('can.do:property.update')->name('settings.update');
             Route::put('/settings/age-bands', WebApi\Property\AgeBandsController::class)->middleware('can.do:property.update')->name('settings.age-bands');
+            Route::middleware('can.do:property.update')->group(function () {
+                Route::put('/settings/email', [WebApi\Property\EmailSettingsController::class, 'update'])->name('settings.email');
+                Route::post('/settings/email/test', [WebApi\Property\EmailSettingsController::class, 'test'])->middleware('throttle:10,1')->name('settings.email.test');
+                Route::get('/settings/email/logs', [WebApi\Property\EmailSettingsController::class, 'logs'])->name('settings.email.logs');
+                Route::post('/settings/email/logs/{log}/resend', [WebApi\Property\EmailSettingsController::class, 'resend'])->middleware('throttle:20,1')->name('settings.email.resend');
+            });
             Route::put('/settings/booking-engine', WebApi\Property\BookingEngineSettingsController::class)->middleware('can.do:property.update')->name('settings.booking-engine');
             Route::middleware('can.do:property.update')->group(function () {
                 Route::get('/settings/api-keys', [WebApi\Property\ApiKeysController::class, 'index'])->name('settings.api-keys.index');
@@ -100,6 +106,11 @@ Route::middleware('auth')->group(function () {
             Route::middleware('can.do:platform.plans.manage')->group(function () {
                 Route::post('/plans', [WebApi\Admin\PlansController::class, 'store'])->name('plans.store');
                 Route::put('/plans/{plan}', [WebApi\Admin\PlansController::class, 'update'])->name('plans.update');
+            });
+
+            Route::middleware('can.do:platform.settings.manage')->group(function () {
+                Route::put('/email', [WebApi\Admin\EmailSettingsController::class, 'update'])->name('email.update');
+                Route::post('/email/test', [WebApi\Admin\EmailSettingsController::class, 'test'])->middleware('throttle:10,1')->name('email.test');
             });
 
             Route::post('/system/errors/{event}/resolve', [WebApi\Admin\SystemController::class, 'resolve'])

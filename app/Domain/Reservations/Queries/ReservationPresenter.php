@@ -286,6 +286,7 @@ class ReservationPresenter
 
         return [
             'edit' => $open && $can('reservations.update'),
+            'email' => $can('reservations.update'),
             'cancel' => in_array($r->status, ['inquiry', 'hold', 'pending', 'confirmed'], true) && $can('reservations.cancel'),
             'confirm' => in_array($r->status, ['inquiry', 'hold', 'pending'], true) && $can('reservations.update'),
             'no_show' => in_array($r->status, ['pending', 'confirmed'], true) && $arrived && $can('reservations.cancel'),

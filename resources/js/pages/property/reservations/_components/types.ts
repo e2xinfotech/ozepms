@@ -67,7 +67,7 @@ export interface GuestProfile {
 }
 
 export interface ReservationActions {
-    edit: boolean; cancel: boolean; confirm: boolean; no_show: boolean; check_in: boolean; check_out: boolean; override_balance: boolean;
+    edit: boolean; email: boolean; cancel: boolean; confirm: boolean; no_show: boolean; check_in: boolean; check_out: boolean; override_balance: boolean;
     assign: boolean; note: boolean; billing: boolean; payments: boolean; charges: boolean;
 }
 

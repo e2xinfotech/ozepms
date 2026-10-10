@@ -21,6 +21,11 @@ class ApprovalDecidedNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        return app(\App\Domain\Mail\MailSettings::class)->apply($this->build($notifiable), null);
+    }
+
+    private function build(object $notifiable): MailMessage
+    {
         $outcome = __('approvals.status.'.$this->request->status);
         $mail = (new MailMessage)
             ->subject(__('approvals.mail.decided_subject', ['type' => __('approvals.types.'.$this->request->type), 'outcome' => $outcome]))

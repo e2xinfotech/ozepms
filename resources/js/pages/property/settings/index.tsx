@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Alert, Button, PageHeader, toast } from '@/components/ui';
 import { ApiKeysCard } from '@/components/property/ApiKeysCard';
 import { AgeBandsCard, type AgeBands } from '@/components/property/AgeBandsCard';
+import { EmailCard, type EmailSettings } from '@/components/property/EmailCard';
 import { BookingEngineCard, type BookingEngineSettings } from '@/components/property/BookingEngineCard';
 import { PropertyForm, propertyPayload, propertyValues } from '@/components/property/PropertyForm';
 import { PropertyMedia } from '@/components/property/PropertyMedia';
@@ -11,10 +12,10 @@ import { http, type ApiError } from '@/lib/http';
 import { t } from '@/lib/i18n';
 import { propertyApiUrl } from '@/lib/page';
 
-interface Props { property: PropertyDetail; lookups: PropertyLookups; can_update: boolean; booking_engine: BookingEngineSettings; age_bands: AgeBands }
+interface Props { property: PropertyDetail; lookups: PropertyLookups; can_update: boolean; booking_engine: BookingEngineSettings; email: EmailSettings; age_bands: AgeBands }
 
 /** Property Configuration of the current property. */
-function SettingsPage({ property, lookups, can_update, booking_engine, age_bands }: Props) {
+function SettingsPage({ property, lookups, can_update, booking_engine, email, age_bands }: Props) {
     const initial = propertyValues(property);
     const [values, setValues] = useState(initial);
     const [saved, setSaved] = useState(initial);
@@ -48,6 +49,7 @@ function SettingsPage({ property, lookups, can_update, booking_engine, age_bands
                 media={<PropertyMedia endpoint={propertyApiUrl('/settings/media')} logo={property.logo} image={property.image} disabled={!can_update} />} />
             <div style={{ marginTop: 20 }}><AgeBandsCard initial={age_bands} disabled={!can_update} /></div>
             <div style={{ marginTop: 20 }}><BookingEngineCard initial={booking_engine} disabled={!can_update} /></div>
+            <div style={{ marginTop: 20 }}><EmailCard initial={email} disabled={!can_update} url={propertyApiUrl('/settings/email')} scope="property" /></div>
             <div style={{ marginTop: 20 }}><ApiKeysCard disabled={!can_update} /></div>
             {can_update && (
                 <div className="form-footer">
