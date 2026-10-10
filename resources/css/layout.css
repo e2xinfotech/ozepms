@@ -11,7 +11,7 @@
 }
 .sidebar-logo { padding: 2px 10px 22px; color: var(--sidebar-text-strong); }
 .logo-word { font-size: 34px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
-.logo-word .logo-accent { color: var(--brand-500); }
+.logo-word .logo-accent { color: #2fd6e8; }
 .logo-tag { margin-top: 4px; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sidebar-tag); font-weight: var(--weight-medium); }
 .nav { display: flex; flex-direction: column; gap: 4px; }
 .nav-item {
@@ -20,7 +20,7 @@
 }
 .nav-item svg { flex: none; opacity: .92; }
 .nav-item:hover { background: var(--sidebar-hover); color: var(--sidebar-text-strong); }
-.nav-item.active { background: var(--sidebar-active); color: var(--on-brand); box-shadow: 0 6px 16px rgba(17, 102, 241, .35); }
+.nav-item.active { background: var(--sidebar-active); color: var(--on-brand); box-shadow: 0 6px 16px rgba(0, 40, 90, .25); }
 .nav-item.disabled { opacity: .42; cursor: not-allowed; }
 .nav-item.disabled:hover { background: none; color: var(--sidebar-text); }
 .nav-soon { margin-left: auto; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; padding: 2px 6px; border-radius: var(--radius-pill); background: rgba(255,255,255,.08); }
@@ -75,6 +75,9 @@
     /* darker on the left so the headline stays readable over any photo */
     background-image: linear-gradient(90deg, var(--auth-hero-shade) 0%, var(--auth-hero-shade-soft) 48%, transparent 100%), var(--auth-image, none); }
 .auth-hero > * { position: relative; z-index: 1; }
+/* The supplied artwork carries its own logo, headline, features and figures, so it is shown as is. */
+.auth-hero.art { padding: 0; background: var(--auth-hero-mid) var(--auth-image) left top / cover no-repeat; }
+.auth-hero.art::after { display: none; }
 .auth-hero h2 { color: var(--on-brand); font-size: 52px; line-height: 1.08; font-weight: var(--weight-bold); letter-spacing: -0.03em; margin-top: 48px; }
 .auth-hero p.lead { margin-top: 18px; font-size: 20px; color: rgba(255,255,255,.88); max-width: 560px; }
 .auth-features { display: grid; grid-template-columns: repeat(2, minmax(0, 260px)); gap: 18px 40px; margin-top: 36px; }

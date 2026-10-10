@@ -21,11 +21,11 @@
     --leading: 1.45;
 
     /* Brand */
-    --brand-600: #1166f1;
-    --brand-700: #0b55d4;
-    --brand-500: #3a82f6;
-    --brand-100: #e6efff;
-    --brand-50: #f2f6ff;
+    --brand-600: #0670cc;
+    --brand-700: #0458a8;
+    --brand-500: #1e9be3;
+    --brand-100: #e1f2fb;
+    --brand-50: #f0f9fd;
 
     /* Ink & surfaces */
     --ink: #0d1b3e;
@@ -41,17 +41,17 @@
     --selected: #eaf2ff;
 
     /* Sidebar */
-    --sidebar-bg: #0c1f47;
-    --sidebar-bg-2: #0a1a3c;
-    --sidebar-text: #c9d5ec;
+    --sidebar-bg: #0160b6;
+    --sidebar-bg-2: #0a93b8;
+    --sidebar-text: #e3f3fb;
     --sidebar-text-strong: #ffffff;
-    --sidebar-active: var(--brand-600);
-    --sidebar-hover: rgba(255, 255, 255, 0.06);
+    --sidebar-active: rgba(255, 255, 255, 0.2);
+    --sidebar-hover: rgba(255, 255, 255, 0.12);
     --sidebar-width: 236px;
 
     /* Status tones: background / text */
     --green-bg: #e3f6ea;   --green-fg: #157a3e;   --green-solid: #22a55a;
-    --blue-bg: #e2edff;    --blue-fg: #1857c9;    --blue-solid: #2f7cf6;
+    --blue-bg: #e2edff;    --blue-fg: #1857c9;    --blue-solid: #1e8fe0;
     --amber-bg: #fff3d4;   --amber-fg: #9a6200;   --amber-solid: #f4b400;
     --red-bg: #ffe6e6;     --red-fg: #c42b1c;     --red-solid: #e5352b;
     --orange-bg: #ffecdc;  --orange-fg: #b8520a;  --orange-solid: #f07c1b;
@@ -90,7 +90,7 @@
     --shadow-sm: 0 1px 2px rgba(13, 27, 62, 0.05);
     --shadow: 0 2px 8px rgba(13, 27, 62, 0.06);
     --shadow-lg: 0 18px 48px rgba(13, 27, 62, 0.16);
-    --ring: 0 0 0 3px rgba(17, 102, 241, 0.18);
+    --ring: 0 0 0 3px rgba(6, 112, 204, 0.2);
 
     /* Small fixed colours used by components (kept here so no component holds a raw value) */
     --on-brand: #ffffff;
@@ -107,10 +107,10 @@
     --toast-error: #fca5a5;
     --tooltip-bg: #111827;
     --star: #f5b301;
-    --sidebar-tag: #6ea1ff;
-    --auth-hero-from: #0b2a6b;
-    --auth-hero-mid: #0c1f47;
-    --auth-hero-to: #071433;
+    --sidebar-tag: #b9f2f7;
+    --auth-hero-from: #015eb5;
+    --auth-hero-mid: #068cd3;
+    --auth-hero-to: #0aa5c0;
     --chart-bar: #bcd5ff;
     --chart-track: #edf1f7;
 

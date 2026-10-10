@@ -15,7 +15,8 @@ export function AuthLayout({ shell, children }: { shell: ShellData; children: Re
     const current = document.documentElement.lang.slice(0, 2);
     return (
         <div className="auth">
-            <section className="auth-hero" style={shell.brand.auth_image ? { ['--auth-image' as string]: `url(${shell.brand.auth_image})` } : undefined}>
+            <section className={`auth-hero${shell.brand.auth_image ? ' art' : ''}`} role={shell.brand.auth_image ? 'img' : undefined} aria-label={shell.brand.auth_image ? t('auth.hero.title_1') + ' ' + t('auth.hero.title_2') : undefined} style={shell.brand.auth_image ? { ['--auth-image' as string]: `url(${shell.brand.auth_image})` } : undefined}>
+                {!shell.brand.auth_image && <>
                 <div>
                     <Logo />
                     <h2>{t('auth.hero.title_1')}<br />{t('auth.hero.title_2')}</h2>
@@ -29,6 +30,7 @@ export function AuthLayout({ shell, children }: { shell: ShellData; children: Re
                     <div className="auth-stat"><b>{t('auth.hero.stat_2_value')}</b>{t('auth.hero.stat_2_label')}</div>
                     <div className="auth-stat"><b>{t('auth.hero.stat_3_value')}</b>{t('auth.hero.stat_3_label')}</div>
                 </div>
+                </>}
             </section>
             <section className="auth-side">
                 <div className="lang">
